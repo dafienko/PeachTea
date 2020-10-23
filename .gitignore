@@ -8,3 +8,4 @@
 !*.dll
 !*.lib
 !*.exe
+!*.vcxproj
