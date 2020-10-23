@@ -6,7 +6,33 @@ HDC hMainDC;
 HGLRC hMainRC;
 HWND hMainWnd = NULL;
 
-int mainProgramLoop();
+void(*renderCallback)(void);
+
+int mainProgramLoop(void(*renderCallback)(void));
+
+void update_mouse_pos() {
+	POINT p = { 0 };
+	GetCursorPos(&p);
+
+	mousePos = (vec2i){ p.x, p.y };
+}
+
+void update_main_window_pos() {
+	static RECT rect;
+
+	vec2i clientSize = { 0 };
+	GetClientRect(hMainWnd, &rect);
+	clientSize = (vec2i){ rect.right, rect.bottom };
+
+	vec2i windowSize = { 0 };
+	GetWindowRect(hMainWnd, &rect);
+	windowSize = (vec2i){ rect.right - rect.left, rect.bottom - rect.top };
+
+	int leftBorderSize = (windowSize.x - clientSize.x) / 2;
+	int topBorderSize = windowSize.y + -clientSize.y + -leftBorderSize;
+
+	mainWindowPosition = (vec2i){ rect.left + leftBorderSize, rect.top + topBorderSize };
+}
 
 void PT_INIT(vec2i screenSize) {
 	screensize_init(screenSize);
@@ -15,13 +41,8 @@ void PT_INIT(vec2i screenSize) {
 	initFT();
 
 	renderer_init();
-}
 
-void update_mouse_pos() {
-	POINT p = { 0 };
-	GetCursorPos(&p);
-
-	mousePos = (vec2i){ p.x, p.y };
+	update_main_window_pos();
 }
 
 void PT_UPDATE() {
@@ -50,29 +71,36 @@ void PT_GET_MAIN_HWND() {
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	static PAINTSTRUCT ps;
-
 	switch (uMsg) {
 	case WM_SIZE:
 		;
-		vec2i size = (vec2i){ LOWORD(lParam), HIWORD(lParam) };
-		PT_RESIZE(size);
-		renderer_resized();
+		if (hWnd == hMainWnd) {
+			vec2i size = (vec2i){ LOWORD(lParam), HIWORD(lParam) };
+			PT_RESIZE(size);
+			renderer_resized();
+			render(renderCallback);
+		}
 
-		render();
 		return 0;
-
 	case WM_CLOSE:
-		PostQuitMessage(69);
-		return 0;
+		if (hWnd == hMainWnd) {
+			PostQuitMessage(69);
+		}
+		break;
+	case WM_MOVING:
+		if (hWnd == hMainWnd) {
+			update_main_window_pos();
+		}
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-int mainProgramLoop() {
+int mainProgramLoop(void(*renderCB)(void)) {
 	static MSG msg;
 	int exitCode = 0;
+
+	renderCallback = renderCB;
 
 	while (1) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -86,7 +114,7 @@ int mainProgramLoop() {
 		}
 
 		PT_UPDATE();
-		render();
+		render(renderCallback);
 	}
 
 
@@ -97,8 +125,8 @@ int mainProgramLoop() {
 	return exitCode;
 }
 
-int PT_RUN() {
-	return mainProgramLoop();
+int PT_RUN(void(*renderCallback)(void)) {
+	return mainProgramLoop(renderCallback);
 }
 
 

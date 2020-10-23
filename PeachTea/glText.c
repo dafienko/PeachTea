@@ -64,6 +64,7 @@ char_set create_char_set(const char* filename, const int textSize) {
 	if (f == NULL) {
 		fatal_windows_error(ee, L"LOL file failed to open");
 	}
+	fclose(f);
 
 	FT_Error e = FT_New_Face(ftLib, filename, 0, &face);
 	if (e) {
@@ -73,7 +74,6 @@ char_set create_char_set(const char* filename, const int textSize) {
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	FT_Set_Pixel_Sizes(face, 0, textSize);
-
 
 	char_set cs = { 0 };
 	cs.advance = calloc(128, sizeof(int));

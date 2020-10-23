@@ -2,42 +2,21 @@
 #define PT_GUI_UTIL
 
 #include "vectorMath.h"
-#include "bool.h"
-
 #include "Instance.h"
-#include "vectorMath.h"
 
 unsigned int* qVAO;
 unsigned int* qVBO;
+unsigned int frameProg;
 
-typedef struct _PT_GUI_OBJ {
-	Instance* instance;
-	
-	vec2i pos_px;
-	vec2f pos_percent;
-	vec2i scale_px;
-	vec2f scale_percent;
-	BOOL visible;
-
-	int borderWidth;
-	float borderTransparancy;
-	vec3i border_color;
-
-	float transparency;
-	vec3i background_color;
-	
-	void (*onMouseEnter)(void);
-	void (*onMouseLeave)(void);
-
-	void (*render)(vec2i screenSize); // should never actually be called by user, although its there just in case
-	void* typeData; // varies based on the gui object type, contains data for that specific type. Half-assed encapsulation 
-} PT_GUI_OBJ;
+typedef struct {
+	vec2i absolutePos;
+	vec2i absoluteSize;
+} PT_GUI_DIMS;
 
 void init_gui_util();
 
-Instance* new_frame();
-
-void render_default_obj(PT_GUI_OBJ* obj);
+vec2i scale_and_offset_to_screen(vec2f scale, vec2i offset, vec2i parentSize);
+void render_gui_instance(Instance* instance, PT_GUI_DIMS parentDims);
 
 
 #endif

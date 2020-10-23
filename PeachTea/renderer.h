@@ -3,6 +3,6 @@
 
 void renderer_resized();
 void renderer_init();
-void render();
+void render(void*(renderCallback)(void));
 
 #endif
