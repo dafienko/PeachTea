@@ -4,3 +4,7 @@
 !*.c
 !*.h
 !*.cpp
+!*.sln
+!*.dll
+!*.lib
+!*.exe

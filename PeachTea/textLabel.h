@@ -36,7 +36,7 @@ typedef struct {
 	char* text;
 } PT_TEXTLABEL;
 
-Instance* PT_TEXLABEL_new();
+Instance* PT_TEXTLABEL_new();
 void PT_TEXTLABEL_destroy(void* textlabel);
 
 PT_GUI_DIMS PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_GUI_DIMS parentDims);

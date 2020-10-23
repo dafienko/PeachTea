@@ -3,7 +3,7 @@
 #include "guiObj.h"
 #include "guiUtil.h"
 
-Instance* PT_TEXLABEL_new() {
+Instance* PT_TEXTLABEL_new() {
 	PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)calloc(1, sizeof(PT_TEXTLABEL));
 	
 	Instance* inst = PT_GUI_OBJ_new();
