@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{c4958b45-a5fd-475c-affe-aaac19e0c759}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\winUtil">
+      <UniqueIdentifier>{53ee642b-70ff-4c5c-b780-52cafa773392}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glExtensions">
+      <UniqueIdentifier>{2cae02ab-a9ae-4b2f-85bb-84bd426b1f59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\glExtensions">
+      <UniqueIdentifier>{bf67b6f2-4980-4bf0-9070-7b9bb5c9d426}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glUtil">
+      <UniqueIdentifier>{c7586734-a961-4ea1-8d13-7530524b6901}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\glUtil">
+      <UniqueIdentifier>{eaa44c91-b192-49e0-a8bf-05d1e782aee2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\assets">
+      <UniqueIdentifier>{b8fcc81f-36ea-425c-ba8f-fbc8c8f03e8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\assets">
+      <UniqueIdentifier>{6a0fb64f-9f16-4d77-8fd2-82d46cc25270}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\math">
+      <UniqueIdentifier>{fa6e2195-8b2d-4035-a001-c92be85397ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\math">
+      <UniqueIdentifier>{5fc86fa1-c489-403a-8e75-3dbd04979b95}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PeachTea.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="errorUtil.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="lightWindows.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="glExtensions.h">
+      <Filter>Header Files\glExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="glext.h">
+      <Filter>Header Files\glExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="wglext.h">
+      <Filter>Header Files\glExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="glText.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="shaders.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="fileUtil.h">
+      <Filter>Header Files\assets</Filter>
+    </ClInclude>
+    <ClInclude Include="matrixMath.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="vectorMath.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="guiUtil.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="bool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Instance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="screenSize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mouse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imageLoader.h">
+      <Filter>Header Files\assets</Filter>
+    </ClInclude>
+    <ClInclude Include="textLabel.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="uiContainer.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenUI.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="guiObj.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="errorUtil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WinUtil.c">
+      <Filter>Source Files\winUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="glExtensions.c">
+      <Filter>Source Files\glExtensions</Filter>
+    </ClCompile>
+    <ClCompile Include="glText.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="shaders.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="assets.c">
+      <Filter>Source Files\assets</Filter>
+    </ClCompile>
+    <ClCompile Include="floatVectorMath.c">
+      <Filter>Source Files\math</Filter>
+    </ClCompile>
+    <ClCompile Include="intVectorMath.c">
+      <Filter>Source Files\math</Filter>
+    </ClCompile>
+    <ClCompile Include="matrixMath.c">
+      <Filter>Source Files\math</Filter>
+    </ClCompile>
+    <ClCompile Include="guiUtil.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="peachTea.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Instance.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="screenSize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mouse.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imageLoader.c">
+      <Filter>Source Files\assets</Filter>
+    </ClCompile>
+    <ClCompile Include="pngReader.c">
+      <Filter>Source Files\assets</Filter>
+    </ClCompile>
+    <ClCompile Include="textlabel.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenUI.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="guiObj.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
