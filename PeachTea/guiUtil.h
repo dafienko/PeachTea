@@ -8,6 +8,24 @@ unsigned int* qVAO;
 unsigned int* qVBO;
 unsigned int frameProg;
 
+typedef enum {
+	PT_H_ALIGNMENT_LEFT,
+	PT_H_ALIGNMENT_CENTER,
+	PT_H_ALIGNMENT_RIGHT
+} TEXT_HORIZONTAL_ALIGNMENT;
+
+typedef enum {
+	PT_V_ALIGNMENT_TOP,
+	PT_V_ALIGNMENT_CENTER,
+	PT_V_ALIGNMENT_BOTTOM
+} TEXT_VERTICAL_ALIGNMENT;
+
+typedef enum {
+	PT_FONT_COMIC,
+	PT_FONT_CONSOLA,
+	PT_FONT_TIMES
+} PT_FONT;
+
 typedef struct {
 	vec2i absolutePos;
 	vec2i absoluteSize;

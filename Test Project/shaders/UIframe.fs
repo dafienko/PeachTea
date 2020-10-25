@@ -19,30 +19,28 @@ void main() {
 	float xAlpha = min(pos.x, abs(1.0 - pos.x));
 	float yAlpha = min(pos.y, abs(1.0 - pos.y));
 	
-	//FragColor = vec4(1, 0, 0, 1);
-	
 	float dist = length(posPx - mousePos);
 	
 	
 	if (xAlpha < frameBorderComposition.x || yAlpha < frameBorderComposition.y) {
-		float alpha = clamp(pow(dist / 210.0, 2), 0, 1);
-		vec3 mouseColor = vec3(1.0, 1.0, 1.0);
+		float alpha = 1 - clamp(pow(dist / 50.0, 3), 0, 1);
+		vec3 c = mix(color, borderColor, alpha);
 		
-		vec3 c = mix(mouseColor, borderColor, alpha);
-		
-		FragColor = vec4(c, 1 - borderTransparency);
+		if (alpha > .1) {
+			FragColor = vec4(c, 1 - borderTransparency);
+		} else {
+			FragColor = vec4(0, 0, 0, 0);
+		}
 	} else { // not on border
-		float alpha = 1;
+		float alpha = 0;
 		
-		if (mouseInFrame) {
-			alpha = clamp(pow(dist / 650.0, 1), 0, 1);
+		if (mouseInFrame > 0) {
+			alpha = max((1 - clamp(pow(dist / 75.0, 2), 0, 1)), .4);
 		}
 		
-		vec3 mouseColor = vec3(0, 35/510, .25);
+		vec3 mouseColor = vec3(1, 1, 1);
 		
-		
-		
-		vec3 c = mix(mouseColor, color, alpha);
+		vec3 c = mix(color, mouseColor, alpha);
 		
 		FragColor = vec4(c, 1 - transparency);
 	}

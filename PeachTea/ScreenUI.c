@@ -2,6 +2,7 @@
 
 Instance* PT_SCREEN_UI_new() {
 	Instance* instance = new_instance();
+	instance->instanceType = IT_SCREEN_UI;
 
 	return instance;
 }

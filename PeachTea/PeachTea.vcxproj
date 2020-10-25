@@ -157,6 +157,7 @@
     <ClInclude Include="bool.h" />
     <ClInclude Include="errorUtil.h" />
     <ClInclude Include="fileUtil.h" />
+    <ClInclude Include="fontHandler.h" />
     <ClInclude Include="glext.h" />
     <ClInclude Include="glExtensions.h" />
     <ClInclude Include="glText.h" />
@@ -182,6 +183,7 @@
     <ClCompile Include="assets.c" />
     <ClCompile Include="errorUtil.c" />
     <ClCompile Include="floatVectorMath.c" />
+    <ClCompile Include="fontHandler.c" />
     <ClCompile Include="glExtensions.c" />
     <ClCompile Include="glText.c" />
     <ClCompile Include="guiObj.c" />

@@ -26,17 +26,15 @@ void set_instance_parent(Instance* i, Instance* newParent) {
 	i->parent = newParent;
 
 	if (newParent != NULL) { // add instance to new parent children array
-		int numChildren = newParent->numChildren;
-		int currentChildrenArraySize = newParent->childrenArraySize;
-		numChildren++;
-		newParent->numChildren = numChildren;
 
-		if (numChildren >= currentChildrenArraySize) { // expand children array in case the current one isn't big enough
-			currentChildrenArraySize *= 2;
-			newParent->children = realloc(newParent->children, currentChildrenArraySize * sizeof(Instance*));
+		if (newParent->numChildren + 1 > newParent->childrenArraySize) { // expand children array in case the current one isn't big enough
+			newParent->childrenArraySize *= 2;
+			newParent->children = realloc(newParent->children, newParent->childrenArraySize * sizeof(Instance*));
 		}
 
-		*(newParent->children + numChildren - 1) = i;
+		*(newParent->children + newParent->numChildren) = i;
+
+		newParent->numChildren++;
 	}
 }
 

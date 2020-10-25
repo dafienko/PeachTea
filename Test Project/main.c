@@ -7,14 +7,10 @@
 
 #pragma comment(lib, "dwmapi")
 
-char_set cs;
+Instance* screenUI;
 
-Instance* guiObj;
-Instance* guiObj2;
-
+const int default_padding = 5;
 vec3i accentColor = { 0 };
-
-int mainProgramLoop();
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -23,8 +19,18 @@ void onRender() {
 	dims.absolutePos = (vec2i){ 0 };
 	dims.absoluteSize = screenSize;
 
-	render_gui_instance(guiObj, dims);
-	render_gui_instance(guiObj2, dims);
+	render_gui_instance(screenUI, dims);
+}
+
+void setup_default_gui_obj(PT_GUI_OBJ* obj) {
+	obj->border_color = (vec3i){ 255, 255, 255 };
+	obj->background_color = (vec3i){ 0, 0, 0 };
+	obj->transparency = .66;
+
+	obj->borderTransparancy = 0;
+	obj->borderWidth = 1;
+
+	obj->visible = TRUE;
 }
 
 Instance* create_default_frame(Instance* parent) {
@@ -32,20 +38,11 @@ Instance* create_default_frame(Instance* parent) {
 	set_instance_parent(instance, parent);
 
 	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)instance->subInstance;
-	obj->background_color = (vec3i){ 0, 0, 0 };
-	obj->transparency = 1;
-
-	obj->border_color = accentColor;
-	obj->borderTransparancy = 0;
-	obj->borderWidth = 1;
-
-	obj->visible = TRUE;
-	obj->pos_px = (vec2i){ 20, 20 };
-	obj->scale_percent = (vec2f){ .5, 1 };
-	obj->scale_px = (vec2i){ -30, -40 };
+	setup_default_gui_obj(obj);
 
 	return instance;
 }
+
 
 Instance* create_default_textlabel(Instance* parent) {
 	Instance* instance = PT_TEXTLABEL_new();
@@ -53,18 +50,7 @@ Instance* create_default_textlabel(Instance* parent) {
 
 	PT_TEXTLABEL* tlabel = (PT_TEXTLABEL*)instance->subInstance;
 	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)tlabel->guiObj;
-	obj->background_color = (vec3i){ 0, 0, 0 };
-	obj->transparency = 1;
-
-	obj->border_color = accentColor;
-	obj->borderTransparancy = 0;
-	obj->borderWidth = 1;
-
-	obj->visible = TRUE;
-	obj->pos_percent = (vec2f){ .5, 0 };
-	obj->pos_px = (vec2i){ 10, 20 };
-	obj->scale_percent = (vec2f){ .5, 1 };
-	obj->scale_px = (vec2i){ -30, -40 };
+	setup_default_gui_obj(obj);
 
 	return instance;
 }
@@ -86,15 +72,41 @@ int main() {
 	
 	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PT Main Window");
 
-	cs = create_char_set("assets\\fonts\\comic.ttf", 24);
-
-	guiObj = create_default_frame(NULL);
+	screenUI = PT_SCREEN_UI_new(NULL);
 	
-	guiObj2 = create_default_textlabel(NULL);
-	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)guiObj2->subInstance;
-	obj->pos_percent = (vec2f){ .5f, 0.0f };
-	obj->scale_percent = (vec2f){ .5f, 1.0f };
-	obj->scale_px = (vec2i){ -10, -10 };
+	Instance* frameInstance = create_default_frame(screenUI);
+	PT_GUI_OBJ* frame = (PT_GUI_OBJ*)frameInstance->subInstance;
+	frame->visible = FALSE;
+	frame->borderWidth = 0;
+	frame->scale_percent = (vec2f){ 1, 1 };
+	frame->scale_px = (vec2i){ -default_padding, -default_padding };
+	frame->pos_px = (vec2i){ default_padding, default_padding };
+
+	int numRows = 5;
+	int numColumns = 6;
+
+	for (int x = 0; x < numColumns; x++) {
+		for (int y = 0; y < numRows; y++) {
+			Instance* button = create_default_textlabel(frameInstance);
+
+			PT_TEXTLABEL* tl = (PT_TEXTLABEL*)button->subInstance;
+
+			PT_GUI_OBJ* obj = (PT_GUI_OBJ*)tl->guiObj;
+
+			obj->pos_px = (vec2i){ 0, 0};
+			obj->pos_percent = (vec2f){ ((float)x) / numColumns, ((float)y) / numRows };
+			obj->scale_percent = (vec2f){ 1.0f / numColumns, 1.0f / numRows };
+			obj->scale_px = (vec2i){ -default_padding, -default_padding };
+
+			tl->font = PT_FONT_COMIC;
+			tl->textSize = 20;
+			tl->horizontalAlignment = PT_H_ALIGNMENT_CENTER;
+			tl->verticalAlignment = PT_V_ALIGNMENT_CENTER;
+
+			tl->text = calloc(10, sizeof(char));
+			sprintf(tl->text, "%i, %i", x, y);
+		}
+	}
 
 	int exitCode = PT_RUN(onRender);
 

@@ -116,10 +116,31 @@ char_set create_char_set(const char* filename, const int textSize) {
 	return cs;
 }
 
+const int TAB_WIDTH = 60;
+
+int get_text_width(char_set* cs, const char* str) {
+	int len = strlen(str);
+	int xOff = 0;
+
+	for (int i = 0; i < len; i++) {
+		char c = *(str + i);
+
+		if (c == '\t') {
+			int nextTabIndex = (int)floor((double)xOff / (double)TAB_WIDTH) + 1;
+			xOff = nextTabIndex * TAB_WIDTH;
+		}
+		else if (c != '\n') {
+			int advance = *(cs->advance + c);
+			xOff += advance;
+		}
+	}
+
+	return xOff;
+}
+
 void render_text(char_set* cs, const char* str, int baseline_x, int baseline_y) {
 	int xOff = 0;
 	int len = strlen(str);
-	const int TAB_WIDTH = 60;
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -133,7 +154,7 @@ void render_text(char_set* cs, const char* str, int baseline_x, int baseline_y) 
 			int nextTabIndex = (int)floor((double)xOff / (double)TAB_WIDTH) + 1;
 			xOff = nextTabIndex * TAB_WIDTH;
 		}
-		else {
+		else if (c != '\n') {
 			vec2i bearing = *(cs->bearing + c);
 			vec2i size = *(cs->size + c);
 

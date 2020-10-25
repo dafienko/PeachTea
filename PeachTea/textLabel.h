@@ -3,27 +3,10 @@
 
 #include "guiObj.h"
 
-typedef enum {
-	LEFT,
-	CENTER_X,
-	RIGHT
-} TEXT_HORIZONTAL_ALIGNMENT;
-
-typedef enum {
-	TOP,
-	CENTER_Y,
-	BOTTOM
-} TEXT_VERTICAL_ALIGNMENT;
-
-typedef enum {
-	COMIC,
-	CONSOLA,
-	TIMES
-} FONT;
-
 typedef struct {
 	Instance* instance;
 	PT_GUI_OBJ* guiObj; // "inherit" all properties from PT_GUI_OBJ
+	int visible;
 
 	vec2i padding;
 
@@ -31,7 +14,7 @@ typedef struct {
 	TEXT_VERTICAL_ALIGNMENT verticalAlignment;
 
 	int textSize;
-	FONT font;
+	PT_FONT font;
 
 	char* text;
 } PT_TEXTLABEL;

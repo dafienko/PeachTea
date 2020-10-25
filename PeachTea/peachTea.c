@@ -78,6 +78,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			vec2i size = (vec2i){ LOWORD(lParam), HIWORD(lParam) };
 			PT_RESIZE(size);
 			renderer_resized();
+			update_main_window_pos();
 			render(renderCallback);
 		}
 
