@@ -24,7 +24,7 @@ void onRender() {
 
 void setup_default_gui_obj(PT_GUI_OBJ* obj) {
 	obj->border_color = (vec3i){ 255, 255, 255 };
-	obj->background_color = (vec3i){ 0, 0, 0 };
+	obj->background_color = (vec3i){ 80, 80, 80 };
 	obj->transparency = .66;
 
 	obj->borderTransparancy = 0;
@@ -73,7 +73,14 @@ int main() {
 	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PT Main Window");
 
 	screenUI = PT_SCREEN_UI_new(NULL);
-	
+
+	Instance* backgroundInstance = create_default_frame(screenUI);
+	PT_GUI_OBJ* backgroundFrame = (PT_GUI_OBJ*)backgroundInstance->subInstance;
+	backgroundFrame->borderWidth = 0;
+	backgroundFrame->scale_percent = (vec2f){ 1, 1 };
+	backgroundFrame->transparency = 0;
+	backgroundFrame->background_color = (vec3i){ 100, 100, 100 };
+
 	Instance* frameInstance = create_default_frame(screenUI);
 	PT_GUI_OBJ* frame = (PT_GUI_OBJ*)frameInstance->subInstance;
 	frame->visible = FALSE;
@@ -85,8 +92,10 @@ int main() {
 	int numRows = 5;
 	int numColumns = 6;
 
+	
 	for (int x = 0; x < numColumns; x++) {
 		for (int y = 0; y < numRows; y++) {
+			///*
 			Instance* button = create_default_textlabel(frameInstance);
 
 			PT_TEXTLABEL* tl = (PT_TEXTLABEL*)button->subInstance;
@@ -105,8 +114,10 @@ int main() {
 
 			tl->text = calloc(10, sizeof(char));
 			sprintf(tl->text, "%i, %i", x, y);
+			//*/
 		}
 	}
+	
 
 	int exitCode = PT_RUN(onRender);
 

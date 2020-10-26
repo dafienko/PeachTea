@@ -31,7 +31,8 @@ void render(void(*renderCallback)(void)) {
 
 		renderCallback();
 
-		glFlush();
+		//glFlush();
+		glFinish();
 	}
 }
 

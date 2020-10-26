@@ -67,10 +67,11 @@ void getStrLines(const char* str, char*** linesOut, int* numLinesOut) {
 			*(lines + numLines) = lineBuffer;
 			numLines++;
 
-
-			bufferSize = 10;
-			numUsedBufferChars = 0;
-			lineBuffer = calloc(bufferSize, sizeof(char));
+			if (i != len - 1) {
+				bufferSize = 10;
+				numUsedBufferChars = 0;
+				lineBuffer = calloc(bufferSize, sizeof(char));
+			}
 		}
 	}
 
@@ -78,6 +79,15 @@ void getStrLines(const char* str, char*** linesOut, int* numLinesOut) {
 
 	*linesOut = lines;
 	*numLinesOut = numLines;
+}
+
+void free_lines(char** lines, int numlines) {
+	for (int i = 0; i < numlines; i++) {
+		char* line = *(lines + i);
+		free(line);
+	}
+
+	free(lines);
 }
 
 PT_GUI_DIMS PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_GUI_DIMS parentDims) {
@@ -127,7 +137,10 @@ PT_GUI_DIMS PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_GUI_DIMS parentDims)
 
 			render_text(cs, line, baselineX, baselineY + (i + 1) * (textlabel->textSize + linePadding) - linePadding);
 		}
+
+		free_lines(lines, numLines);
 	}
+
 
 	return childDims;
 }
