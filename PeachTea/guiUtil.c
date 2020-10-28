@@ -7,13 +7,6 @@
 #include "ScreenUI.h"
 
 
-vec2i scale_and_offset_to_screen(vec2f scale, vec2i offset, vec2i parentSize) {
-	return (vec2i){
-		(int)(scale.x * parentSize.x) + offset.x,
-		(int)(scale.y * parentSize.y) + offset.y,
-	};
-}
-
 void init_gui_util() {
 	qVAO = calloc(1, sizeof(GLuint));
 	qVBO = calloc(2, sizeof(GLuint));
@@ -47,8 +40,8 @@ void init_gui_util() {
 	frameProg = create_program(quadShaders, 2);
 }
 
-void render_gui_instance(Instance* instance, PT_GUI_DIMS parentDims) {
-	PT_GUI_DIMS childDims;
+void render_gui_instance(Instance* instance, PT_ABS_DIM parentDims) {
+	PT_ABS_DIM childDims;
 	
 	switch (instance->instanceType) {
 	case IT_GUI_OBJ:

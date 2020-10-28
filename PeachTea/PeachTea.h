@@ -18,8 +18,10 @@
 #include "mouse.h"
 #include "screenSize.h"
 
+#include "Colors.h"
 #include "glText.h"
 #include "guiUtil.h"
+#include "ScreenDimension.h"
 #include "PeachTea.h"
 
 #include "ScreenUI.h"

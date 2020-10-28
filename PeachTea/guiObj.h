@@ -4,22 +4,28 @@
 #include "Instance.h"
 #include "vectorMath.h"
 #include "guiUtil.h"
+#include "ScreenDimension.h"
+#include "Colors.h"
 
 typedef struct {
 	Instance* instance;
 
-	vec2i pos_px;
-	vec2f pos_percent;
-	vec2i scale_px;
-	vec2f scale_percent;
+	PT_REL_DIM position;
+	PT_REL_DIM size;
 	int visible;
+
+	int reactive;
+	PT_COLOR activeBorderColor;
+	PT_COLOR activeBackgroundColor;
+	vec2f activeBorderRange;
+	vec2f activeBackgroundRange;
 
 	int borderWidth;
 	float borderTransparancy;
-	vec3i border_color;
+	PT_COLOR borderColor;
 
-	float transparency;
-	vec3i background_color;
+	float backgroundTransparency;
+	PT_COLOR backgroundColor;
 
 	void (*onMouseEnter)(void);
 	void (*onMouseLeave)(void);
@@ -28,7 +34,7 @@ typedef struct {
 	void* typeData; // varies based on the gui object type, contains data for that specific type. Half-assed encapsulation 
 } PT_GUI_OBJ;
 
-PT_GUI_DIMS PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_GUI_DIMS parentDims);
+PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims);
 
 void PT_GUI_OBJ_destroy(void* obj);
 

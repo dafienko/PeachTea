@@ -20,6 +20,6 @@ typedef struct {
 Instance* PT_SCREEN_UI_new();
 void PT_SCREEN_UI_destroy(void* obj);
 
-PT_GUI_DIMS PT_SCREEN_UI_render(PT_SCREEN_UI* ui, PT_GUI_DIMS parentDims);
+PT_ABS_DIM PT_SCREEN_UI_render(PT_SCREEN_UI* ui, PT_ABS_DIM parentDims);
 
 #endif

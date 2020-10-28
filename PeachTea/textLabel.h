@@ -22,6 +22,6 @@ typedef struct {
 Instance* PT_TEXTLABEL_new();
 void PT_TEXTLABEL_destroy(void* textlabel);
 
-PT_GUI_DIMS PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_GUI_DIMS parentDims);
+PT_ABS_DIM PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_ABS_DIM parentDims);
 
 #endif

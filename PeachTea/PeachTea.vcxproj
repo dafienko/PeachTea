@@ -97,6 +97,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>6011; 6308;</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -111,6 +112,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>6011; 6308;</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,6 +129,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>6011; 6308;</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,6 +148,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>6011; 6308;</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,12 +159,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="bool.h" />
+    <ClInclude Include="Colors.h" />
     <ClInclude Include="errorUtil.h" />
     <ClInclude Include="fileUtil.h" />
     <ClInclude Include="fontHandler.h" />
     <ClInclude Include="glext.h" />
     <ClInclude Include="glExtensions.h" />
     <ClInclude Include="glText.h" />
+    <ClInclude Include="glUniformUtil.h" />
     <ClInclude Include="guiObj.h" />
     <ClInclude Include="guiUtil.h" />
     <ClInclude Include="imageLoader.h" />
@@ -170,6 +176,7 @@
     <ClInclude Include="mouse.h" />
     <ClInclude Include="PeachTea.h" />
     <ClInclude Include="renderer.h" />
+    <ClInclude Include="ScreenDimension.h" />
     <ClInclude Include="screenSize.h" />
     <ClInclude Include="ScreenUI.h" />
     <ClInclude Include="shaders.h" />
@@ -181,11 +188,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="assets.c" />
+    <ClCompile Include="Colors.c" />
     <ClCompile Include="errorUtil.c" />
     <ClCompile Include="floatVectorMath.c" />
     <ClCompile Include="fontHandler.c" />
     <ClCompile Include="glExtensions.c" />
     <ClCompile Include="glText.c" />
+    <ClCompile Include="glUniformUtil.c" />
     <ClCompile Include="guiObj.c" />
     <ClCompile Include="guiUtil.c" />
     <ClCompile Include="imageLoader.c" />
@@ -196,6 +205,7 @@
     <ClCompile Include="peachTea.c" />
     <ClCompile Include="pngReader.c" />
     <ClCompile Include="renderer.c" />
+    <ClCompile Include="ScreenDimension.c" />
     <ClCompile Include="screenSize.c" />
     <ClCompile Include="ScreenUI.c" />
     <ClCompile Include="shaders.c" />

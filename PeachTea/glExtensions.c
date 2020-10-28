@@ -101,6 +101,7 @@ void GLEInit() {
     glDeleteProgram = (PFNGLDELETEPROGRAMPROC)getProc("glDeleteProgram");
     glUniform2f = (PFNGLUNIFORM2FPROC)getProc("glUniform2f");
     glUniform2i = (PFNGLUNIFORM2IPROC)getProc("glUniform2i");
+    glUniform3i = (PFNGLUNIFORM3IPROC)getProc("glUniform3i");
 
     initialized = 1;
 }

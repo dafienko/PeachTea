@@ -117,6 +117,15 @@
     <ClInclude Include="fontHandler.h">
       <Filter>Header Files\glUtil</Filter>
     </ClInclude>
+    <ClInclude Include="ScreenDimension.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="Colors.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="glUniformUtil.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="errorUtil.c">
@@ -180,6 +189,15 @@
       <Filter>Source Files\glUtil</Filter>
     </ClCompile>
     <ClCompile Include="fontHandler.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenDimension.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="Colors.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="glUniformUtil.c">
       <Filter>Source Files\glUtil</Filter>
     </ClCompile>
   </ItemGroup>

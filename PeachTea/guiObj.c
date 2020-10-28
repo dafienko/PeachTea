@@ -3,9 +3,13 @@
 #include "glExtensions.h"
 #include "screenSize.h"
 #include "PeachTea.h"
+#include "errorUtil.h"
+
+#include "glUniformUtil.h"
 
 Instance* PT_GUI_OBJ_new() {
 	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)calloc(1, sizeof(PT_GUI_OBJ));
+
 	obj->visible = 1;
 
 	Instance* instance = new_instance();
@@ -19,14 +23,14 @@ Instance* PT_GUI_OBJ_new() {
 }
 
 
-PT_GUI_DIMS PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_GUI_DIMS parentDims) {
+PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 	glUseProgram(frameProg);
 
 	Instance* instance = obj->instance;
 
-	vec2i frameSize = scale_and_offset_to_screen(obj->scale_percent, obj->scale_px, parentDims.absoluteSize);
-	vec2i relFramePos = scale_and_offset_to_screen(obj->pos_percent, obj->pos_px, parentDims.absoluteSize);
-	vec2i framePos = vector_add_2i(relFramePos, parentDims.absolutePos);
+	vec2i frameSize = calculate_screen_dimension(obj->size, parentDims.size);
+	vec2i relFramePos = calculate_screen_dimension(obj->position, parentDims.size);
+	vec2i framePos = vector_add_2i(relFramePos, parentDims.position);
 
 	if (obj->visible) {
 		vec2i borderSize = (vec2i){ obj->borderWidth * 2, obj->borderWidth * 2 };
@@ -38,41 +42,44 @@ PT_GUI_DIMS PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_GUI_DIMS parentDims) {
 			(float)obj->borderWidth / (float)totalFrameSize.y
 		};
 
-		vec3f borderColor = (vec3f){
-			obj->border_color.x / 255.0f,
-			obj->border_color.y / 255.0f,
-			obj->border_color.z / 255.0f
-		};
-
-		vec3f backgroundColor = (vec3f){
-			obj->background_color.x / 255.0f,
-			obj->background_color.y / 255.0f,
-			obj->background_color.z / 255.0f
-		};
-
 		GLuint fbcLoc, bcLoc, btLoc, cLoc, tLoc, ssLoc, mpLoc, mifLoc;
+		GLuint rLoc, aborcLoc, abaccLoc, abordLoc, abacdLoc;
 
+		// general property uniforms
 		mpLoc = glGetUniformLocation(frameProg, "mousePos");
 		fbcLoc = glGetUniformLocation(frameProg, "frameBorderComposition");
 		bcLoc = glGetUniformLocation(frameProg, "borderColor");
 		btLoc = glGetUniformLocation(frameProg, "borderTransparency");
 		cLoc = glGetUniformLocation(frameProg, "color");
-		tLoc = glGetUniformLocation(frameProg, "transparency");
+		tLoc = glGetUniformLocation(frameProg, "backgroundTransparency");
 		ssLoc = glGetUniformLocation(frameProg, "screenSize");
 		mifLoc = glGetUniformLocation(frameProg, "mouseInFrame");
 
 		vec2i relMousePos = vector_sub_2i(mousePos, mainWindowPosition);
 		int mif = relMousePos.x > topLeft.x && relMousePos.x < bottomRight.x;
-		mif = mif && relMousePos.y > topLeft.y && relMousePos.y < bottomRight.y;
+		mif = mif && relMousePos.y > topLeft.y && relMousePos.y < bottomRight.y;		
 
-		glUniform2i(mpLoc, relMousePos.x, relMousePos.y);
-		glUniform2i(ssLoc, screenSize.x, screenSize.y);
-		glUniform2f(fbcLoc, frameBorderComposition.x, frameBorderComposition.y);
-		glUniform3f(bcLoc, borderColor.x, borderColor.y, borderColor.z);
+		uniform_vec2i(mpLoc, relMousePos);
+		uniform_vec2i(ssLoc, screenSize);
+		uniform_vec2f(fbcLoc, frameBorderComposition);
+		uniform_PT_COLOR(bcLoc, obj->borderColor);
 		glUniform1f(btLoc, obj->borderTransparancy);
-		glUniform3f(cLoc, backgroundColor.x, backgroundColor.y, backgroundColor.z);
-		glUniform1f(tLoc, obj->transparency);
+		uniform_PT_COLOR(cLoc, obj->backgroundColor);
+		glUniform1f(tLoc, obj->backgroundTransparency);
 		glUniform1i(mifLoc, mif);
+
+		// reactive property uniforms
+		rLoc = glGetUniformLocation(frameProg, "reactive");
+		aborcLoc = glGetUniformLocation(frameProg, "activeBorderColor");
+		abaccLoc = glGetUniformLocation(frameProg, "activeBackgroundColor");
+		abordLoc = glGetUniformLocation(frameProg, "activeBorderRange");
+		abacdLoc = glGetUniformLocation(frameProg, "activeBackgroundRange");
+
+		glUniform1i(rLoc, obj->reactive);
+		uniform_PT_COLOR(aborcLoc, obj->activeBorderColor);
+		uniform_PT_COLOR(abaccLoc, obj->activeBackgroundColor);
+		uniform_vec2f(abordLoc, obj->activeBorderRange);
+		uniform_vec2f(abacdLoc, obj->activeBackgroundRange);
 
 		glBindVertexArray(*qVAO);
 
@@ -95,9 +102,9 @@ PT_GUI_DIMS PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_GUI_DIMS parentDims) {
 		glDrawArrays(GL_QUADS, 0, 4);
 	}
 
-	PT_GUI_DIMS dims = { 0 };
-	dims.absolutePos = framePos;
-	dims.absoluteSize = frameSize;
+	PT_ABS_DIM dims = { 0 };
+	dims.position = framePos;
+	dims.size = frameSize;
 	return dims;
 }
 

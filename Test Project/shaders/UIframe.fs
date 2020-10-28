@@ -3,15 +3,23 @@
 in vec2 pos;
 in vec2 posPx;
 
+uniform vec3 backgroundColor;
+uniform float backgroundTransparency;
+
 // x = percent of frame taken up by left border on x-axis
 // y = percent of frame taken up by top border on y-axis
 uniform vec2 frameBorderComposition; 
 uniform vec3 borderColor;
 uniform float borderTransparency;
-uniform vec3 color;
-uniform float transparency;
+
 uniform ivec2 mousePos;
 uniform int mouseInFrame;
+
+uniform int reactive;
+uniform vec3 activeBorderColor;
+uniform vec3 activeBackgroundColor;
+uniform vec2 activeBorderRange;
+uniform vec2 activeBackgroundRange;
 
 out vec4 FragColor;
 
@@ -19,30 +27,33 @@ void main() {
 	float xAlpha = min(pos.x, abs(1.0 - pos.x));
 	float yAlpha = min(pos.y, abs(1.0 - pos.y));
 	
-	float dist = length(posPx - mousePos);
-	
+	float dist = 0;
+	if (reactive != 0) {
+		dist = length(posPx - mousePos);
+	}
 	
 	if (xAlpha < frameBorderComposition.x || yAlpha < frameBorderComposition.y) {
-		float alpha = 1 - clamp(pow(dist / 50.0, 3), 0, 1);
-		vec3 c = mix(color, borderColor, alpha);
+		vec3 color = borderColor;
 		
-		if (alpha > .1) {
-			FragColor = vec4(c, 1 - borderTransparency);
-		} else {
-			FragColor = vec4(0, 0, 0, 0);
+		if (reactive != 0) {
+			float activeRange = activeBorderRange.y - activeBorderRange.x;
+			float alpha = 1 - clamp((dist - activeBorderRange.x) / activeRange, 0, 1);
+			color = mix(color, activeBorderColor, alpha);
 		}
+		
+		FragColor = vec4(color, 1 - borderTransparency);
 	} else { // not on border
-		float alpha = 0;
+		vec3 color = backgroundColor;
 		
-		if (mouseInFrame > 0) {
-			alpha = max((1 - clamp(pow(dist / 75.0, 2), 0, 1)), .4);
+		if (reactive != 0) {
+			if (mouseInFrame > 0) {
+				float activeRange = activeBackgroundRange.y - activeBackgroundRange.x;
+				float alpha = 1 - clamp((dist - activeBackgroundRange.x) / activeRange, 0, 1);
+				color = mix(color, activeBackgroundColor, alpha);
+			}
 		}
 		
-		vec3 mouseColor = vec3(1, 1, 1);
-		
-		vec3 c = mix(color, mouseColor, alpha);
-		
-		FragColor = vec4(c, 1 - transparency);
+		FragColor = vec4(color, 1 - backgroundTransparency);
 	}
 }
 

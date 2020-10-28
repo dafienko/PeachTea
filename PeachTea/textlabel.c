@@ -90,9 +90,9 @@ void free_lines(char** lines, int numlines) {
 	free(lines);
 }
 
-PT_GUI_DIMS PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_GUI_DIMS parentDims) {
+PT_ABS_DIM PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_ABS_DIM parentDims) {
 	textlabel->guiObj->visible = textlabel->visible;
-	PT_GUI_DIMS childDims = PT_GUI_OBJ_render(textlabel->guiObj, parentDims);
+	PT_ABS_DIM childDims = PT_GUI_OBJ_render(textlabel->guiObj, parentDims);
 
 	if (textlabel->visible) {
 		char_set* cs = get_char_set(textlabel->font, textlabel->textSize);
@@ -104,15 +104,15 @@ PT_GUI_DIMS PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_GUI_DIMS parentDims)
 
 		int linePadding = 3;
 		int totalTextHeight = numLines * (textlabel->textSize + linePadding) - linePadding;
-		int baselineY = childDims.absolutePos.y;
+		int baselineY = childDims.position.y;
 		switch (textlabel->verticalAlignment) {
 		case PT_V_ALIGNMENT_CENTER:
 			;
-			int remainingHeight = childDims.absoluteSize.y - totalTextHeight;
-			baselineY = childDims.absolutePos.y + remainingHeight / 2;
+			int remainingHeight = childDims.size.y - totalTextHeight;
+			baselineY = childDims.position.y + remainingHeight / 2;
 			break;
 		case PT_V_ALIGNMENT_BOTTOM:
-			baselineY = childDims.absolutePos.y + childDims.absoluteSize.y + -totalTextHeight;
+			baselineY = childDims.position.y + childDims.size.y + -totalTextHeight;
 			break;
 		}
 
@@ -122,15 +122,15 @@ PT_GUI_DIMS PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_GUI_DIMS parentDims)
 
 			int textWidth = get_text_width(cs, line);
 
-			int baselineX = childDims.absolutePos.x;
+			int baselineX = childDims.position.x;
 			switch (textlabel->horizontalAlignment) {
 			case PT_H_ALIGNMENT_CENTER:
 				;
-				int remainingWidth = childDims.absoluteSize.x - textWidth;
-				baselineX = childDims.absolutePos.x + (remainingWidth / 2);
+				int remainingWidth = childDims.size.x - textWidth;
+				baselineX = childDims.position.x + (remainingWidth / 2);
 				break;
 			case PT_H_ALIGNMENT_RIGHT:
-				baselineX = childDims.absolutePos.x + childDims.absoluteSize.x + -textWidth;
+				baselineX = childDims.position.x + childDims.size.x + -textWidth;
 				break;
 			}
 
