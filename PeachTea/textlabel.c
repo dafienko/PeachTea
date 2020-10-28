@@ -135,7 +135,13 @@ PT_ABS_DIM PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_ABS_DIM parentDims) {
 			}
 
 
-			render_text(cs, line, baselineX, baselineY + (i + 1) * (textlabel->textSize + linePadding) - linePadding);
+			render_text(
+				cs, 
+				textlabel->textColor, 
+				textlabel->textTransparency,
+				line, 
+				baselineX, baselineY + (i + 1) * (textlabel->textSize + linePadding) - linePadding
+			);
 		}
 
 		free_lines(lines, numLines);

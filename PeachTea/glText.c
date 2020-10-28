@@ -10,6 +10,7 @@
 #include "guiUtil.h"
 #include "shaders.h"
 #include "screenSize.h"
+#include "glUniformUtil.h"
 
 GLuint qProg;
 
@@ -28,11 +29,16 @@ void initFT() {
 	qProg = create_program(quadShaders, 2);
 }
 
-void draw_quad(vec2i topLeft, vec2i bottomRight, GLuint tex) {
+void draw_quad(vec2i topLeft, vec2i bottomRight, GLuint tex, PT_COLOR textColor, float textTransparency) {
 	glUseProgram(qProg);
 
 	int ssLoc = glGetUniformLocation(qProg, "screenSize");
+	int cLoc = glGetUniformLocation(qProg, "color");
+	int tLoc = glGetUniformLocation(qProg, "transparency");
+
 	glUniform2i(ssLoc, screenSize.x, screenSize.y);
+	uniform_PT_COLOR(cLoc, textColor);
+	glUniform1f(tLoc, textTransparency);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex);
@@ -138,7 +144,7 @@ int get_text_width(char_set* cs, const char* str) {
 	return xOff;
 }
 
-void render_text(char_set* cs, const char* str, int baseline_x, int baseline_y) {
+void render_text(char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int baseline_x, int baseline_y) {
 	int xOff = 0;
 	int len = strlen(str);
 
@@ -161,7 +167,7 @@ void render_text(char_set* cs, const char* str, int baseline_x, int baseline_y) 
 			vec2i topLeft = (vec2i){ baseline_x + xOff, baseline_y - bearing.y };
 			vec2i bottomRight = vector_add_2i(topLeft, size);
 
-			draw_quad(topLeft, bottomRight, *(cs->textures + c));
+			draw_quad(topLeft, bottomRight, *(cs->textures + c), textColor, textTransparency);
 
 			int advance = *(cs->advance + c);
 			xOff += advance;

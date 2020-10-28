@@ -129,6 +129,7 @@ int main() {
 			tl->textSize = 20;
 			tl->horizontalAlignment = PT_H_ALIGNMENT_CENTER;
 			tl->verticalAlignment = PT_V_ALIGNMENT_CENTER;
+			tl->textColor = PT_COLOR_fromRGB(255, 0, 0);
 
 			tl->text = calloc(10, sizeof(char));
 			sprintf(tl->text, "%i, %i", x, y);

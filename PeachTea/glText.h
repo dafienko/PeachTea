@@ -3,6 +3,7 @@
 
 #include "glExtensions.h"
 #include "vectorMath.h"
+#include "Colors.h"
 
 typedef struct {
 	GLuint* textures;
@@ -17,7 +18,7 @@ void initFT();
 char_set create_char_set(const char* font, const int fontSize);
 void free_char_set(char_set* cs);
 
-void render_text(char_set* cs, const char* str, int baseline_x, int baseline_y);
+void render_text(char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int baseline_x, int baseline_y);
 int get_text_width(char_set* cs, const char* str);
 
 #endif

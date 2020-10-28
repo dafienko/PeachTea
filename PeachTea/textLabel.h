@@ -15,6 +15,8 @@ typedef struct {
 
 	int textSize;
 	PT_FONT font;
+	PT_COLOR textColor;
+	float textTransparency;
 
 	char* text;
 } PT_TEXTLABEL;
