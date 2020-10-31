@@ -43,6 +43,12 @@
     <Filter Include="Source Files\math">
       <UniqueIdentifier>{5fc86fa1-c489-403a-8e75-3dbd04979b95}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PeachTeaUtil">
+      <UniqueIdentifier>{e99bbfb6-271b-4da4-a851-8fc5e24dd079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PeachTeaUtil">
+      <UniqueIdentifier>{55c153bd-9bfc-440c-9bf3-f74209c22d61}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PeachTea.h">
@@ -126,6 +132,12 @@
     <ClInclude Include="glUniformUtil.h">
       <Filter>Header Files\glUtil</Filter>
     </ClInclude>
+    <ClInclude Include="textButton.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="BindableEvent.h">
+      <Filter>Header Files\PeachTeaUtil</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="errorUtil.c">
@@ -199,6 +211,12 @@
     </ClCompile>
     <ClCompile Include="glUniformUtil.c">
       <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="textButton.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="BindableEvent.c">
+      <Filter>Source Files\PeachTeaUtil</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

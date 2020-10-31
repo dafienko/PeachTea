@@ -158,6 +158,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BindableEvent.h" />
     <ClInclude Include="bool.h" />
     <ClInclude Include="Colors.h" />
     <ClInclude Include="errorUtil.h" />
@@ -180,6 +181,7 @@
     <ClInclude Include="screenSize.h" />
     <ClInclude Include="ScreenUI.h" />
     <ClInclude Include="shaders.h" />
+    <ClInclude Include="textButton.h" />
     <ClInclude Include="textLabel.h" />
     <ClInclude Include="uiContainer.h" />
     <ClInclude Include="vectorMath.h" />
@@ -188,6 +190,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="assets.c" />
+    <ClCompile Include="BindableEvent.c" />
     <ClCompile Include="Colors.c" />
     <ClCompile Include="errorUtil.c" />
     <ClCompile Include="floatVectorMath.c" />
@@ -209,6 +212,7 @@
     <ClCompile Include="screenSize.c" />
     <ClCompile Include="ScreenUI.c" />
     <ClCompile Include="shaders.c" />
+    <ClCompile Include="textButton.c" />
     <ClCompile Include="textlabel.c" />
     <ClCompile Include="WinUtil.c" />
   </ItemGroup>
