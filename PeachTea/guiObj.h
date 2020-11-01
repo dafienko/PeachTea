@@ -6,6 +6,7 @@
 #include "guiUtil.h"
 #include "ScreenDimension.h"
 #include "Colors.h"
+#include "BindableEvent.h"
 
 typedef struct {
 	Instance* instance;
@@ -13,6 +14,7 @@ typedef struct {
 	PT_REL_DIM position;
 	PT_REL_DIM size;
 	int visible;
+	PT_ABS_DIM lastAbsoluteDim;
 
 	int reactive;
 	PT_COLOR activeBorderColor;
@@ -27,11 +29,12 @@ typedef struct {
 	float backgroundTransparency;
 	PT_COLOR backgroundColor;
 
-	void (*onMouseEnter)(void);
-	void (*onMouseLeave)(void);
-
-	void (*render)(vec2i screenSize); // should never actually be called by user, although its there just in case
-	void* typeData; // varies based on the gui object type, contains data for that specific type. Half-assed encapsulation 
+	PT_BINDABLE_EVENT e_obj_mouseEnter;
+	PT_BINDABLE_EVENT e_obj_mouseLeave;
+	PT_BINDABLE_EVENT e_obj_pressed;
+	PT_BINDABLE_EVENT e_obj_released;
+	int mouseInFrame;
+	int pressed;
 } PT_GUI_OBJ;
 
 PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims);

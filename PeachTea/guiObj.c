@@ -22,7 +22,6 @@ Instance* PT_GUI_OBJ_new() {
 	return instance;
 }
 
-
 PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 	glUseProgram(frameProg);
 
@@ -55,11 +54,10 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 		ssLoc = glGetUniformLocation(frameProg, "screenSize");
 		mifLoc = glGetUniformLocation(frameProg, "mouseInFrame");
 
-		vec2i relMousePos = vector_sub_2i(mousePos, mainWindowPosition);
-		int mif = relMousePos.x > topLeft.x && relMousePos.x < bottomRight.x;
-		mif = mif && relMousePos.y > topLeft.y && relMousePos.y < bottomRight.y;		
+		int mif = mousePos.x > topLeft.x && mousePos.x < bottomRight.x; // "Mouse In Frame"
+		mif = mif && mousePos.y > topLeft.y && mousePos.y < bottomRight.y;
 
-		uniform_vec2i(mpLoc, relMousePos);
+		uniform_vec2i(mpLoc, mousePos);
 		uniform_vec2i(ssLoc, screenSize);
 		uniform_vec2f(fbcLoc, frameBorderComposition);
 		uniform_PT_COLOR(bcLoc, obj->borderColor);
@@ -105,6 +103,9 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 	PT_ABS_DIM dims = { 0 };
 	dims.position = framePos;
 	dims.size = frameSize;
+
+	obj->lastAbsoluteDim = dims;
+
 	return dims;
 }
 

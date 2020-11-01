@@ -51,7 +51,14 @@ void render_gui_instance(Instance* instance, PT_ABS_DIM parentDims) {
 		childDims = PT_TEXTLABEL_render((PT_TEXTLABEL*)instance->subInstance, parentDims);
 		break;
 	case IT_SCREEN_UI:
-		childDims = PT_SCREEN_UI_render((PT_SCREEN_UI*)instance->subInstance, parentDims);
+		;
+		PT_SCREEN_UI* ui = (PT_SCREEN_UI*)instance->subInstance;
+		
+		if (!ui->enabled) {
+			return;
+		}
+
+		childDims = PT_SCREEN_UI_render(ui, parentDims);
 		break;
 	}
 

@@ -133,6 +133,8 @@ int main() {
 
 			tl->text = calloc(10, sizeof(char));
 			sprintf(tl->text, "%i, %i", x, y);
+
+			button->name = tl->text;
 			//*/
 		}
 	}

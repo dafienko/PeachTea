@@ -10,13 +10,6 @@ void(*renderCallback)(void);
 
 int mainProgramLoop(void(*renderCallback)(void));
 
-void update_mouse_pos() {
-	POINT p = { 0 };
-	GetCursorPos(&p);
-
-	mousePos = (vec2i){ p.x, p.y };
-}
-
 void update_main_window_pos() {
 	static RECT rect;
 
@@ -42,17 +35,20 @@ void PT_INIT(vec2i screenSize) {
 
 	renderer_init();
 
+	PT_SCREEN_UI_init();
+
 	update_main_window_pos();
 }
 
 void PT_UPDATE() {
-	update_mouse_pos();
+	
 }
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void PT_CREATE_MAIN_WND(vec2i size, const char* title) {	
 	hMainWnd = createPeachWindow(NULL, (void*)WndProc, L"Peach Tea");
+	mouse_init(hMainWnd);
 
 	RECT r = { 0 };
 	GetClientRect(hMainWnd, &r);
@@ -92,6 +88,29 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (hWnd == hMainWnd) {
 			update_main_window_pos();
 		}
+		break;
+	case WM_INPUT:
+		;
+		UINT dwSize = sizeof(RAWINPUT);
+		static BYTE lpb[sizeof(RAWINPUT)];
+
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+		RAWINPUT* raw = (RAWINPUT*)lpb;
+
+		if (raw->header.dwType == RIM_TYPEMOUSE)
+		{
+			mouse_input(raw);
+		}
+		break;
+	case WM_LBUTTONDOWN:
+		SetCapture(hMainWnd);
+		PT_BINDABLE_EVENT_fire(&e_mouseDown, NULL);
+		break;
+	case WM_LBUTTONUP:
+		ReleaseCapture();
+		PT_BINDABLE_EVENT_fire(&e_mouseUp, NULL);
+		break;
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);

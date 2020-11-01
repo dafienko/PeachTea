@@ -17,6 +17,8 @@ typedef struct {
 	BOOL enabled;
 } PT_SCREEN_UI;
 
+void PT_SCREEN_UI_init();
+
 Instance* PT_SCREEN_UI_new();
 void PT_SCREEN_UI_destroy(void* obj);
 
