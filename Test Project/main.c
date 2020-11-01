@@ -122,7 +122,6 @@ int main() {
 				1.0f / numRowsf, -default_padding
 			);
 
-			//obj->borderColor = PT_COLOR_fromHSV(((float)y / numColumnsf) * 360.0f, 1.0f, (x / numRowsf) * .5f + .5f);
 			obj->borderColor = accentColor;
 
 			tl->font = PT_FONT_COMIC;
