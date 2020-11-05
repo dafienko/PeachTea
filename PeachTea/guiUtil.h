@@ -7,7 +7,6 @@
 
 unsigned int* qVAO;
 unsigned int* qVBO;
-unsigned int frameProg;
 
 typedef enum {
 	PT_H_ALIGNMENT_LEFT,

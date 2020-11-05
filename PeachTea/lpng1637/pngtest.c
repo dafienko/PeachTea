@@ -159,6 +159,8 @@ static int warning_count = 0; /* count calls to png_warning */
 #  define PNG_HANDLE_CHUNK_ALWAYS       3
 #endif
 #ifndef PNG_HANDLE_CHUNK_IF_SAFE
+#define _CRT_SECURE_NO_WARNINGS
+
 #  define PNG_HANDLE_CHUNK_IF_SAFE      2
 #endif
 

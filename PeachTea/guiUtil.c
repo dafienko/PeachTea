@@ -3,6 +3,7 @@
 #include "screenSize.h"
 
 #include "guiObj.h"
+#include "imageLabel.h"
 #include "textLabel.h"
 #include "ScreenUI.h"
 
@@ -33,22 +34,23 @@ void init_gui_util() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quadPositions), quadPositions, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quadCorners), quadCorners, GL_STATIC_DRAW);
-
-	GLuint qvs = create_vertex_shader("shaders\\basicQuad.vs");
-	GLuint qfs = create_fragment_shader("shaders\\UIframe.fs");
-	GLuint quadShaders[] = { qvs, qfs };
-	frameProg = create_program(quadShaders, 2);
 }
 
 void render_gui_instance(Instance* instance, PT_ABS_DIM parentDims) {
 	PT_ABS_DIM childDims;
 	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	switch (instance->instanceType) {
 	case IT_GUI_OBJ:
 		childDims = PT_GUI_OBJ_render((PT_GUI_OBJ*)instance->subInstance, parentDims);
 		break;
 	case IT_TEXTLABEL:
 		childDims = PT_TEXTLABEL_render((PT_TEXTLABEL*)instance->subInstance, parentDims);
+		break;
+	case IT_IMAGELABEL:
+		childDims = PT_IMAGELABEL_render((PT_IMAGELABEL*)instance->subInstance, parentDims);
 		break;
 	case IT_SCREEN_UI:
 		;

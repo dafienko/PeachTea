@@ -9,7 +9,7 @@
 
 Instance* screenUI;
 
-const int default_padding = 15;
+const int default_padding = 0;
 PT_COLOR accentColor = { 0 };
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -55,6 +55,17 @@ Instance* create_default_textlabel(Instance* parent) {
 	return instance;
 }
 
+Instance* create_default_imagelabel(Instance* parent) {
+	Instance* instance = PT_IMAGELABEL_new();
+	set_instance_parent(instance, parent);
+
+	PT_IMAGELABEL* tlabel = (PT_IMAGELABEL*)instance->subInstance;
+	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)tlabel->guiObj;
+	setup_default_gui_obj(obj);
+
+	return instance;
+}
+
 void update_accent_color() {
 	DWORD c = 0u;
 	BOOL bool = 0;
@@ -80,6 +91,7 @@ int main() {
 	backgroundFrame->size = PT_REL_DIM_new(1, 0, 1, 0);
 	backgroundFrame->backgroundTransparency = 0;
 	backgroundFrame->backgroundColor = PT_COLOR_fromRGB(100, 100, 100);
+	backgroundFrame->visible = 0;
 
 	Instance* frameInstance = create_default_frame(screenUI);
 	PT_GUI_OBJ* frame = (PT_GUI_OBJ*)frameInstance->subInstance;
@@ -89,55 +101,46 @@ int main() {
 		1, -default_padding,
 		1, -default_padding
 	);
-	frame->position = PT_REL_DIM_new(0, default_padding, 0, default_padding);
+	frame->position = PT_REL_DIM_new(0.5f, 0, 0.5f, 0);
+	frame->visible = 0;
+	frame->anchorPosition = (vec2f){ .5f, .5f };
 
-	int numRows = 5;
-	int numColumns = 6;
-	float numRowsf = (float)numRows;
-	float numColumnsf = (float)numColumns;
+	PT_COLOR board1 = PT_COLOR_new(0, 0, 0);
+	PT_COLOR board2 = PT_COLOR_fromRGB(155, 155, 155);
 
-	for (int x = 0; x < numColumns; x++) {
-		for (int y = 0; y < numRows; y++) {
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
 			///*
-			Instance* button = create_default_textlabel(frameInstance);
+			Instance* button = create_default_imagelabel(frameInstance);
 
-			PT_TEXTLABEL* tl = (PT_TEXTLABEL*)button->subInstance;
+			PT_IMAGELABEL* tl = (PT_IMAGELABEL*)button->subInstance;
 
 			PT_GUI_OBJ* obj = (PT_GUI_OBJ*)tl->guiObj;
 
 			obj->reactive = TRUE;
-			obj->activeBackgroundColor = PT_COLOR_new(1, 1, 1);
+			obj->backgroundColor = (x + y) % 2 == 0 ? board1 : board2;
+			obj->activeBackgroundColor = obj->backgroundColor; // PT_COLOR_new(1, 1, 1);
 			obj->activeBorderColor = PT_COLOR_new(1, 1, 1);
 			obj->activeBackgroundRange = (vec2f){ 40, 250 };
 			obj->activeBorderRange = (vec2f){ 25, 70 };
-			obj->backgroundTransparency = .7f;
+			obj->backgroundTransparency = 0.0f;
 
 			obj->position = PT_REL_DIM_new(
-				((float)x) / numColumnsf, 0,
-				((float)y) / numRowsf, 0
+				((float)x) / 8.0f, 0,
+				((float)y) / 8.0f, 0
 			);
 
 			obj->size = PT_REL_DIM_new(
-				1.0f / numColumnsf, -default_padding, 
-				1.0f / numRowsf, -default_padding
+				1.0f / 8.0f, -default_padding,
+				1.0f / 8.0f, -default_padding
 			);
 
 			obj->borderColor = accentColor;
-
-			tl->font = PT_FONT_COMIC;
-			tl->textSize = 20;
-			tl->horizontalAlignment = PT_H_ALIGNMENT_CENTER;
-			tl->verticalAlignment = PT_V_ALIGNMENT_CENTER;
-			tl->textColor = PT_COLOR_fromRGB(255, 0, 0);
-
-			tl->text = calloc(10, sizeof(char));
-			sprintf(tl->text, "%i, %i", x, y);
-
-			button->name = tl->text;
 			//*/
 		}
 	}
 
+	//PT_IMAGE img = PT_IMAGE_from_png("assets\\images\\chess.png");
 
 	int exitCode = PT_RUN(onRender);
 

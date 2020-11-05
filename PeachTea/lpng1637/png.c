@@ -1,4 +1,4 @@
-
+#define _CRT_SECURE_NO_WARNINGS
 /* png.c - location for general purpose libpng functions
  *
  * Copyright (c) 2018-2019 Cosmin Truta

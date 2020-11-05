@@ -1,6 +1,7 @@
 #include "PeachTea.h"
 #include "screenSize.h"
 #include "renderer.h"
+#include "PeachTeaShaders.h"
 
 HDC hMainDC;
 HGLRC hMainRC;
@@ -32,6 +33,7 @@ void PT_INIT(vec2i screenSize) {
 	GLEInit();
 	init_gui_util();
 	initFT();
+	PT_SHADERS_init();
 
 	renderer_init();
 

@@ -49,6 +49,9 @@
     <Filter Include="Source Files\PeachTeaUtil">
       <UniqueIdentifier>{55c153bd-9bfc-440c-9bf3-f74209c22d61}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\libpng">
+      <UniqueIdentifier>{30ecb4fa-e49d-40e3-91a1-3a0ee8db16a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PeachTea.h">
@@ -132,11 +135,17 @@
     <ClInclude Include="glUniformUtil.h">
       <Filter>Header Files\glUtil</Filter>
     </ClInclude>
-    <ClInclude Include="textButton.h">
-      <Filter>Header Files\glUtil</Filter>
-    </ClInclude>
     <ClInclude Include="BindableEvent.h">
       <Filter>Header Files\PeachTeaUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="imageLabel.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="PeachTeaShaders.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="SizeConstraint.h">
+      <Filter>Header Files\glUtil</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -212,11 +221,113 @@
     <ClCompile Include="glUniformUtil.c">
       <Filter>Source Files\glUtil</Filter>
     </ClCompile>
-    <ClCompile Include="textButton.c">
-      <Filter>Source Files\glUtil</Filter>
-    </ClCompile>
     <ClCompile Include="BindableEvent.c">
       <Filter>Source Files\PeachTeaUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="textureHandler.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="imageLabel.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\adler32.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\compress.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\crc32.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\deflate.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\example.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\gzclose.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\gzlib.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\gzread.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\gzwrite.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\infback.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\inffast.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\inflate.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\inftrees.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\png.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngerror.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngget.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngmem.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngpread.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngread.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngrio.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngrtran.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngrutil.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngset.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngtrans.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngwio.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngwrite.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngwtran.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\pngwutil.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\trees.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\uncompr.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng1637\zutil.c">
+      <Filter>Source Files\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="PeachTeaShaders.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="SizeConstraint.c">
+      <Filter>Source Files\glUtil</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

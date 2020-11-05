@@ -22,12 +22,12 @@
 #include "glText.h"
 #include "guiUtil.h"
 #include "ScreenDimension.h"
-#include "PeachTea.h"
 
+#include "Instance.h"
 #include "ScreenUI.h"
 #include "guiObj.h"
 #include "textLabel.h"
-
+#include "imageLabel.h"
 
 int PT_RUN(void(*renderCallback)(void));
 

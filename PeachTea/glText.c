@@ -11,8 +11,7 @@
 #include "shaders.h"
 #include "screenSize.h"
 #include "glUniformUtil.h"
-
-GLuint qProg;
+#include "PeachTeaShaders.h"
 
 FT_Library ftLib;
 FT_Face face;
@@ -22,19 +21,14 @@ void initFT() {
 	if (e) {
 		fatal_error(L"Failed to initialize freetype");
 	}
-
-	GLuint qvs = create_vertex_shader("shaders\\basicQuad.vs");
-	GLuint qfs = create_fragment_shader("shaders\\texturedQuad.fs");
-	GLuint quadShaders[] = { qvs, qfs };
-	qProg = create_program(quadShaders, 2);
 }
 
 void draw_quad(vec2i topLeft, vec2i bottomRight, GLuint tex, PT_COLOR textColor, float textTransparency) {
-	glUseProgram(qProg);
+	glUseProgram(PTS_text);
 
-	int ssLoc = glGetUniformLocation(qProg, "screenSize");
-	int cLoc = glGetUniformLocation(qProg, "color");
-	int tLoc = glGetUniformLocation(qProg, "transparency");
+	int ssLoc = glGetUniformLocation(PTS_text, "screenSize");
+	int cLoc = glGetUniformLocation(PTS_text, "color");
+	int tLoc = glGetUniformLocation(PTS_text, "transparency");
 
 	glUniform2i(ssLoc, screenSize.x, screenSize.y);
 	uniform_PT_COLOR(cLoc, textColor);
@@ -150,8 +144,6 @@ void render_text(char_set* cs, PT_COLOR textColor, float textTransparency, const
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	
 
 	for (int i = 0; i < len; i++) {
 		char c = *(str + i);

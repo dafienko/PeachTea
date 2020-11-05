@@ -7,14 +7,17 @@
 #include "ScreenDimension.h"
 #include "Colors.h"
 #include "BindableEvent.h"
+#include "SizeConstraint.h"
 
 typedef struct {
 	Instance* instance;
 
+	vec2f anchorPosition;
 	PT_REL_DIM position;
 	PT_REL_DIM size;
 	int visible;
 	PT_ABS_DIM lastAbsoluteDim;
+	PT_SIZE_CONSTRAINT* sizeConstraint;
 
 	int reactive;
 	PT_COLOR activeBorderColor;

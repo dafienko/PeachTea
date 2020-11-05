@@ -4,6 +4,7 @@
 #include "screenSize.h"
 #include "PeachTea.h"
 #include "errorUtil.h"
+#include "PeachTeaShaders.h"
 
 #include "glUniformUtil.h"
 
@@ -19,17 +20,24 @@ Instance* PT_GUI_OBJ_new() {
 	instance->instanceType = IT_GUI_OBJ;
 	obj->instance = (Instance*)instance;
 
+	obj->sizeConstraint = PT_SIZE_CONSTRAINT_none();
+
 	return instance;
 }
 
 PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
-	glUseProgram(frameProg);
+	glUseProgram(PTS_guiObj);
 
 	Instance* instance = obj->instance;
 
-	vec2i frameSize = calculate_screen_dimension(obj->size, parentDims.size);
-	vec2i relFramePos = calculate_screen_dimension(obj->position, parentDims.size);
-	vec2i framePos = vector_add_2i(relFramePos, parentDims.position);
+	vec2i frameSize = obj->sizeConstraint->calculateSize(obj, parentDims);
+	vec2i relPos = calculate_screen_dimension(obj->position, parentDims.size);
+	vec2i anchorPos = vector_add_2i(relPos, parentDims.position);
+	vec2i anchorOffset = (vec2i){
+		obj->anchorPosition.x * frameSize.x,
+		obj->anchorPosition.y * frameSize.y
+	};
+	vec2i framePos = vector_sub_2i(anchorPos, anchorOffset);
 
 	if (obj->visible) {
 		vec2i borderSize = (vec2i){ obj->borderWidth * 2, obj->borderWidth * 2 };
@@ -45,14 +53,14 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 		GLuint rLoc, aborcLoc, abaccLoc, abordLoc, abacdLoc;
 
 		// general property uniforms
-		mpLoc = glGetUniformLocation(frameProg, "mousePos");
-		fbcLoc = glGetUniformLocation(frameProg, "frameBorderComposition");
-		bcLoc = glGetUniformLocation(frameProg, "borderColor");
-		btLoc = glGetUniformLocation(frameProg, "borderTransparency");
-		cLoc = glGetUniformLocation(frameProg, "color");
-		tLoc = glGetUniformLocation(frameProg, "backgroundTransparency");
-		ssLoc = glGetUniformLocation(frameProg, "screenSize");
-		mifLoc = glGetUniformLocation(frameProg, "mouseInFrame");
+		mpLoc = glGetUniformLocation(PTS_guiObj, "mousePos");
+		fbcLoc = glGetUniformLocation(PTS_guiObj, "frameBorderComposition");
+		bcLoc = glGetUniformLocation(PTS_guiObj, "borderColor");
+		btLoc = glGetUniformLocation(PTS_guiObj, "borderTransparency");
+		cLoc = glGetUniformLocation(PTS_guiObj, "backgroundColor");
+		tLoc = glGetUniformLocation(PTS_guiObj, "backgroundTransparency");
+		ssLoc = glGetUniformLocation(PTS_guiObj, "screenSize");
+		mifLoc = glGetUniformLocation(PTS_guiObj, "mouseInFrame");
 
 		int mif = mousePos.x > topLeft.x && mousePos.x < bottomRight.x; // "Mouse In Frame"
 		mif = mif && mousePos.y > topLeft.y && mousePos.y < bottomRight.y;
@@ -67,11 +75,11 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 		glUniform1i(mifLoc, mif);
 
 		// reactive property uniforms
-		rLoc = glGetUniformLocation(frameProg, "reactive");
-		aborcLoc = glGetUniformLocation(frameProg, "activeBorderColor");
-		abaccLoc = glGetUniformLocation(frameProg, "activeBackgroundColor");
-		abordLoc = glGetUniformLocation(frameProg, "activeBorderRange");
-		abacdLoc = glGetUniformLocation(frameProg, "activeBackgroundRange");
+		rLoc = glGetUniformLocation(PTS_guiObj, "reactive");
+		aborcLoc = glGetUniformLocation(PTS_guiObj, "activeBorderColor");
+		abaccLoc = glGetUniformLocation(PTS_guiObj, "activeBackgroundColor");
+		abordLoc = glGetUniformLocation(PTS_guiObj, "activeBorderRange");
+		abacdLoc = glGetUniformLocation(PTS_guiObj, "activeBackgroundRange");
 
 		glUniform1i(rLoc, obj->reactive);
 		uniform_PT_COLOR(aborcLoc, obj->activeBorderColor);

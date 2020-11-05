@@ -6,6 +6,7 @@ typedef enum {
 
 	IT_GUI_OBJ,
 	IT_TEXTLABEL,
+	IT_IMAGELABEL,
 
 	IT_SCREEN_UI
 } INSTANCE_TYPE;
