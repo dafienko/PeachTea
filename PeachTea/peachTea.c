@@ -31,7 +31,6 @@ void update_main_window_pos() {
 void PT_INIT(vec2i screenSize) {
 	screensize_init(screenSize);
 	GLEInit();
-	init_gui_util();
 	initFT();
 	PT_SHADERS_init();
 

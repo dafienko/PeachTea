@@ -9,7 +9,7 @@
 #include "glUniformUtil.h"
 
 Instance* PT_GUI_OBJ_new() {
-	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)calloc(1, sizeof(PT_GUI_OBJ));
+	PT_GUI_OBJ* obj = calloc(1, sizeof(PT_GUI_OBJ));
 
 	obj->visible = 1;
 
@@ -102,6 +102,7 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 		glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, NULL);
 
 		glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_QUAD_CORNERS), DEFAULT_QUAD_CORNERS, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 

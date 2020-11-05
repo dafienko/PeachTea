@@ -6,35 +6,7 @@
 #include "imageLabel.h"
 #include "textLabel.h"
 #include "ScreenUI.h"
-
-
-void init_gui_util() {
-	qVAO = calloc(1, sizeof(GLuint));
-	qVBO = calloc(2, sizeof(GLuint));
-
-	glGenVertexArrays(1, qVAO);
-	glBindVertexArray(*qVAO);
-	glGenBuffers(2, qVBO);
-
-	int quadPositions[] = {
-		0, 0,
-		0, 10,
-		10, 10,
-		10, 0
-	};
-
-	float quadCorners[] = {
-		0, 0,
-		0, 1.0,
-		1.0f, 1.0,
-		1.0f, 0
-	};
-
-	glBindBuffer(GL_ARRAY_BUFFER, *qVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadPositions), quadPositions, GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadCorners), quadCorners, GL_STATIC_DRAW);
-}
+#include "PeachTeaShaders.h"
 
 void render_gui_instance(Instance* instance, PT_ABS_DIM parentDims) {
 	PT_ABS_DIM childDims;

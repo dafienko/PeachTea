@@ -2,7 +2,33 @@
 #include "glExtensions.h"
 #include "assetLoader.h"
 
+DEFAULT_QUAD_CORNERS[] = {
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f
+};
+
 void PT_SHADERS_init() {
+	qVAO = calloc(1, sizeof(GLuint));
+	qVBO = calloc(2, sizeof(GLuint));
+
+	glGenVertexArrays(1, qVAO);
+	glBindVertexArray(*qVAO);
+	glGenBuffers(2, qVBO);
+
+	int quadPositions[] = {
+		0, 0,
+		0, 10,
+		10, 10,
+		10, 0
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, *qVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadPositions), quadPositions, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
+	glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_QUAD_CORNERS), DEFAULT_QUAD_CORNERS, GL_STATIC_DRAW);
+
 	GLuint qvs = create_vertex_shader("shaders\\basicQuad.vs");
 
 	GLuint tfs = create_fragment_shader("shaders\\textQuad.fs");

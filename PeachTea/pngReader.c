@@ -162,7 +162,7 @@ image_bit_data read_png_file_simple(const char* filename) {
     {
         png_bytep buffer;
 
-        image.format = PNG_FORMAT_BGRA;
+        image.format = PNG_FORMAT_RGBA;
 
         buffer = malloc(PNG_IMAGE_SIZE(image));
         ibd.lpBits = buffer;

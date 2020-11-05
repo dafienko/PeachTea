@@ -10,7 +10,7 @@ typedef struct {
 	PT_GUI_OBJ* guiObj;
 	int visible;
 
-	PT_IMAGE img;
+	PT_IMAGE image;
 
 
 } PT_IMAGELABEL;

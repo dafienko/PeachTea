@@ -102,20 +102,29 @@ int main() {
 		1, -default_padding
 	);
 	frame->position = PT_REL_DIM_new(0.5f, 0, 0.5f, 0);
-	frame->visible = 0;
+	frame->visible = 1;
+	frame->backgroundColor = PT_COLOR_fromRGB(255, 0, 0);
 	frame->anchorPosition = (vec2f){ .5f, .5f };
 
-	PT_COLOR board1 = PT_COLOR_new(0, 0, 0);
-	PT_COLOR board2 = PT_COLOR_fromRGB(155, 155, 155);
+	PT_SIZE_CONSTRAINT_destroy(frame->sizeConstraint);
+	frame->sizeConstraint = PT_SIZE_CONSTRAINT_aspect(1.0f, PTSC_LOCK_SMALLEST);
+
+	PT_COLOR board1 = PT_COLOR_lerp(accentColor, PT_COLOR_new(0, 0, 0), .5);
+	PT_COLOR board2 = PT_COLOR_fromRGB(200, 200, 200);
+
+	PT_IMAGE chessSpriteMap = PT_IMAGE_from_png("assets\\images\\chess.png");
+
+	PT_IMAGE pawn = PT_IMAGE_index_spritemap(chessSpriteMap, (vec2i) { 5, 1 }, (vec2i) { 1, 1 }, 166);
 
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			///*
 			Instance* button = create_default_imagelabel(frameInstance);
 
-			PT_IMAGELABEL* tl = (PT_IMAGELABEL*)button->subInstance;
+			PT_IMAGELABEL* il = (PT_IMAGELABEL*)button->subInstance;
 
-			PT_GUI_OBJ* obj = (PT_GUI_OBJ*)tl->guiObj;
+			il->image = pawn;
+
+			PT_GUI_OBJ* obj = (PT_GUI_OBJ*)il->guiObj;
 
 			obj->reactive = TRUE;
 			obj->backgroundColor = (x + y) % 2 == 0 ? board1 : board2;
@@ -124,6 +133,7 @@ int main() {
 			obj->activeBackgroundRange = (vec2f){ 40, 250 };
 			obj->activeBorderRange = (vec2f){ 25, 70 };
 			obj->backgroundTransparency = 0.0f;
+
 
 			obj->position = PT_REL_DIM_new(
 				((float)x) / 8.0f, 0,
@@ -136,11 +146,10 @@ int main() {
 			);
 
 			obj->borderColor = accentColor;
-			//*/
 		}
 	}
 
-	//PT_IMAGE img = PT_IMAGE_from_png("assets\\images\\chess.png");
+	
 
 	int exitCode = PT_RUN(onRender);
 

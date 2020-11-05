@@ -24,5 +24,6 @@ void free_image_bit_data(image_bit_data* ibd);
 
 PT_IMAGE PT_IMAGE_from_image_bit_data(image_bit_data* ibd);
 PT_IMAGE PT_IMAGE_from_png(const char* filename);
+PT_IMAGE PT_IMAGE_index_spritemap(PT_IMAGE spritemap, vec2i position, vec2i size, int unitSizePx); // origin sprite position is 0, 0 (not 1, 1)
 
 #endif

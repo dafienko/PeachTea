@@ -5,9 +5,6 @@
 #include "Instance.h"
 #include "ScreenDimension.h"
 
-unsigned int* qVAO;
-unsigned int* qVBO;
-
 typedef enum {
 	PT_H_ALIGNMENT_LEFT,
 	PT_H_ALIGNMENT_CENTER,
@@ -25,8 +22,6 @@ typedef enum {
 	PT_FONT_CONSOLA,
 	PT_FONT_TIMES
 } PT_FONT;
-
-void init_gui_util();
 
 void render_gui_instance(Instance* instance, PT_ABS_DIM parentDims);
 

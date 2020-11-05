@@ -4,12 +4,16 @@
 #include "screenSize.h"
 #include "guiObj.h"
 
+#include <stdio.h>
+
 #define min(a, b) a > b ? b : a
 #define max(a, b) a > b ? a : b
 #define clamp(x, f, c) min(c, max(x, f))
 
 vec2i onResize_none(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
-	return calculate_screen_dimension(obj->size, parentDims.size);
+	vec2i dims = calculate_screen_dimension(obj->size, parentDims.size);
+
+	return dims;
 }
 
 vec2i onResize_aspect(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
@@ -19,11 +23,11 @@ vec2i onResize_aspect(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 	if (lockedAxis > 1) {
 		PTSC_AXIS biggest = screenSize.x > screenSize.y ? PTSC_LOCK_X : PTSC_LOCK_Y;
 		PTSC_AXIS smallest = biggest == PTSC_LOCK_X ? PTSC_LOCK_Y : PTSC_LOCK_X;
-		
+
 		lockedAxis = lockedAxis == PTSC_LOCK_BIGGEST ? biggest : smallest;
 	}
 
-	if (obj->sizeConstraint->lockedAxis == PTSC_LOCK_X) {
+	if (lockedAxis == PTSC_LOCK_X) {
 		absSize.y = absSize.x / obj->sizeConstraint->aspectRatio;
 	}
 	else { // PTSC_LOCK_Y
@@ -45,7 +49,7 @@ vec2i onResize_bounds(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 }
 
 PT_SIZE_CONSTRAINT* PT_SIZE_CONSTRAINT_new() {
-	PT_SIZE_CONSTRAINT* constraint = calloc(1, sizeof(PT_SIZE_CONSTRAINT*));
+	PT_SIZE_CONSTRAINT* constraint = calloc(1, sizeof(PT_SIZE_CONSTRAINT));
 
 	return constraint;
 }
@@ -58,8 +62,11 @@ PT_SIZE_CONSTRAINT* PT_SIZE_CONSTRAINT_none() {
 	return constraint;
 }
 
-PT_SIZE_CONSTRAINT* PT_SIZE_CONSTRAINT_aspect(float aspectRatio) {
+PT_SIZE_CONSTRAINT* PT_SIZE_CONSTRAINT_aspect(float aspectRatio, PTSC_AXIS lockedAxis) {
 	PT_SIZE_CONSTRAINT* constraint = PT_SIZE_CONSTRAINT_new();
+
+	constraint->aspectRatio = aspectRatio;
+	constraint->lockedAxis = lockedAxis;
 
 	constraint->calculateSize = onResize_aspect;
 
