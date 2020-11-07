@@ -1,7 +1,11 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "PeachTea.h"
 #include "screenSize.h"
 #include "renderer.h"
 #include "PeachTeaShaders.h"
+
+#include <stdlib.h>
 
 HDC hMainDC;
 HGLRC hMainRC;
@@ -48,12 +52,17 @@ void PT_UPDATE() {
 LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void PT_CREATE_MAIN_WND(vec2i size, const char* title) {	
-	hMainWnd = createPeachWindow(NULL, (void*)WndProc, L"Peach Tea");
-	mouse_init(hMainWnd);
+	int len = strlen(title) + 2;
+	wchar_t* wtitle = calloc(len, sizeof(wchar_t));
+	mbstowcs(wtitle, title, len);
+	hMainWnd = createPeachWindow(NULL, size, (void*)WndProc, wtitle);
+	free(wtitle);
 
-	RECT r = { 0 };
-	GetClientRect(hMainWnd, &r);
-	vec2i screenSize = (vec2i){ r.right - r.left, r.bottom - r.top };
+	RECT rect;
+	GetClientRect(hMainWnd, &rect);
+	screenSize = (vec2i){ rect.right - rect.left, rect.bottom - rect.top };
+
+	mouse_init(hMainWnd);
 
 	hMainDC = GetDC(hMainWnd);
 	hMainRC = wglCreateContext(hMainDC);

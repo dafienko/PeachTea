@@ -2,7 +2,7 @@
 #define PT_WINUTIL_H
 
 #include "lightWindows.h"
-#include <stdio.h>
+#include "vectorMath.h"
 
 // rect bullcrap
 #ifndef R_WIDTH
@@ -16,5 +16,7 @@
 #ifndef GWL_WNDPROC
 #define GWL_WNDPROC -4
 #endif
+
+HWND createPeachWindow(const HINSTANCE hInstance, vec2i wndSize, const void* wndProc, const WCHAR* wndName);
 
 #endif

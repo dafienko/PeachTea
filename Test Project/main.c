@@ -81,7 +81,7 @@ void update_accent_color() {
 int main() {
 	update_accent_color();
 
-	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PT Main Window");
+	PT_CREATE_MAIN_WND((vec2i) { 800, 800 }, "PeachTea Chess");
 
 	screenUI = PT_SCREEN_UI_new(NULL);
 
@@ -94,20 +94,20 @@ int main() {
 	backgroundFrame->visible = 0;
 
 	Instance* frameInstance = create_default_frame(screenUI);
-	PT_GUI_OBJ* frame = (PT_GUI_OBJ*)frameInstance->subInstance;
-	frame->visible = FALSE;
-	frame->borderWidth = 0;
-	frame->size = PT_REL_DIM_new(
+	PT_GUI_OBJ* boardFrame = (PT_GUI_OBJ*)frameInstance->subInstance;
+	boardFrame->visible = FALSE;
+	boardFrame->borderWidth = 0;
+	boardFrame->size = PT_REL_DIM_new(
 		1, -default_padding,
 		1, -default_padding
 	);
-	frame->position = PT_REL_DIM_new(0.5f, 0, 0.5f, 0);
-	frame->visible = 1;
-	frame->backgroundColor = PT_COLOR_fromRGB(255, 0, 0);
-	frame->anchorPosition = (vec2f){ .5f, .5f };
+	boardFrame->position = PT_REL_DIM_new(0.5f, 0, 0.5f, 0);
+	boardFrame->visible = 1;
+	boardFrame->backgroundColor = PT_COLOR_fromRGB(255, 0, 0);
+	boardFrame->anchorPosition = (vec2f){ .5f, .5f };
 
-	PT_SIZE_CONSTRAINT_destroy(frame->sizeConstraint);
-	frame->sizeConstraint = PT_SIZE_CONSTRAINT_aspect(1.0f, PTSC_LOCK_SMALLEST);
+	PT_SIZE_CONSTRAINT_destroy(boardFrame->sizeConstraint);
+	boardFrame->sizeConstraint = PT_SIZE_CONSTRAINT_aspect(1.0f, PTSC_LOCK_SMALLEST);
 
 	PT_COLOR board1 = PT_COLOR_lerp(accentColor, PT_COLOR_new(0, 0, 0), .5);
 	PT_COLOR board2 = PT_COLOR_fromRGB(200, 200, 200);
@@ -116,15 +116,12 @@ int main() {
 
 	PT_IMAGE pawn = PT_IMAGE_index_spritemap(chessSpriteMap, (vec2i) { 5, 1 }, (vec2i) { 1, 1 }, 166);
 
+	// create chess board
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			Instance* button = create_default_imagelabel(frameInstance);
+			Instance* frame = create_default_frame(frameInstance);
 
-			PT_IMAGELABEL* il = (PT_IMAGELABEL*)button->subInstance;
-
-			il->image = pawn;
-
-			PT_GUI_OBJ* obj = (PT_GUI_OBJ*)il->guiObj;
+			PT_GUI_OBJ* obj = (PT_GUI_OBJ*)frame->subInstance;
 
 			obj->reactive = TRUE;
 			obj->backgroundColor = (x + y) % 2 == 0 ? board1 : board2;

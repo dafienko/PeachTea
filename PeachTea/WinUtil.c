@@ -1,5 +1,6 @@
 #include "WinUtil.h"
 #include "errorUtil.h"
+#include "vectorMath.h"
 
 int winUtilInitialized = 0;
 
@@ -8,26 +9,24 @@ WNDCLASS MAIN_WNDCLASS = { 0 };
 PIXELFORMATDESCRIPTOR pfd = { 0 };
 
 RECT desktopRect;
-POINT defPosition, defSize;
+vec2i defSize;
+
+vec2i get_position_for_size(vec2i size) {
+	return (vec2i){
+		(R_WIDTH(desktopRect) - size.x) / 2,
+		(R_HEIGHT(desktopRect) - size.y) / 2,
+	};
+}
 
 void initWinUtil(const HINSTANCE hInstance) {
 	if (!winUtilInitialized) {
 		winUtilInitialized = 1;
 
 		// calculate default window position and dimensions
-		defPosition = (POINT){ 0 };
-		defSize = (POINT){ 0 };
-		desktopRect = (RECT){ 0 };
-
 		desktopRect.right = GetSystemMetrics(SM_CXSCREEN);
 		desktopRect.bottom = GetSystemMetrics(SM_CYSCREEN);
 
-		defSize = (POINT){ 800, 600 };
-
-		defPosition = (POINT){ 
-			(R_WIDTH(desktopRect) - defSize.x) / 2,
-			(R_HEIGHT(desktopRect) - defSize.y) / 2,
-		} ;
+		defSize = (vec2i){ 800, 600 };
 
 		// define and register main window class
 		MAIN_WNDCLASS.lpfnWndProc = DefWindowProc;
@@ -51,9 +50,16 @@ void initWinUtil(const HINSTANCE hInstance) {
 	}
 }
 
-HWND createPeachWindow(const HINSTANCE hInstance, const void* wndProc, const WCHAR* wndName) {
+HWND createPeachWindow(const HINSTANCE hInstance, vec2i wndSize, const void* wndProc, const WCHAR* wndName) {
 	if (!winUtilInitialized) {
 		initWinUtil(hInstance);
+	}
+
+	if (wndSize.x == 0 && wndSize.y == 0) {
+		wndSize = (vec2i){ defSize.x, defSize.y };
+	}
+	else {
+		wndSize.y += GetSystemMetrics(SM_CYCAPTION);
 	}
 
 	// clone default class
@@ -73,10 +79,12 @@ HWND createPeachWindow(const HINSTANCE hInstance, const void* wndProc, const WCH
 	}
 
 	// create window with custom wndclass
+	vec2i wndPos = get_position_for_size(wndSize);
+
 	HWND hWnd = CreateWindow(wndName, wndName,
 		WS_OVERLAPPEDWINDOW,
-		defPosition.x, defPosition.y,
-		defSize.x, defSize.y,
+		wndPos.x, wndPos.y,
+		wndSize.x, wndSize.y,
 		NULL, NULL, hInstance, NULL
 	);
 
