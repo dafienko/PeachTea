@@ -8,6 +8,69 @@
 
 #include "glUniformUtil.h"
 
+#include <stdio.h>
+
+int get_instance_zindex(Instance* inst) {
+	int z = 0;
+
+	switch (inst->instanceType) {
+	case IT_GUI_OBJ:
+		;
+		PT_GUI_OBJ* obj = (PT_GUI_OBJ*)inst->subInstance;
+		z = obj->zIndex;
+		break;
+	case IT_IMAGELABEL:
+		;
+		PT_IMAGELABEL* imagelabel = (PT_IMAGELABEL*)inst->subInstance;
+		z = imagelabel->guiObj->zIndex;
+		break;
+	case IT_TEXTLABEL:
+		;
+		PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)inst->subInstance;
+		z = textlabel->guiObj->zIndex;
+		break;
+	}
+
+	return z;
+}
+
+void compare_instances(void* v1, void* v2) {
+	Instance* i1 = (Instance*)v1;
+	Instance* i2 = (Instance*)v2;
+
+	int z1 = get_instance_zindex(i1);
+	int z2 = get_instance_zindex(i2);
+
+	if (z1 > z2) {
+		return -1;
+	}
+	else if (z1 < z2) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+void onDescendantsChanged(void* args) {
+	Instance* instance = (Instance*)args;
+	
+	Instance** children = instance->children;
+
+	quicksort(children, sizeof(Instance*), instance->numChildren, compare_instances);
+
+	for (int i = 0; i < instance->numChildren; i++) {
+		printf("%i", get_instance_zindex(instance->children + i));
+
+		if (i < instance->numChildren - 1) {
+			printf(", ");
+		}
+		else {
+			printf("\n");
+		}
+	}
+}
+
 Instance* PT_GUI_OBJ_new() {
 	PT_GUI_OBJ* obj = calloc(1, sizeof(PT_GUI_OBJ));
 
@@ -21,6 +84,9 @@ Instance* PT_GUI_OBJ_new() {
 	obj->instance = (Instance*)instance;
 
 	obj->sizeConstraint = PT_SIZE_CONSTRAINT_none();
+
+	PT_BINDABLE_EVENT_bind(&instance->childAdded, onDescendantsChanged);
+	PT_BINDABLE_EVENT_bind(&instance->childRemoved, onDescendantsChanged);
 
 	return instance;
 }
@@ -49,7 +115,7 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 			(float)obj->borderWidth / (float)totalFrameSize.y
 		};
 
-		GLuint fbcLoc, bcLoc, btLoc, cLoc, tLoc, ssLoc, mpLoc, mifLoc;
+		GLuint fbcLoc, bcLoc, btLoc, cLoc, tLoc, ssLoc, mpLoc, mifLoc, dLoc;
 		GLuint rLoc, aborcLoc, abaccLoc, abordLoc, abacdLoc;
 
 		// general property uniforms
@@ -61,9 +127,18 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 		tLoc = glGetUniformLocation(PTS_guiObj, "backgroundTransparency");
 		ssLoc = glGetUniformLocation(PTS_guiObj, "screenSize");
 		mifLoc = glGetUniformLocation(PTS_guiObj, "mouseInFrame");
+		dLoc = glGetUniformLocation(PTS_guiObj, "depth");
 
 		int mif = mousePos.x > topLeft.x && mousePos.x < bottomRight.x; // "Mouse In Frame"
 		mif = mif && mousePos.y > topLeft.y && mousePos.y < bottomRight.y;
+
+		float depth;
+		if (parentDims.sortingType == ZST_SIBLING) {
+			depth = 0;
+		}
+		else {
+			depth = obj->zIndex / 128.0f;
+		}
 
 		uniform_vec2i(mpLoc, mousePos);
 		uniform_vec2i(ssLoc, screenSize);
@@ -73,6 +148,7 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 		uniform_PT_COLOR(cLoc, obj->backgroundColor);
 		glUniform1f(tLoc, obj->backgroundTransparency);
 		glUniform1i(mifLoc, mif);
+		glUniform1f(dLoc, depth);
 
 		// reactive property uniforms
 		rLoc = glGetUniformLocation(PTS_guiObj, "reactive");
@@ -112,6 +188,7 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 	PT_ABS_DIM dims = { 0 };
 	dims.position = framePos;
 	dims.size = frameSize;
+	dims.sortingType = parentDims.sortingType;
 
 	obj->lastAbsoluteDim = dims;
 

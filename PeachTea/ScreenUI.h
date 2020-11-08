@@ -11,9 +11,16 @@
 
 #include <Windows.h>
 
+typedef enum {
+	ZST_SIBLING,
+	ZST_GLOBAL
+} Z_SORTING_TYPE;
+
 typedef struct {
 	Instance* instance;
 	
+	Z_SORTING_TYPE sortingType;
+
 	BOOL enabled;
 } PT_SCREEN_UI;
 

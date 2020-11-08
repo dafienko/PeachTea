@@ -3,6 +3,8 @@
 
 #pragma comment(lib, "PeachTea")
 
+#include "sort.h"
+
 #include "WinUtil.h"
 #include "errorUtil.h"
 

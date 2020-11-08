@@ -147,10 +147,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="chessGame.c" />
+    <ClCompile Include="chessTeam.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="chessBoard.h" />
+    <ClInclude Include="chessGame.h" />
+    <ClInclude Include="chessSprites.h" />
     <ClInclude Include="chessTeam.h" />
     <ClInclude Include="path.h" />
   </ItemGroup>

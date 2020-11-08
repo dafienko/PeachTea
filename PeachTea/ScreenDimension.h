@@ -6,6 +6,9 @@
 typedef struct {
 	vec2i position;
 	vec2i size;
+
+	float depth; // not always used, but really convenient to put here for ui rendering
+	enum Z_SORTING_TYPE sortingType;
 } PT_ABS_DIM;
 
 typedef enum {

@@ -18,6 +18,7 @@ typedef struct {
 	int visible;
 	PT_ABS_DIM lastAbsoluteDim;
 	PT_SIZE_CONSTRAINT* sizeConstraint;
+	char zIndex;
 
 	int reactive;
 	PT_COLOR activeBorderColor;

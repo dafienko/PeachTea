@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "PeachTea.h"
 #include <dwmapi.h>
+#include "chessGame.h"
 
 #pragma comment(lib, "dwmapi")
 
@@ -14,56 +15,17 @@ PT_COLOR accentColor = { 0 };
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+CHESS_GAME chessGame;
+
 void onRender() {
 	PT_ABS_DIM dims = { 0 };
 	dims.position = (vec2i){ 0 };
 	dims.size = screenSize;
 
+	PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
+	dims.sortingType = ZST_GLOBAL; // ui->sortingType;
+
 	render_gui_instance(screenUI, dims);
-}
-
-void setup_default_gui_obj(PT_GUI_OBJ* obj) {
-	obj->borderColor = PT_COLOR_new(1, 1, 1);
-	obj->backgroundColor = PT_COLOR_fromRGB(80, 80, 80);
-	obj->backgroundTransparency = .66;
-
-	obj->borderTransparancy = 0;
-	obj->borderWidth = 1;
-
-	obj->visible = TRUE;
-}
-
-Instance* create_default_frame(Instance* parent) {
-	Instance* instance = PT_GUI_OBJ_new();
-	set_instance_parent(instance, parent);
-
-	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)instance->subInstance;
-	setup_default_gui_obj(obj);
-
-	return instance;
-}
-
-
-Instance* create_default_textlabel(Instance* parent) {
-	Instance* instance = PT_TEXTLABEL_new();
-	set_instance_parent(instance, parent);
-
-	PT_TEXTLABEL* tlabel = (PT_TEXTLABEL*)instance->subInstance;
-	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)tlabel->guiObj;
-	setup_default_gui_obj(obj);
-
-	return instance;
-}
-
-Instance* create_default_imagelabel(Instance* parent) {
-	Instance* instance = PT_IMAGELABEL_new();
-	set_instance_parent(instance, parent);
-
-	PT_IMAGELABEL* tlabel = (PT_IMAGELABEL*)instance->subInstance;
-	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)tlabel->guiObj;
-	setup_default_gui_obj(obj);
-
-	return instance;
 }
 
 void update_accent_color() {
@@ -81,19 +43,20 @@ void update_accent_color() {
 int main() {
 	update_accent_color();
 
-	PT_CREATE_MAIN_WND((vec2i) { 800, 800 }, "PeachTea Chess");
+	PT_CREATE_MAIN_WND((vec2i) { 600, 600 }, "PeachTea Chess");
 
-	screenUI = PT_SCREEN_UI_new(NULL);
+	screenUI = PT_SCREEN_UI_new();
 
-	Instance* backgroundInstance = create_default_frame(screenUI);
+	Instance* backgroundInstance = PT_GUI_OBJ_new();
 	PT_GUI_OBJ* backgroundFrame = (PT_GUI_OBJ*)backgroundInstance->subInstance;
 	backgroundFrame->borderWidth = 0;
 	backgroundFrame->size = PT_REL_DIM_new(1, 0, 1, 0);
 	backgroundFrame->backgroundTransparency = 0;
 	backgroundFrame->backgroundColor = PT_COLOR_fromRGB(100, 100, 100);
 	backgroundFrame->visible = 0;
+	set_instance_parent(backgroundInstance, screenUI);
 
-	Instance* frameInstance = create_default_frame(screenUI);
+	Instance* frameInstance = PT_GUI_OBJ_new();
 	PT_GUI_OBJ* boardFrame = (PT_GUI_OBJ*)frameInstance->subInstance;
 	boardFrame->visible = FALSE;
 	boardFrame->borderWidth = 0;
@@ -108,18 +71,15 @@ int main() {
 
 	PT_SIZE_CONSTRAINT_destroy(boardFrame->sizeConstraint);
 	boardFrame->sizeConstraint = PT_SIZE_CONSTRAINT_aspect(1.0f, PTSC_LOCK_SMALLEST);
+	set_instance_parent(frameInstance, backgroundInstance);
 
-	PT_COLOR board1 = PT_COLOR_lerp(accentColor, PT_COLOR_new(0, 0, 0), .5);
+	PT_COLOR board1 = PT_COLOR_lerp(accentColor, PT_COLOR_new(0, 0, 0), .25);
 	PT_COLOR board2 = PT_COLOR_fromRGB(200, 200, 200);
-
-	PT_IMAGE chessSpriteMap = PT_IMAGE_from_png("assets\\images\\chess.png");
-
-	PT_IMAGE pawn = PT_IMAGE_index_spritemap(chessSpriteMap, (vec2i) { 5, 1 }, (vec2i) { 1, 1 }, 166);
 
 	// create chess board
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			Instance* frame = create_default_frame(frameInstance);
+			Instance* frame = PT_GUI_OBJ_new();
 
 			PT_GUI_OBJ* obj = (PT_GUI_OBJ*)frame->subInstance;
 
@@ -130,7 +90,7 @@ int main() {
 			obj->activeBackgroundRange = (vec2f){ 40, 250 };
 			obj->activeBorderRange = (vec2f){ 25, 70 };
 			obj->backgroundTransparency = 0.0f;
-
+			obj->borderWidth = 1;
 
 			obj->position = PT_REL_DIM_new(
 				((float)x) / 8.0f, 0,
@@ -143,10 +103,16 @@ int main() {
 			);
 
 			obj->borderColor = accentColor;
+
+			char* name = calloc(15, sizeof(char));
+			sprintf(name, "%i,%i", x + 1, y + 1); // add to each dimension, origin is at (1, 1); not (0, 0)
+			frame->name = name;
+
+			set_instance_parent(frame, frameInstance);
 		}
 	}
 
-	
+	chessGame = create_chess_game(frameInstance);
 
 	int exitCode = PT_RUN(onRender);
 

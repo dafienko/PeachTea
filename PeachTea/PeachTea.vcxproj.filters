@@ -16,20 +16,11 @@
     <Filter Include="Header Files\util">
       <UniqueIdentifier>{c4958b45-a5fd-475c-affe-aaac19e0c759}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\winUtil">
-      <UniqueIdentifier>{53ee642b-70ff-4c5c-b780-52cafa773392}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\glExtensions">
       <UniqueIdentifier>{2cae02ab-a9ae-4b2f-85bb-84bd426b1f59}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\glExtensions">
       <UniqueIdentifier>{bf67b6f2-4980-4bf0-9070-7b9bb5c9d426}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\glUtil">
-      <UniqueIdentifier>{c7586734-a961-4ea1-8d13-7530524b6901}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\glUtil">
-      <UniqueIdentifier>{eaa44c91-b192-49e0-a8bf-05d1e782aee2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\assets">
       <UniqueIdentifier>{b8fcc81f-36ea-425c-ba8f-fbc8c8f03e8c}</UniqueIdentifier>
@@ -51,6 +42,15 @@
     </Filter>
     <Filter Include="Source Files\libpng">
       <UniqueIdentifier>{30ecb4fa-e49d-40e3-91a1-3a0ee8db16a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui">
+      <UniqueIdentifier>{c7586734-a961-4ea1-8d13-7530524b6901}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{eaa44c91-b192-49e0-a8bf-05d1e782aee2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{53ee642b-70ff-4c5c-b780-52cafa773392}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -76,10 +76,10 @@
       <Filter>Header Files\glExtensions</Filter>
     </ClInclude>
     <ClInclude Include="glText.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="shaders.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="fileUtil.h">
       <Filter>Header Files\assets</Filter>
@@ -91,7 +91,7 @@
       <Filter>Header Files\math</Filter>
     </ClInclude>
     <ClInclude Include="guiUtil.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="bool.h">
       <Filter>Header Files</Filter>
@@ -112,57 +112,54 @@
       <Filter>Header Files\assets</Filter>
     </ClInclude>
     <ClInclude Include="textLabel.h">
-      <Filter>Header Files\glUtil</Filter>
-    </ClInclude>
-    <ClInclude Include="uiContainer.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="ScreenUI.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="guiObj.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="fontHandler.h">
-      <Filter>Header Files\glUtil</Filter>
-    </ClInclude>
-    <ClInclude Include="ScreenDimension.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="Colors.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="glUniformUtil.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="BindableEvent.h">
       <Filter>Header Files\PeachTeaUtil</Filter>
     </ClInclude>
     <ClInclude Include="imageLabel.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="PeachTeaShaders.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="SizeConstraint.h">
-      <Filter>Header Files\glUtil</Filter>
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenDimension.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="sort.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="errorUtil.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="WinUtil.c">
-      <Filter>Source Files\winUtil</Filter>
+      <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="glExtensions.c">
       <Filter>Source Files\glExtensions</Filter>
     </ClCompile>
     <ClCompile Include="glText.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="shaders.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="assets.c">
       <Filter>Source Files\assets</Filter>
@@ -177,7 +174,7 @@
       <Filter>Source Files\math</Filter>
     </ClCompile>
     <ClCompile Include="guiUtil.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="peachTea.c">
       <Filter>Source Files</Filter>
@@ -201,34 +198,34 @@
       <Filter>Source Files\assets</Filter>
     </ClCompile>
     <ClCompile Include="textlabel.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="ScreenUI.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="guiObj.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="fontHandler.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="ScreenDimension.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="Colors.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="glUniformUtil.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="BindableEvent.c">
       <Filter>Source Files\PeachTeaUtil</Filter>
     </ClCompile>
     <ClCompile Include="textureHandler.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="imageLabel.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="lpng1637\adler32.c">
       <Filter>Source Files\libpng</Filter>
@@ -324,10 +321,16 @@
       <Filter>Source Files\libpng</Filter>
     </ClCompile>
     <ClCompile Include="PeachTeaShaders.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="SizeConstraint.c">
-      <Filter>Source Files\glUtil</Filter>
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="errorUtil.c">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="quicksort.c">
+      <Filter>Source Files\util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

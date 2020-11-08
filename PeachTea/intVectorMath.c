@@ -25,6 +25,9 @@ vec2i vector_div_2i(const vec2i a, const int d) {
 	};
 }
 
+vec2i vector_mul_2i(const vec2i v, const int f) {
+	return (vec2i) { v.x* f, v.y* f };
+}
 
 /* vec4i stuff */
 int vec4i_equal(const vec4i a, const vec4i b) {

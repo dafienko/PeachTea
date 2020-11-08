@@ -184,8 +184,8 @@
     <ClInclude Include="ScreenUI.h" />
     <ClInclude Include="shaders.h" />
     <ClInclude Include="SizeConstraint.h" />
+    <ClInclude Include="sort.h" />
     <ClInclude Include="textLabel.h" />
-    <ClInclude Include="uiContainer.h" />
     <ClInclude Include="vectorMath.h" />
     <ClInclude Include="wglext.h" />
     <ClInclude Include="WinUtil.h" />
@@ -248,6 +248,7 @@
     <ClCompile Include="ScreenUI.c" />
     <ClCompile Include="shaders.c" />
     <ClCompile Include="SizeConstraint.c" />
+    <ClCompile Include="quicksort.c" />
     <ClCompile Include="textlabel.c" />
     <ClCompile Include="textureHandler.c" />
     <ClCompile Include="WinUtil.c" />

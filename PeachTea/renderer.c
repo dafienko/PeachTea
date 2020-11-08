@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include "screenSize.h"
 
-#include "uiContainer.h"
-
 vec2i vpSize;
 int initialized = 0;
 
