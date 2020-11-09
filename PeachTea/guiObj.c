@@ -58,17 +58,6 @@ void onDescendantsChanged(void* args) {
 	Instance** children = instance->children;
 
 	quicksort(children, sizeof(Instance*), instance->numChildren, compare_instances);
-
-	for (int i = 0; i < instance->numChildren; i++) {
-		printf("%i", get_instance_zindex(instance->children + i));
-
-		if (i < instance->numChildren - 1) {
-			printf(", ");
-		}
-		else {
-			printf("\n");
-		}
-	}
 }
 
 Instance* PT_GUI_OBJ_new() {

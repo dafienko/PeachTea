@@ -42,12 +42,12 @@ void obj_mouse_moved(PT_GUI_OBJ* obj) {
 
 	if (mouseWasInObj != obj->mouseInFrame) {
 		if (obj->mouseInFrame) {
-			printf("mouse entered %s\n", obj->instance->name);
+			//printf("mouse entered %s\n", obj->instance->name);
 
 			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
 		}
 		else {
-			printf("mouse left %s\n", obj->instance->name);
+			//printf("mouse left %s\n", obj->instance->name);
 
 			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseLeave, obj);
 		}
@@ -58,7 +58,7 @@ void obj_mouse_down(PT_GUI_OBJ* obj) {
 	if (pos_in_obj(mousePos, obj)) {
 		obj->pressed = 1;
 
-		printf("pressed %s\n", obj->instance->name);
+		//printf("pressed %s\n", obj->instance->name);
 
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_released, obj);
 	}
@@ -67,7 +67,7 @@ void obj_mouse_down(PT_GUI_OBJ* obj) {
 void obj_mouse_up(PT_GUI_OBJ* obj) {
 	if (obj->pressed) {
 		obj->pressed = 0;
-		printf("released %s\n", obj->instance->name);
+		//printf("released %s\n", obj->instance->name);
 
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_released, obj);
 	}

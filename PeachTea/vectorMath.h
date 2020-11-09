@@ -31,7 +31,7 @@ vec2i vector_add_2i(const vec2i, const vec2i);
 vec2i vector_sub_2i(const vec2i, const vec2i);
 vec2i vector_div_2i(const vec2i, const int);
 vec2i vector_mul_2i(const vec2i, const int);
-vec2i vector_equal_2i(const vec2i, const vec2i);
+int vector_equal_2i(const vec2i, const vec2i);
 
 /* vec4i stuff */
 int vec4i_equal(const vec4i a, const vec4i b);

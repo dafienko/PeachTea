@@ -3,6 +3,7 @@
 #include "glExtensions.h"
 #include "screenSize.h"
 #include "glUniformUtil.h"
+#include "mouse.h"
 #include <stdlib.h>
 
 Instance* PT_IMAGELABEL_new() {
@@ -30,12 +31,27 @@ PT_ABS_DIM PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_ABS_DIM parentDims) {
 	vec2i bottomRight = vector_add_2i(topLeft, childDims.size);
 
 	int ssLoc = glGetUniformLocation(PTS_img, "screenSize");
-	int tLoc = glGetUniformLocation(PTS_img, "transparency");
-	int cLoc = glGetUniformLocation(PTS_img, "color");
+	int tLoc = glGetUniformLocation(PTS_img, "imageTransparency");
+	int itLoc = glGetUniformLocation(PTS_img, "imageTint");
+	int itaLoc = glGetUniformLocation(PTS_img, "imageTintAlpha");
+	int mpLoc = glGetUniformLocation(PTS_img, "mousePos");
+	int mifLoc = glGetUniformLocation(PTS_img, "mouseInFrame");
+	int rLoc = glGetUniformLocation(PTS_img, "reactive");
+	int abcLoc = glGetUniformLocation(PTS_img, "activeBackgroundColor");
+	int abrLoc = glGetUniformLocation(PTS_img, "activeBackgroundRange");
+
+	int mif = mousePos.x > topLeft.x && mousePos.x < bottomRight.x; // "Mouse In Frame"
+	mif = mif && mousePos.y > topLeft.y && mousePos.y < bottomRight.y;
 
 	glUniform2i(ssLoc, screenSize.x, screenSize.y);
-	uniform_PT_COLOR(cLoc, PT_COLOR_fromRGB(255, 255, 255));
-	glUniform1f(tLoc, 0.0f);
+	glUniform1f(tLoc, img->imageTransparency);
+	uniform_PT_COLOR(itLoc, img->imageTint);
+	glUniform1f(itaLoc, img->imageTintAlpha);
+	uniform_vec2i(mpLoc, mousePos);
+	glUniform1i(mifLoc, mif);
+	glUniform1i(rLoc, img->reactive);
+	uniform_PT_COLOR(abcLoc, img->activeBackgroundColor);
+	uniform_vec2f(abrLoc, img->activeBackgroundRange);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, img->image.texId);

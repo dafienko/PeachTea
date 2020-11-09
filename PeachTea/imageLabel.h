@@ -12,7 +12,13 @@ typedef struct {
 
 	PT_IMAGE image;
 
+	float imageTransparency;
+	PT_COLOR imageTint;
+	float imageTintAlpha;
 
+	int reactive;
+	PT_COLOR activeBackgroundColor;
+	vec2f activeBackgroundRange;
 } PT_IMAGELABEL;
 
 Instance* PT_IMAGELABEL_new();

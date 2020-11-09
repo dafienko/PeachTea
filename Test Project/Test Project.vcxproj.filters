@@ -16,6 +16,9 @@
     <Filter Include="Source Files\chess">
       <UniqueIdentifier>{7c7a109f-2fc0-4e29-bbe8-f701674d7ac3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\chess">
+      <UniqueIdentifier>{c23c1022-cfb0-4d3c-bc22-3ac4367c8e44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -30,16 +33,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chessTeam.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="path.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\chess</Filter>
     </ClInclude>
     <ClInclude Include="chessGame.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\chess</Filter>
     </ClInclude>
     <ClInclude Include="chessSprites.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\chess</Filter>
+    </ClInclude>
+    <ClInclude Include="path.h">
+      <Filter>Header Files\chess</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
