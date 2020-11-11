@@ -147,6 +147,9 @@
     <ClInclude Include="sort.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="stringUtil.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinUtil.c">
@@ -330,6 +333,9 @@
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="quicksort.c">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="stringUtil.c">
       <Filter>Source Files\util</Filter>
     </ClCompile>
   </ItemGroup>

@@ -80,6 +80,20 @@ Instance* PT_GUI_OBJ_new() {
 	return instance;
 }
 
+PT_GUI_OBJ* PT_GUI_OBJ_clone(PT_GUI_OBJ* source, Instance* instanceClone) {
+	PT_GUI_OBJ* clone = calloc(1, sizeof(PT_GUI_OBJ));
+
+	memcpy(clone, source, sizeof(PT_GUI_OBJ));
+
+	clone->instance = instanceClone;
+	clone->sizeConstraint = PT_SIZE_CONSTRAINT_clone(source->sizeConstraint);
+
+	PT_BINDABLE_EVENT_bind(&instanceClone->childAdded, onDescendantsChanged);
+	PT_BINDABLE_EVENT_bind(&instanceClone->childRemoved, onDescendantsChanged);
+
+	return clone;
+}
+
 PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 	glUseProgram(PTS_guiObj);
 

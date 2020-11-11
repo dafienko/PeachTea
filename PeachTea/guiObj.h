@@ -46,7 +46,7 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims);
 void PT_GUI_OBJ_destroy(void* obj);
 
 Instance* PT_GUI_OBJ_new();
-
+PT_GUI_OBJ* PT_GUI_OBJ_clone(PT_GUI_OBJ* source);
 
 
 #endif

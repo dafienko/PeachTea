@@ -185,6 +185,7 @@
     <ClInclude Include="shaders.h" />
     <ClInclude Include="SizeConstraint.h" />
     <ClInclude Include="sort.h" />
+    <ClInclude Include="stringUtil.h" />
     <ClInclude Include="textLabel.h" />
     <ClInclude Include="vectorMath.h" />
     <ClInclude Include="wglext.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="shaders.c" />
     <ClCompile Include="SizeConstraint.c" />
     <ClCompile Include="quicksort.c" />
+    <ClCompile Include="stringUtil.c" />
     <ClCompile Include="textlabel.c" />
     <ClCompile Include="textureHandler.c" />
     <ClCompile Include="WinUtil.c" />

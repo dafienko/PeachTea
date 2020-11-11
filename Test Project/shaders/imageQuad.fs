@@ -5,7 +5,7 @@ in vec2 posPx;
 
 uniform vec3 imageTint;
 uniform float imageTintAlpha;
-uniform vec3 imageTransparency;
+uniform float imageTransparency;
 
 uniform ivec2 mousePos;
 uniform int mouseInFrame;
@@ -33,6 +33,8 @@ void main() {
 			float alpha = 1 - clamp((dist - activeBackgroundRange.x) / activeRange, 0, 1);
 			c = mix(c, activeBackgroundColor, alpha);
 		}
+		
+		
 	}
 	
 	FragColor = vec4(c.xyz, imageColor.a * (1 - imageTransparency));

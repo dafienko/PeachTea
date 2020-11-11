@@ -23,6 +23,7 @@ typedef struct {
 
 Instance* PT_TEXTLABEL_new();
 void PT_TEXTLABEL_destroy(void* textlabel);
+PT_TEXTLABEL* PT_TEXTLABEL_clone(PT_TEXTLABEL* source, Instance* instanceClone);
 
 PT_ABS_DIM PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_ABS_DIM parentDims);
 

@@ -4,6 +4,7 @@
 #include "screenSize.h"
 #include "guiObj.h"
 
+#include <string.h>
 #include <stdio.h>
 
 #define min(a, b) a > b ? b : a
@@ -52,6 +53,14 @@ PT_SIZE_CONSTRAINT* PT_SIZE_CONSTRAINT_new() {
 	PT_SIZE_CONSTRAINT* constraint = calloc(1, sizeof(PT_SIZE_CONSTRAINT));
 
 	return constraint;
+}
+
+PT_SIZE_CONSTRAINT* PT_SIZE_CONSTRAINT_clone(PT_SIZE_CONSTRAINT* source) {
+	PT_SIZE_CONSTRAINT* clone = PT_SIZE_CONSTRAINT_new();
+
+	memcpy(clone, source, sizeof(PT_SIZE_CONSTRAINT));
+
+	return clone;
 }
 
 PT_SIZE_CONSTRAINT* PT_SIZE_CONSTRAINT_none() {

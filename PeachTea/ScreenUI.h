@@ -27,6 +27,7 @@ typedef struct {
 void PT_SCREEN_UI_init();
 
 Instance* PT_SCREEN_UI_new();
+PT_SCREEN_UI* PT_SCREEN_UI_clone(PT_SCREEN_UI* source, Instance* instanceClone);
 void PT_SCREEN_UI_destroy(void* obj);
 
 PT_ABS_DIM PT_SCREEN_UI_render(PT_SCREEN_UI* ui, PT_ABS_DIM parentDims);

@@ -22,6 +22,7 @@ typedef struct {
 } PT_IMAGELABEL;
 
 Instance* PT_IMAGELABEL_new();
+PT_IMAGELABEL* PT_IMAGELABEL_clone(PT_IMAGELABEL* source, Instance* instanceClone);
 
 PT_ABS_DIM PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_ABS_DIM parentDims);
 

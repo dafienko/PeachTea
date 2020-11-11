@@ -5,6 +5,7 @@
 #include "glText.h"
 
 #include "fontHandler.h"
+#include "stringUtil.h"
 
 Instance* PT_TEXTLABEL_new() {
 	PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)calloc(1, sizeof(PT_TEXTLABEL));
@@ -19,6 +20,16 @@ Instance* PT_TEXTLABEL_new() {
 	inst->instanceType = IT_TEXTLABEL;
 
 	return inst;
+}
+
+PT_TEXTLABEL* PT_TEXTLABEL_clone(PT_TEXTLABEL* source, Instance* instanceClone) {
+	PT_TEXTLABEL* clone = calloc(1, sizeof(PT_TEXTLABEL));
+	memcpy(clone, source, sizeof(PT_TEXTLABEL));
+
+	clone->text = create_heap_str(source->text);
+	clone->instance = instanceClone;
+
+	return clone;
 }
 
 void PT_TEXTLABEL_destroy(void* obj) {

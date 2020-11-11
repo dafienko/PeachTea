@@ -141,6 +141,17 @@ Instance* PT_SCREEN_UI_new() {
 	return instance;
 }
 
+PT_SCREEN_UI* PT_SCREEN_UI_clone(PT_SCREEN_UI* source, Instance* instanceClone) {
+	PT_SCREEN_UI* clone = calloc(1, sizeof(PT_SCREEN_UI));
+	memcpy(clone, source, sizeof(PT_SCREEN_UI));
+
+	clone->instance = instanceClone;
+
+	add_screen_ui(clone);
+
+	return clone;
+}
+
 void PT_SCREEN_UI_destroy(void* obj) {
 	PT_SCREEN_UI* screenUI = (PT_SCREEN_UI*)obj;
 

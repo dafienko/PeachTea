@@ -35,5 +35,6 @@ void set_instance_parent(Instance* i, Instance* newParent);
 Instance* new_instance();
 void destroy_instance(Instance* i);
 Instance* get_child_from_name(Instance* parent, const char* name);
+Instance* clone_instance(Instance* source);
 
 #endif

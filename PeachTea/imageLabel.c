@@ -22,6 +22,16 @@ Instance* PT_IMAGELABEL_new() {
 	return instance;
 }
 
+PT_IMAGELABEL* PT_IMAGELABEL_clone(PT_IMAGELABEL* source, Instance* instanceClone) {
+	PT_IMAGELABEL* clone = calloc(1, sizeof(PT_IMAGELABEL));
+
+	memcpy(clone, source, sizeof(PT_IMAGELABEL));
+	clone->instance = instanceClone;
+	clone->guiObj = PT_GUI_OBJ_clone(source->guiObj, instanceClone);
+
+	return clone;
+}
+
 PT_ABS_DIM PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_ABS_DIM parentDims) {
 	PT_ABS_DIM childDims = PT_GUI_OBJ_render((PT_GUI_OBJ*)img->guiObj, parentDims);
 

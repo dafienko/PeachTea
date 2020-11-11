@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "guiObj.h"
+#include "imageLabel.h"
+#include "textLabel.h"
+#include "ScreenUI.h"
+
 void set_instance_parent(Instance* i, Instance* newParent) {
 	if (i->parent != NULL) { // remove instance from old parent
 		Instance* oldParent = i->parent;
@@ -45,12 +50,16 @@ void set_instance_parent(Instance* i, Instance* newParent) {
 	}
 }
 
-Instance* new_instance() {
-	Instance* i = (Instance*)calloc(1, sizeof(Instance));
+void init_instance(Instance* i) {
 	i->children = calloc(2, sizeof(Instance*));
 	i->parent = NULL;
 	i->childrenArraySize = 2;
 	i->numChildren = 0;
+}
+
+Instance* new_instance() {
+	Instance* i = (Instance*)calloc(1, sizeof(Instance));
+	init_instance(i);
 	i->subInstance = NULL;
 	i->name = "";
 	
@@ -68,6 +77,41 @@ Instance* get_child_from_name(Instance* parent, const char* name) {
 	}
 
 	return NULL;
+}
+
+Instance* clone_instance(Instance* source) {
+	Instance* clone = calloc(1, sizeof(Instance));
+	memcpy(clone, source, sizeof(Instance));
+
+	if (source->name != NULL) {
+		int nameLen = strlen(source->name) + 5;
+		char* name = calloc(nameLen, sizeof(char));
+		memcpy(name, source->name, nameLen * sizeof(char));
+		clone->name = name;
+	}
+
+	clone->parent = NULL;
+	init_instance(clone);
+
+	void* subInstance = NULL;
+	switch (source->instanceType) {
+	case IT_GUI_OBJ:
+		subInstance = (void*)PT_GUI_OBJ_clone((PT_GUI_OBJ*)source->subInstance, clone);
+		break;
+	case IT_IMAGELABEL:
+		subInstance = (void*)PT_IMAGELABEL_clone((PT_IMAGELABEL*)source->subInstance, clone);
+		break;
+	case IT_TEXTLABEL:
+		subInstance = (void*)PT_TEXTLABEL_clone((PT_TEXTLABEL*)source->subInstance, clone);
+		break;
+	case IT_SCREEN_UI:
+		subInstance = (void*)PT_SCREEN_UI_clone((PT_SCREEN_UI*)source->subInstance, clone);
+		break;
+	}
+
+	clone->subInstance = subInstance;
+
+	return clone;
 }
 
 void destroy_instance(Instance* instance) {

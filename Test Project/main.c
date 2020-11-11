@@ -76,12 +76,20 @@ int main() {
 	PT_COLOR board1 = PT_COLOR_lerp(accentColor, PT_COLOR_new(0, 0, 0), .25);
 	PT_COLOR board2 = PT_COLOR_fromRGB(200, 200, 200);
 
+	PT_IMAGE dotImage = PT_IMAGE_from_png("assets\\images\\dot.png");
+
 	// create chess board
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			Instance* frame = PT_GUI_OBJ_new();
+			Instance* frame = PT_IMAGELABEL_new();
 
-			PT_GUI_OBJ* obj = (PT_GUI_OBJ*)frame->subInstance;
+			PT_IMAGELABEL* imagelabel = (PT_IMAGELABEL*)frame->subInstance;
+			imagelabel->image = (PT_IMAGE){ 0 };
+			imagelabel->imageTint = accentColor;
+			imagelabel->imageTintAlpha = 1.0f;
+			imagelabel->imageTransparency = 1.0f;
+
+			PT_GUI_OBJ* obj = imagelabel->guiObj;
 
 			obj->reactive = TRUE;
 			obj->backgroundColor = (x + y) % 2 == 0 ? board1 : board2;
