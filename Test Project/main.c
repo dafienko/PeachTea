@@ -44,6 +44,7 @@ int main() {
 	update_accent_color();
 
 	PT_CREATE_MAIN_WND((vec2i) { 600, 600 }, "PeachTea Chess");
+	printf("bruh\n");
 
 	screenUI = PT_SCREEN_UI_new();
 
@@ -84,7 +85,7 @@ int main() {
 			Instance* frame = PT_IMAGELABEL_new();
 
 			PT_IMAGELABEL* imagelabel = (PT_IMAGELABEL*)frame->subInstance;
-			imagelabel->image = (PT_IMAGE){ 0 };
+			imagelabel->image = dotImage;
 			imagelabel->imageTint = accentColor;
 			imagelabel->imageTintAlpha = 1.0f;
 			imagelabel->imageTransparency = 1.0f;
@@ -117,6 +118,21 @@ int main() {
 			frame->name = name;
 
 			set_instance_parent(frame, frameInstance);
+
+			Instance* dotFrame = clone_instance(frame);
+			
+			PT_IMAGELABEL* dotImage = (PT_IMAGELABEL*)dotFrame->subInstance;
+			dotImage->imageTransparency = .5f;
+			dotImage->reactive = 1;
+			dotImage->activeBackgroundColor = PT_COLOR_lerp(accentColor, PT_COLOR_new(1, 1, 1), .3);
+			dotImage->activeBackgroundRange = (vec2f){ 20, 50 };
+			dotImage->visible = FALSE;
+
+			PT_GUI_OBJ* dotObj = dotImage->guiObj;
+			dotObj->backgroundTransparency = 1.0f;
+			dotObj->zIndex = 3;
+
+			set_instance_parent(dotFrame, frameInstance);
 		}
 	}
 

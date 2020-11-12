@@ -77,7 +77,7 @@ void quicksort_partition(byte* arr, int elementSizeBytes, int numElements, int(*
 	quicksort_partition(arr, elementSizeBytes, numElements, cmp, pivotSwapIndex + 1, end);
 }
 
-void quicksort(void* arr, int elementSizeBytes, int numElements, int(*cmp)(void*, void*)) {
+void quicksort(byte* arr, int elementSizeBytes, int numElements, int(*cmp)(void*, void*)) {
 	quicksort_partition((byte*)arr, elementSizeBytes, numElements, cmp, 0, numElements - 1);
 }
 

@@ -57,7 +57,7 @@ CHESS_TEAM_SET* create_chess_team_set(const vec2i kingPosition, const vec2i forw
 		PT_GUI_OBJ* guiObj = imageLabel->guiObj;
 		guiObj->size = PT_REL_DIM_new(.125f, 0, .125f, 0); // square 1/8 x 1/8 of the total board size
 		guiObj->position = boardpos_to_rel_dim(pawnPos);
-		guiObj->zIndex = 10;
+		guiObj->zIndex = 2;
 		guiObj->backgroundTransparency = 1;
 		guiObj->borderWidth = 0;
 
@@ -86,7 +86,7 @@ CHESS_TEAM_SET* create_chess_team_set(const vec2i kingPosition, const vec2i forw
 		PT_GUI_OBJ* guiObj = imageLabel->guiObj;
 		guiObj->size = PT_REL_DIM_new(.125f, 0, .125f, 0); // square 1/8 x 1/8 of the total board size
 		guiObj->position = boardpos_to_rel_dim(pos);
-		guiObj->zIndex = 10;
+		guiObj->zIndex = 2;
 		guiObj->backgroundTransparency = 1;
 		guiObj->borderWidth = 0;
 

@@ -35,17 +35,17 @@ int get_instance_zindex(Instance* inst) {
 }
 
 void compare_instances(void* v1, void* v2) {
-	Instance* i1 = (Instance*)v1;
-	Instance* i2 = (Instance*)v2;
+	Instance* i1 = *((Instance**)v1);
+	Instance* i2 = *((Instance**)v2);
 
 	int z1 = get_instance_zindex(i1);
 	int z2 = get_instance_zindex(i2);
 
 	if (z1 > z2) {
-		return -1;
+		return 1;
 	}
 	else if (z1 < z2) {
-		return 1;
+		return -1;
 	}
 	else {
 		return 0;
