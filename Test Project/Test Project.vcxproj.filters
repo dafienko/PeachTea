@@ -30,6 +30,9 @@
     <ClCompile Include="chessTeam.c">
       <Filter>Source Files\chess</Filter>
     </ClCompile>
+    <ClCompile Include="path.c">
+      <Filter>Source Files\chess</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chessTeam.h">

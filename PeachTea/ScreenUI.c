@@ -60,7 +60,7 @@ void obj_mouse_down(PT_GUI_OBJ* obj) {
 
 		//printf("pressed %s\n", obj->instance->name);
 
-		PT_BINDABLE_EVENT_fire(&obj->e_obj_released, obj);
+		PT_BINDABLE_EVENT_fire(&obj->e_obj_pressed, obj);
 	}
 }
 
@@ -70,6 +70,10 @@ void obj_mouse_up(PT_GUI_OBJ* obj) {
 		//printf("released %s\n", obj->instance->name);
 
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_released, obj);
+
+		if (pos_in_obj(mousePos, obj)) {
+			PT_BINDABLE_EVENT_fire(&obj->e_obj_activated, obj);
+		}
 	}
 }
 
@@ -117,6 +121,7 @@ void on_mouse_up(void* args) {
 }
 
 void on_mouse_down(void* args) {
+	printf("mouse down\n");
 	enumerate_gui_objs(NULL, obj_mouse_down);
 }
 

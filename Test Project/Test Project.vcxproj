@@ -150,6 +150,7 @@
     <ClCompile Include="chessGame.c" />
     <ClCompile Include="chessTeam.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="path.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chessGame.h" />

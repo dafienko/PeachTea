@@ -13,6 +13,6 @@ typedef struct {
 	CHESS_TEAM_SET* currentTurnTeam;
 } CHESS_GAME;
 
-CHESS_GAME create_chess_game(Instance* boardFrame);
+CHESS_GAME* create_chess_game(Instance* boardFrame);
 
 #endif

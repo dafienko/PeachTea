@@ -15,7 +15,7 @@ PT_COLOR accentColor = { 0 };
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-CHESS_GAME chessGame;
+CHESS_GAME* chessGame;
 
 void onRender() {
 	PT_ABS_DIM dims = { 0 };
@@ -44,7 +44,6 @@ int main() {
 	update_accent_color();
 
 	PT_CREATE_MAIN_WND((vec2i) { 600, 600 }, "PeachTea Chess");
-	printf("bruh\n");
 
 	screenUI = PT_SCREEN_UI_new();
 
@@ -115,12 +114,13 @@ int main() {
 
 			char* name = calloc(15, sizeof(char));
 			sprintf(name, "%i,%i", x + 1, y + 1); // add to each dimension, origin is at (1, 1); not (0, 0)
-			frame->name = name;
+			//frame->name = name;
 
 			set_instance_parent(frame, frameInstance);
 
 			Instance* dotFrame = clone_instance(frame);
-			
+			dotFrame->name = name;
+
 			PT_IMAGELABEL* dotImage = (PT_IMAGELABEL*)dotFrame->subInstance;
 			dotImage->imageTransparency = .5f;
 			dotImage->reactive = 1;

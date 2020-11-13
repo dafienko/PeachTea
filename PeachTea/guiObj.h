@@ -35,8 +35,9 @@ typedef struct {
 
 	PT_BINDABLE_EVENT e_obj_mouseEnter;
 	PT_BINDABLE_EVENT e_obj_mouseLeave;
-	PT_BINDABLE_EVENT e_obj_pressed;
-	PT_BINDABLE_EVENT e_obj_released;
+	PT_BINDABLE_EVENT e_obj_pressed; 
+	PT_BINDABLE_EVENT e_obj_released; // fired whenever mouse is released and the obj was pressed, regardless of mouse pos
+	PT_BINDABLE_EVENT e_obj_activated; // fired if the mouse is pressed and released with the mouse in the obj 
 	int mouseInFrame;
 	int pressed;
 } PT_GUI_OBJ;
