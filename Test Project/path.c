@@ -19,7 +19,7 @@ void PATH_add_node_to_path(PATH* path, vec2i nodePosition) {
 	path->terminalNode = node;
 }
 
-void PATH_destroy(PATH* paths, int numPaths) {
+void PATHs_destroy(PATH* paths, int numPaths) {
 	for (int i = 0; i < numPaths; i++) {
 		PATH path = *(paths + i);
 

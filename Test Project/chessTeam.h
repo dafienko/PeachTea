@@ -38,6 +38,6 @@ typedef struct {
 
 CHESS_TEAM_SET* create_chess_team_set(const vec2i kingPosition, const vec2i forwardDirection, const Instance* boardFrame, const CHESS_SPRITES chessSprites);
 int is_piece_at_position(CHESS_TEAM_SET* set, vec2i pos);
-void get_piece_paths(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut);
+void get_piece_paths(const CHESS_PIECE piece, PATH** pathsOut, int* numPathsOut);
 
 #endif

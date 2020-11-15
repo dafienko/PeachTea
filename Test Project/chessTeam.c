@@ -49,32 +49,35 @@ PATH* get_path_from_dir(PATH* pathOut, CHESS_TEAM_SET* set, vec2i origin, vec2i 
 	}
 }
 
-void get_paths_pawn(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut) {
+void get_paths_pawn(const CHESS_PIECE piece, PATH** pathsOut, int* numPathsOut) {
 	int numPaths = 3;
 	PATH* paths = calloc(numPaths, sizeof(PATH));
 
-	CHESS_TEAM_SET* parentSet = piece->parentSet;
-	vec2i origin = piece->position;
+	CHESS_TEAM_SET* parentSet = piece.parentSet;
+	vec2i origin = piece.position;
 	vec2i forwardDir = parentSet->forwardDirection;
 	vec2i rightDir = (vec2i){ forwardDir.y, -forwardDir.x };
 
 	CHESS_TEAM_SET* opposingSet = get_opposing_set(parentSet);
 
 	for (int i = 0; i < numPaths; i++) {
-		PATH path = *(paths + i);
-		PATH_add_node_to_path(&path, origin); // every path starts with origin at piece's current position
+		PATH* path = paths + i;
+		PATH_add_node_to_path(path, origin); // every path starts with origin at piece's current position
 
 		switch (i) {
 		case 0: // middle "forward" path
 			;
 			vec2i f1 = vector_add_2i(origin, forwardDir);
 
+			int onBoard = is_pos_on_board(f1);
+			int isEmpty = is_empty_position(parentSet->parentGame, f1);
+
 			if (is_pos_on_board(f1) && is_empty_position(parentSet->parentGame, f1)) {
-				PATH_add_node_to_path(&path, f1);
+				PATH_add_node_to_path(path, f1);
 
 				vec2i f2 = vector_add_2i(f1, forwardDir);
-				if (piece->numPieceMoves == 0 && is_empty_position(parentSet->parentGame, f2)) { // pawn can move forward twice on first move
-					PATH_add_node_to_path(&path, f2);
+				if (piece.numPieceMoves == 0 && is_empty_position(parentSet->parentGame, f2)) { // pawn can move forward twice on first move
+					PATH_add_node_to_path(path, f2);
 				}
 			}
 
@@ -83,14 +86,14 @@ void get_paths_pawn(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut)
 			;
 			vec2i laPos = vector_add_2i(origin, vector_sub_2i(forwardDir, rightDir));
 			if (is_piece_at_position(opposingSet, laPos)) {
-				PATH_add_node_to_path(&path, laPos);
+				PATH_add_node_to_path(path, laPos);
 			}
 			break;
 		case 2: // right "attack" path
 			;
 			vec2i raPos = vector_add_2i(origin, vector_add_2i(forwardDir, rightDir));
-			if (is_piece_at_position(opposingSet, laPos)) {
-				PATH_add_node_to_path(&path, raPos);
+			if (is_piece_at_position(opposingSet, raPos)) {
+				PATH_add_node_to_path(path, raPos);
 			}
 			break;
 		}
@@ -102,12 +105,12 @@ void get_paths_pawn(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut)
 	*numPathsOut = numPaths;
 }
 
-void get_paths_king(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut) {
+void get_paths_king(const CHESS_PIECE piece, PATH** pathsOut, int* numPathsOut) {
 	int numPaths = 8;
 	PATH* paths = calloc(numPaths, sizeof(PATH));
 	
-	vec2i origin = piece->position;
-	CHESS_TEAM_SET* set = piece->parentSet;
+	vec2i origin = piece.position;
+	CHESS_TEAM_SET* set = piece.parentSet;
 
 	vec2i kingDirs[8] = {
 		(vec2i) {-1, -1}, (vec2i) {0, -1}, (vec2i) {1, -1},
@@ -117,22 +120,25 @@ void get_paths_king(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut)
 
 	for (int i = 0; i < numPaths; i++) {
 		vec2i dir = kingDirs[i];
-		PATH path = *(paths + i);
+		PATH* path = paths + i;
 
-		PATH_add_node_to_path(&path, origin);
+		PATH_add_node_to_path(path, origin);
 
 		vec2i pos = vector_add_2i(origin, dir);
 		if (is_pos_on_board(pos) && !is_piece_at_position(set, pos)) {
-			PATH_add_node_to_path(&path, pos);
+			PATH_add_node_to_path(path, pos);
 		}
 	}
+
+	*pathsOut = paths;
+	*numPathsOut = numPaths;
 }
 
-void get_paths_queen(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut) {
+void get_paths_queen(const CHESS_PIECE piece, PATH** pathsOut, int* numPathsOut) {
 	int numPaths = 8;
 	PATH* paths = calloc(numPaths, sizeof(PATH));
 
-	vec2i origin = piece->position;
+	vec2i origin = piece.position;
 
 	vec2i queenDirs[8] = {
 		(vec2i) {-1, -1}, (vec2i) {0, -1}, (vec2i) {1, -1},
@@ -141,21 +147,21 @@ void get_paths_queen(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut
 	};
 
 	for (int i = 0; i < 8; i++) {
-		PATH path = *(paths + i);
+		PATH* path = paths + i;
 		vec2i dir = queenDirs[i];
 
-		get_path_from_dir(&path, piece->parentSet, origin, dir, 0);
+		get_path_from_dir(path, piece.parentSet, origin, dir, 0);
 	}
 
 	*pathsOut = paths;
 	*numPathsOut = numPaths;
 }
 
-void get_paths_rook(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut) {
+void get_paths_rook(const CHESS_PIECE piece, PATH** pathsOut, int* numPathsOut) {
 	int numPaths = 4;
 	PATH* paths = calloc(numPaths, sizeof(PATH));
 
-	vec2i origin = piece->position;
+	vec2i origin = piece.position;
 
 	vec2i queenDirs[4] = {
 							(vec2i) {0, -1}, 
@@ -164,10 +170,10 @@ void get_paths_rook(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut)
 	};
 
 	for (int i = 0; i < 4; i++) {
-		PATH path = *(paths + i);
+		PATH* path = paths + i;
 		vec2i dir = queenDirs[i];
 
-		get_path_from_dir(&path, piece->parentSet, origin, dir, 0);
+		get_path_from_dir(path, piece.parentSet, origin, dir, 0);
 	}
 
 	*pathsOut = paths;
@@ -178,42 +184,48 @@ vec2i rotate_clockwise(vec2i v) {
 	return (vec2i) { v.y, -v.x };
 }
 
-void get_paths_knight(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut) {
+void get_paths_knight(const CHESS_PIECE piece, PATH** pathsOut, int* numPathsOut) {
 	int numPaths = 8;
 	PATH* paths = calloc(numPaths, sizeof(PATH));
 
-	vec2i origin = piece->position;
+	vec2i origin = piece.position;
 
-	CHESS_TEAM_SET* set = piece->parentSet;
+	CHESS_TEAM_SET* set = piece.parentSet;
 
 	vec2i d1 = (vec2i){ 1, -2 };
 	vec2i d2 = (vec2i){ 2, -1 };
 
 	for (int i = 0; i < 4; i++) {
-		PATH path1 = *(paths + i * 2 + 0);
-		PATH path2 = *(paths + i * 2 + 1);
+		PATH* path1 = paths + i * 2 + 0;
+		PATH* path2 = paths + i * 2 + 1;
+
+		PATH_add_node_to_path(path1, origin);
+		PATH_add_node_to_path(path2, origin);
 
 		vec2i p1 = vector_add_2i(origin, d1);
 		vec2i p2 = vector_add_2i(origin, d2);
 
 		if (is_pos_on_board(p1) && !is_piece_at_position(set, p1)) {
-			PATH_add_node_to_path(&path1, p1);
+			PATH_add_node_to_path(path1, p1);
 		}
 
 		if (is_pos_on_board(p2) && !is_piece_at_position(set, p2)) {
-			PATH_add_node_to_path(&path1, p2);
+			PATH_add_node_to_path(path1, p2);
 		}
 
 		d1 = rotate_clockwise(d1);
 		d2 = rotate_clockwise(d2);
 	}
+
+	*pathsOut = paths;
+	*numPathsOut = numPaths;
 }
 
-void get_paths_bishop(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut) {
+void get_paths_bishop(const CHESS_PIECE piece, PATH** pathsOut, int* numPathsOut) {
 	int numPaths = 4;
 	PATH* paths = calloc(numPaths, sizeof(PATH));
 
-	vec2i origin = piece->position;
+	vec2i origin = piece.position;
 
 	vec2i queenDirs[4] = {
 		(vec2i) {-1, -1},					 (vec2i) {1, -1},
@@ -222,18 +234,18 @@ void get_paths_bishop(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOu
 	};
 
 	for (int i = 0; i < 4; i++) {
-		PATH path = *(paths + i);
+		PATH* path = paths + i;
 		vec2i dir = queenDirs[i];
 
-		get_path_from_dir(&path, piece->parentSet, origin, dir, 0);
+		get_path_from_dir(path, piece.parentSet, origin, dir, 0);
 	}
 
 	*pathsOut = paths;
 	*numPathsOut = numPaths;
 }
 
-void get_piece_paths(const CHESS_PIECE* piece, PATH** pathsOut, int* numPathsOut) {
-	switch (piece->pieceType) {
+void get_piece_paths(const CHESS_PIECE piece, PATH** pathsOut, int* numPathsOut) {
+	switch (piece.pieceType) {
 	case CHESS_PIECE_PAWN:
 		get_paths_pawn(piece, pathsOut, numPathsOut);
 		break;
@@ -262,7 +274,7 @@ PT_REL_DIM boardpos_to_rel_dim(const vec2i boardpos) {
 CHESS_TEAM_SET* create_chess_team_set(const vec2i kingPosition, const vec2i forwardDirection, const Instance* boardFrame, const CHESS_SPRITES chessSprites) {
 	CHESS_TEAM_SET* set = calloc(1, sizeof(CHESS_TEAM_SET));
 
-	set->forwardDirection; // not always relevant, but some pieces need it
+	set->forwardDirection = forwardDirection; // not always relevant, but some pieces need it
 	set->pieces = calloc(16, sizeof(CHESS_PIECE));
 
 	vec2i rightDirection = (vec2i){forwardDirection.y, -forwardDirection.x};
@@ -271,8 +283,6 @@ CHESS_TEAM_SET* create_chess_team_set(const vec2i kingPosition, const vec2i forw
 	vec2i pawn0Pos = vector_add_2i(kingPosition, vector_add_2i(forwardDirection, vector_mul_2i(rightDirection, -4)));
 	for (int i = 0; i < 8; i++) {
 		CHESS_PIECE pawn = { 0 };
-
-		pawn.parentSet = set;
 
 		vec2i pawnPos = vector_add_2i(pawn0Pos, vector_mul_2i(rightDirection, i));
 
@@ -296,6 +306,7 @@ CHESS_TEAM_SET* create_chess_team_set(const vec2i kingPosition, const vec2i forw
 		pawn.pieceInstance = pieceInstance;
 		pawn.position = pawnPos;
 		pawn.pieceType = CHESS_PIECE_PAWN;
+		pawn.parentSet = set;
 		
 		*(set->pieces + i) = pawn;
 	}
@@ -304,8 +315,6 @@ CHESS_TEAM_SET* create_chess_team_set(const vec2i kingPosition, const vec2i forw
 	vec2i piece0Pos = vector_add_2i(kingPosition, vector_mul_2i(rightDirection, -4));
 	for (int i = 0; i < 8; i++) {
 		CHESS_PIECE piece = { 0 };
-
-		piece.parentSet = set;
 
 		vec2i pos = vector_add_2i(piece0Pos, vector_mul_2i(rightDirection, i));
 
@@ -327,6 +336,7 @@ CHESS_TEAM_SET* create_chess_team_set(const vec2i kingPosition, const vec2i forw
 		piece.numPieceMoves = 0;
 		piece.pieceInstance = pieceInstance;
 		piece.position = pos;
+		piece.parentSet = set;
 		
 		int distFromSide = lroundf(fabs(3.5f - (float)i) + 0.5f);
 		switch (distFromSide) {
@@ -365,7 +375,7 @@ int is_piece_at_position(CHESS_TEAM_SET* set, vec2i pos) {
 		CHESS_PIECE piece = *(set->pieces + i);
 
 		if (piece.alive) {
-			if (vector_equal_2i(piece.position, pos) == 0) {
+			if (vector_equal_2i(piece.position, pos)) {
 				return 1;
 			}
 		}

@@ -3,6 +3,7 @@
 #include "guiObj.h"
 #include "mouse.h"
 #include "textLabel.h"
+#include "imageLabel.h"
 
 #include <stdio.h>
 
@@ -37,25 +38,27 @@ int pos_in_obj(vec2i pos, PT_GUI_OBJ* obj) {
 }
 
 void obj_mouse_moved(PT_GUI_OBJ* obj) {
-	int mouseWasInObj = obj->mouseInFrame;
-	obj->mouseInFrame = pos_in_obj(mousePos, obj);
+	if (obj->visible) {
+		int mouseWasInObj = obj->mouseInFrame;
+		obj->mouseInFrame = pos_in_obj(mousePos, obj);
 
-	if (mouseWasInObj != obj->mouseInFrame) {
-		if (obj->mouseInFrame) {
-			//printf("mouse entered %s\n", obj->instance->name);
+		if (mouseWasInObj != obj->mouseInFrame) {
+			if (obj->mouseInFrame) {
+				//printf("mouse entered %s\n", obj->instance->name);
 
-			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
-		}
-		else {
-			//printf("mouse left %s\n", obj->instance->name);
+				PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
+			}
+			else {
+				//printf("mouse left %s\n", obj->instance->name);
 
-			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseLeave, obj);
+				PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseLeave, obj);
+			}
 		}
 	}
 }
 
 void obj_mouse_down(PT_GUI_OBJ* obj) {
-	if (pos_in_obj(mousePos, obj)) {
+	if (obj->visible && pos_in_obj(mousePos, obj)) {
 		obj->pressed = 1;
 
 		//printf("pressed %s\n", obj->instance->name);
@@ -98,6 +101,11 @@ void enumerate_gui_objs(Instance* parent,  void(*callback)(PT_GUI_OBJ*)) {
 			;
 			PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)parent->subInstance;
 			obj = textlabel->guiObj;
+			break;
+		case IT_IMAGELABEL:
+			;
+			PT_IMAGELABEL* imageLabel = (PT_IMAGELABEL*)parent->subInstance;
+			obj = imageLabel->guiObj;
 			break;
 		}
 

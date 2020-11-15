@@ -122,10 +122,10 @@ int main() {
 			dotFrame->name = name;
 
 			PT_IMAGELABEL* dotImage = (PT_IMAGELABEL*)dotFrame->subInstance;
-			dotImage->imageTransparency = .5f;
+			dotImage->imageTransparency = 0.1f;
 			dotImage->reactive = 1;
-			dotImage->activeBackgroundColor = PT_COLOR_lerp(accentColor, PT_COLOR_new(1, 1, 1), .3);
-			dotImage->activeBackgroundRange = (vec2f){ 20, 50 };
+			dotImage->activeBackgroundColor = PT_COLOR_lerp(accentColor, PT_COLOR_new(1, 1, 1), .8);
+			dotImage->activeBackgroundRange = (vec2f){ 20, 150 };
 			dotImage->visible = FALSE;
 
 			PT_GUI_OBJ* dotObj = dotImage->guiObj;
