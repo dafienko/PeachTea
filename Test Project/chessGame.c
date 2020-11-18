@@ -23,10 +23,10 @@ CHESS_SPRITES get_chess_sprites_from_row(PT_IMAGE spriteMap, int row) {
 	return sprites;
 }
 
-CHESS_PIECE get_piece_from_obj(PT_GUI_OBJ* obj, CHESS_GAME* game) {
+CHESS_PIECE* get_piece_from_obj(PT_GUI_OBJ* obj, CHESS_GAME* game) {
 	for (int i = 0; i < 16; i++) {
-		CHESS_PIECE piece = *(game->whiteTeam->pieces + i);
-		PT_IMAGELABEL* pieceImg = (PT_IMAGELABEL*)piece.pieceInstance->subInstance;
+		CHESS_PIECE* piece = (game->whiteTeam->pieces + i);
+		PT_IMAGELABEL* pieceImg = (PT_IMAGELABEL*)piece->pieceInstance->subInstance;
 		PT_GUI_OBJ* pieceObj = pieceImg->guiObj;
 		if (pieceObj == obj) {
 			return piece;
@@ -34,15 +34,15 @@ CHESS_PIECE get_piece_from_obj(PT_GUI_OBJ* obj, CHESS_GAME* game) {
 	}
 
 	for (int i = 0; i < 16; i++) {
-		CHESS_PIECE piece = *(game->blackTeam->pieces + i);
-		PT_IMAGELABEL* pieceImg = (PT_IMAGELABEL*)piece.pieceInstance->subInstance;
+		CHESS_PIECE* piece = (game->blackTeam->pieces + i);
+		PT_IMAGELABEL* pieceImg = (PT_IMAGELABEL*)piece->pieceInstance->subInstance;
 		PT_GUI_OBJ* pieceObj = pieceImg->guiObj;
 		if (pieceObj == obj) {
 			return piece;
 		}
 	}
 
-	return (CHESS_PIECE) { 0 };
+	return NULL;
 }
 
 void clear_grid_highlights() {
@@ -50,24 +50,19 @@ void clear_grid_highlights() {
 		Instance* child = *(currentGame->boardFrame->children + i);
 		if (child->name != "" && child->instanceType == IT_IMAGELABEL) {
 			PT_IMAGELABEL* imageLabel = child->subInstance;
-			//imageLabel->imageTransparency = 1.0f;
 			imageLabel->visible = 0;
 		}
 	}
 }
 
-void print_paths(PATH* paths, int numPaths) {
+void show_paths(PATH* paths, int numPaths) {
 	clear_grid_highlights();
 
-	printf("\n");
 	for (int i = 0; i < numPaths; i++) {
-		printf("%i\n", i);
 		PATH path = *(paths + i);
 		PATH_NODE* node = path.origin;
 
 		while (node != NULL) {
-			printf("(%i, %i)\n", node->position.x, node->position.y);
-			
 			if (node != path.origin) {
 				char* name = calloc(20, sizeof(char));
 				sprintf(name, "%i,%i", node->position.x, node->position.y);
@@ -77,7 +72,6 @@ void print_paths(PATH* paths, int numPaths) {
 
 				if (square != NULL) {
 					PT_IMAGELABEL* squareImage = square->subInstance;
-					//squareImage->imageTransparency = .5f;
 					squareImage->visible = 1;
 				}
 			}
@@ -87,18 +81,33 @@ void print_paths(PATH* paths, int numPaths) {
 	}
 }
 
+CHESS_PIECE* selectedPiece;
 void on_piece_activated(void* args) {
 	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
 
-	CHESS_PIECE piece = get_piece_from_obj(obj, currentGame);
-	PATH* paths = NULL;
-	int numPaths = 0;
+	CHESS_PIECE* piece = get_piece_from_obj(obj, currentGame);
 	
-	get_piece_paths(piece, &paths, &numPaths);
+	if (piece->alive) {
+		PATH* paths = NULL;
+		int numPaths = 0;
 
-	print_paths(paths, numPaths);
+		get_piece_paths(*piece, &paths, &numPaths);
 
-	PATHs_destroy(paths, numPaths);
+		show_paths(paths, numPaths);
+
+		PATHs_destroy(paths, numPaths);
+	}
+}
+
+void on_square_activated(void* args) {
+	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
+	
+	if (selectedPiece != NULL) {
+
+	}
+	else {
+		
+	}
 }
 
 CHESS_GAME* create_chess_game(Instance* boardFrame) {

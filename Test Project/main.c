@@ -16,6 +16,7 @@ PT_COLOR accentColor = { 0 };
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 CHESS_GAME* chessGame;
+CHESS_GAME* chessGame;
 
 void onRender() {
 	PT_ABS_DIM dims = { 0 };
