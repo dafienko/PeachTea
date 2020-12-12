@@ -129,7 +129,6 @@ void on_mouse_up(void* args) {
 }
 
 void on_mouse_down(void* args) {
-	printf("mouse down\n");
 	enumerate_gui_objs(NULL, obj_mouse_down);
 }
 

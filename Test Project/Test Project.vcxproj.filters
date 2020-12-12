@@ -33,6 +33,9 @@
     <ClCompile Include="path.c">
       <Filter>Source Files\chess</Filter>
     </ClCompile>
+    <ClCompile Include="chessSquare.c">
+      <Filter>Source Files\chess</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chessTeam.h">
@@ -45,6 +48,9 @@
       <Filter>Header Files\chess</Filter>
     </ClInclude>
     <ClInclude Include="path.h">
+      <Filter>Header Files\chess</Filter>
+    </ClInclude>
+    <ClInclude Include="chessSquare.h">
       <Filter>Header Files\chess</Filter>
     </ClInclude>
   </ItemGroup>

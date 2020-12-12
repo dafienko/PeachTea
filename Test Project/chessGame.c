@@ -46,11 +46,10 @@ CHESS_PIECE* get_piece_from_obj(PT_GUI_OBJ* obj, CHESS_GAME* game) {
 }
 
 void clear_grid_highlights() {
-	for (int i = 0; i < currentGame->boardFrame->numChildren; i++) {
-		Instance* child = *(currentGame->boardFrame->children + i);
-		if (child->name != "" && child->instanceType == IT_IMAGELABEL) {
-			PT_IMAGELABEL* imageLabel = child->subInstance;
-			imageLabel->visible = 0;
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			CHESS_SQUARE chessSquare = *(currentGame->chessSquares + y * 8 + x);
+			chessSquare.squareDot->visible = 0;
 		}
 	}
 }
@@ -64,16 +63,8 @@ void show_paths(PATH* paths, int numPaths) {
 
 		while (node != NULL) {
 			if (node != path.origin) {
-				char* name = calloc(20, sizeof(char));
-				sprintf(name, "%i,%i", node->position.x, node->position.y);
-				
-				Instance* square = get_child_from_name(currentGame->boardFrame, name);
-				free(name);
-
-				if (square != NULL) {
-					PT_IMAGELABEL* squareImage = square->subInstance;
-					squareImage->visible = 1;
-				}
+				CHESS_SQUARE chessSquare = *(currentGame->chessSquares + (node->position.y - 1) * 8 + (node->position.x - 1));
+				chessSquare.squareDot->visible = 01;
 			}
 
 			node = node->nextNode;
@@ -82,11 +73,7 @@ void show_paths(PATH* paths, int numPaths) {
 }
 
 CHESS_PIECE* selectedPiece;
-void on_piece_activated(void* args) {
-	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
-
-	CHESS_PIECE* piece = get_piece_from_obj(obj, currentGame);
-	
+void on_piece_activated(CHESS_PIECE* piece) {
 	if (piece->alive) {
 		PATH* paths = NULL;
 		int numPaths = 0;
@@ -96,17 +83,118 @@ void on_piece_activated(void* args) {
 		show_paths(paths, numPaths);
 
 		PATHs_destroy(paths, numPaths);
+
+		selectedPiece = piece;
+	}
+}
+
+void move_piece_to_position(CHESS_PIECE* piece, vec2i boardPos) {
+	piece->position = boardPos;
+	
+	Instance* instance = piece->pieceInstance;
+	PT_IMAGELABEL* img = instance->subInstance;
+	PT_GUI_OBJ* obj = img->guiObj;
+	
+	obj->position = boardpos_to_rel_dim(boardPos);
+}
+
+CHESS_PIECE* get_piece_from_position(vec2i pos) {
+	for (int i = 0; i < 32; i++) {
+		CHESS_TEAM_SET* set = i % 2 == 0 ? currentGame->whiteTeam : currentGame->blackTeam;
+		int j = i / 2;
+
+		CHESS_PIECE* piece = (set->pieces + j);
+		if (vector_equal_2i(pos, piece->position) && piece->alive) {
+			return piece;
+		}
+	}
+	
+	return NULL;
+}
+
+int is_valid_move(CHESS_PIECE* piece, vec2i pos) {
+	PATH* paths = NULL;
+	int numPaths = 0;
+
+	get_piece_paths(*piece, &paths, &numPaths);
+
+	for (int i = 0; i < numPaths; i++) {
+		PATH path = *(paths + i);
+		PATH_NODE* node = path.origin;
+
+		while (node != NULL) {
+			if (node != path.origin) {
+				if (vector_equal_2i(pos, node->position)) {
+					return 1;
+				}
+			}
+
+			node = node->nextNode;
+		}
+	}
+
+	PATHs_destroy(paths, numPaths);
+
+	return 0;
+ }
+
+void setCurrentTurnTeam(CHESS_TEAM_SET* team) {
+	currentGame->currentTurnTeam = team;
+
+	PT_COLOR borderColor = team == currentGame->blackTeam ? PT_COLOR_fromRGB(0, 0, 0) : PT_COLOR_fromRGB(255, 255, 255);
+	
+	for (int i = 0; i < 64; i++) {
+		CHESS_SQUARE square = *(currentGame->chessSquares + i);
+		
+		PT_GUI_OBJ* obj = square.squareFrame->guiObj;
+		obj->borderColor = borderColor;
+	}
+}
+
+void switchCurrentTurnTeam() {
+	if (currentGame->currentTurnTeam == currentGame->whiteTeam) {
+		setCurrentTurnTeam(currentGame->blackTeam);
+	}
+	else {
+		setCurrentTurnTeam(currentGame->whiteTeam);
 	}
 }
 
 void on_square_activated(void* args) {
 	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
-	
-	if (selectedPiece != NULL) {
-
+	vec2i boardPos = { 0 };
+	for (int i = 0; i < 64; i++) {
+		CHESS_SQUARE square = *(currentGame->chessSquares + i);
+		if (square.squareFrame->guiObj == obj) {
+			boardPos = square.position;
+			break;
+		}
 	}
-	else {
-		
+
+	CHESS_PIECE* pieceAtPosition = get_piece_from_position(boardPos);
+
+	if (selectedPiece != NULL && is_valid_move(selectedPiece, boardPos)) { // there is a piece currently selected
+		if (!pieceAtPosition || pieceAtPosition->parentSet != selectedPiece->parentSet) { // the activated square is empty, or the piece at the activated square is from the opposing team
+			move_piece_to_position(selectedPiece, boardPos);
+
+			if (pieceAtPosition) { // if their was a piece at this position, destroy it
+				pieceAtPosition->alive = 0;
+				Instance* instance = pieceAtPosition->pieceInstance;
+				PT_IMAGELABEL* img = instance->subInstance;
+				img->visible = 0;
+			}
+
+			selectedPiece->numPieceMoves++;
+			selectedPiece = NULL; // deselect the piece that just got moved
+			switchCurrentTurnTeam(); // swap current team
+
+			clear_grid_highlights();
+			return;
+		}
+	}
+
+	if (pieceAtPosition && pieceAtPosition->parentSet == currentGame->currentTurnTeam) {
+		on_piece_activated(pieceAtPosition);
 	}
 }
 
@@ -141,23 +229,24 @@ CHESS_GAME* create_chess_game(Instance* boardFrame) {
 
 	blackTeam->parentGame = chessGame;
 
-	for (int i = 0; i < 32; i++) {
-		CHESS_TEAM_SET* set = i % 2 == 0 ? whiteTeam : blackTeam;
-		int j = i / 2;
-
-		CHESS_PIECE piece = *(set->pieces + j);
-		Instance* instance = piece.pieceInstance;
-		PT_IMAGELABEL* pieceImg = (PT_IMAGELABEL*)instance->subInstance;
-		PT_GUI_OBJ* pieceObj = pieceImg->guiObj;
-		PT_BINDABLE_EVENT_bind(&pieceObj->e_obj_pressed, on_piece_activated);
-	}
-
-	chessGame->currentTurnTeam = whiteTeam;
 	chessGame->whiteTeam = whiteTeam;
 	chessGame->blackTeam = blackTeam;
 	chessGame->boardFrame = boardFrame;
 
+	chessGame->chessSquares = calloc(8 * 8, sizeof(CHESS_SQUARE));
+	// create chess board
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			vec2i boardPos = (vec2i){ x + 1, y + 1 };
+			CHESS_SQUARE chessSquare = CHESS_SQUARE_new(boardPos, boardFrame);
+			*(chessGame->chessSquares + y * 8 + x) = chessSquare;
+
+			PT_BINDABLE_EVENT_bind(&chessSquare.squareFrame->guiObj->e_obj_activated, on_square_activated);
+		}
+	}
+
 	currentGame = chessGame;
+	setCurrentTurnTeam(whiteTeam);
 
 	return chessGame;
 }

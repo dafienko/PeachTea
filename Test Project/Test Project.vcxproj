@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="chessGame.c" />
+    <ClCompile Include="chessSquare.c" />
     <ClCompile Include="chessTeam.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="path.c" />
@@ -155,6 +156,7 @@
   <ItemGroup>
     <ClInclude Include="chessGame.h" />
     <ClInclude Include="chessSprites.h" />
+    <ClInclude Include="chessSquare.h" />
     <ClInclude Include="chessTeam.h" />
     <ClInclude Include="path.h" />
   </ItemGroup>

@@ -4,8 +4,10 @@
 #include "screenSize.h"
 #include "renderer.h"
 #include "PeachTeaShaders.h"
-
+#include <dwmapi.h>
 #include <stdlib.h>
+
+#pragma comment(lib, "dwmapi")
 
 HDC hMainDC;
 HGLRC hMainRC;
@@ -51,7 +53,21 @@ void PT_UPDATE() {
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+void update_accent_color() {
+	DWORD c = 0u;
+	BOOL bool = 0;
+	HRESULT hr = DwmGetColorizationColor(&c, &bool);
+	unsigned char a = c >> 24;
+	unsigned char r = (c >> 16) & 255u;
+	unsigned char g = (c >> 8) & 255u;
+	unsigned char b = (c >> 0) & 255u;
+
+	accentColor = PT_COLOR_fromRGB(r, g, b);
+}
+
 void PT_CREATE_MAIN_WND(vec2i size, const char* title) {	
+	update_accent_color();
+
 	int len = strlen(title) + 2;
 	wchar_t* wtitle = calloc(len, sizeof(wchar_t));
 	mbstowcs(wtitle, title, len);
@@ -120,6 +136,11 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONUP:
 		ReleaseCapture();
 		PT_BINDABLE_EVENT_fire(&e_mouseUp, NULL);
+		break;
+	case WM_SETCURSOR:
+		if (LOWORD(lParam) == HTCLIENT) {
+			//SetCursor
+		}
 		break;
 	}
 

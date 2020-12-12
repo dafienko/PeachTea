@@ -2,7 +2,7 @@
 #include "glExtensions.h"
 #include "assetLoader.h"
 
-DEFAULT_QUAD_CORNERS[] = {
+float DEFAULT_QUAD_CORNERS[] = {
 		0.0f, 0.0f,
 		0.0f, 1.0f,
 		1.0f, 1.0f,

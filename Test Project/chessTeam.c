@@ -38,7 +38,7 @@ PATH* get_path_from_dir(PATH* pathOut, CHESS_TEAM_SET* set, vec2i origin, vec2i 
 	do {
 		PATH_add_node_to_path(pathOut, pos);
 
-		vector_add_2i(pos, dir);
+		pos = vector_add_2i(pos, dir);
 
 		d++;
 	} while (is_pos_on_board(pos) && is_empty_position(game, pos) && (len <= 0 || d < len));

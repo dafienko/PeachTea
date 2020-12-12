@@ -40,4 +40,6 @@ CHESS_TEAM_SET* create_chess_team_set(const vec2i kingPosition, const vec2i forw
 int is_piece_at_position(CHESS_TEAM_SET* set, vec2i pos);
 void get_piece_paths(const CHESS_PIECE piece, PATH** pathsOut, int* numPathsOut);
 
+PT_REL_DIM boardpos_to_rel_dim(const vec2i boardpos);
+
 #endif

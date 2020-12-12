@@ -36,4 +36,6 @@ int PT_RUN(void(*renderCallback)(void));
 void PT_CREATE_MAIN_WND(vec2i size, const char* title);
 void PT_GET_MAIN_HWND();
 
+PT_COLOR accentColor;
+
 #endif

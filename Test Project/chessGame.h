@@ -3,6 +3,8 @@
 
 #include "chessTeam.h"
 #include "PeachTea.h"
+#include "chessSquare.h"
+
 
 typedef struct {
 	Instance* boardFrame;
@@ -11,6 +13,8 @@ typedef struct {
 	CHESS_TEAM_SET* blackTeam;
 
 	CHESS_TEAM_SET* currentTurnTeam;
+
+	CHESS_SQUARE* chessSquares;
 } CHESS_GAME;
 
 CHESS_GAME* create_chess_game(Instance* boardFrame);
