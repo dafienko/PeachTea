@@ -6,6 +6,11 @@
 #include "ScreenDimension.h"
 
 typedef enum {
+	ZST_SIBLING,
+	ZST_GLOBAL
+} Z_SORTING_TYPE;
+
+typedef enum {
 	PT_H_ALIGNMENT_LEFT,
 	PT_H_ALIGNMENT_CENTER,
 	PT_H_ALIGNMENT_RIGHT
@@ -23,7 +28,7 @@ typedef enum {
 	PT_FONT_TIMES
 } PT_FONT;
 
-void render_gui_instance(Instance* instance, PT_ABS_DIM parentDims);
-
+void render_gui_instance(Instance* instance, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType);
+void render_gui_children(Instance* instance, PT_canvas childCanvas, Z_SORTING_TYPE sortingType);
 
 #endif

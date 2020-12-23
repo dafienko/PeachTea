@@ -30,6 +30,7 @@
 #include "guiObj.h"
 #include "textLabel.h"
 #include "imageLabel.h"
+#include "scrollFrame.h"
 
 int PT_RUN(void(*renderCallback)(void));
 

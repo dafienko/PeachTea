@@ -160,6 +160,8 @@
   <ItemGroup>
     <ClInclude Include="BindableEvent.h" />
     <ClInclude Include="bool.h" />
+    <ClInclude Include="canvas.h" />
+    <ClInclude Include="clamp.h" />
     <ClInclude Include="Colors.h" />
     <ClInclude Include="errorUtil.h" />
     <ClInclude Include="fileUtil.h" />
@@ -182,11 +184,13 @@
     <ClInclude Include="ScreenDimension.h" />
     <ClInclude Include="screenSize.h" />
     <ClInclude Include="ScreenUI.h" />
+    <ClInclude Include="scrollFrame.h" />
     <ClInclude Include="shaders.h" />
     <ClInclude Include="SizeConstraint.h" />
     <ClInclude Include="sort.h" />
     <ClInclude Include="stringUtil.h" />
     <ClInclude Include="textLabel.h" />
+    <ClInclude Include="tweenUtil.h" />
     <ClInclude Include="vectorMath.h" />
     <ClInclude Include="wglext.h" />
     <ClInclude Include="WinUtil.h" />
@@ -194,6 +198,8 @@
   <ItemGroup>
     <ClCompile Include="assets.c" />
     <ClCompile Include="BindableEvent.c" />
+    <ClCompile Include="canvas.c" />
+    <ClCompile Include="clamp.c" />
     <ClCompile Include="Colors.c" />
     <ClCompile Include="errorUtil.c" />
     <ClCompile Include="floatVectorMath.c" />
@@ -247,6 +253,7 @@
     <ClCompile Include="ScreenDimension.c" />
     <ClCompile Include="screenSize.c" />
     <ClCompile Include="ScreenUI.c" />
+    <ClCompile Include="scrollFrame.c" />
     <ClCompile Include="shaders.c" />
     <ClCompile Include="SizeConstraint.c" />
     <ClCompile Include="quicksort.c" />

@@ -8,6 +8,7 @@
 #include "Colors.h"
 #include "BindableEvent.h"
 #include "SizeConstraint.h"
+#include "canvas.h"
 
 typedef struct {
 	Instance* instance;
@@ -16,6 +17,7 @@ typedef struct {
 	PT_REL_DIM position;
 	PT_REL_DIM size;
 	int visible;
+	int clipDescendants;
 	PT_ABS_DIM lastAbsoluteDim;
 	PT_SIZE_CONSTRAINT* sizeConstraint;
 	char zIndex;
@@ -33,6 +35,7 @@ typedef struct {
 	float backgroundTransparency;
 	PT_COLOR backgroundColor;
 
+	PT_BINDABLE_EVENT e_obj_dragged;
 	PT_BINDABLE_EVENT e_obj_mouseEnter;
 	PT_BINDABLE_EVENT e_obj_mouseLeave;
 	PT_BINDABLE_EVENT e_obj_pressed; 
@@ -42,12 +45,12 @@ typedef struct {
 	int pressed;
 } PT_GUI_OBJ;
 
-PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims);
+PT_canvas PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants);
 
 void PT_GUI_OBJ_destroy(void* obj);
 
 Instance* PT_GUI_OBJ_new();
-PT_GUI_OBJ* PT_GUI_OBJ_clone(PT_GUI_OBJ* source);
+PT_GUI_OBJ* PT_GUI_OBJ_clone(PT_GUI_OBJ* source, Instance* instance);
 
 
 #endif

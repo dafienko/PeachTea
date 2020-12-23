@@ -150,6 +150,18 @@
     <ClInclude Include="stringUtil.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="scrollFrame.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="tweenUtil.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="canvas.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="clamp.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinUtil.c">
@@ -337,6 +349,15 @@
     </ClCompile>
     <ClCompile Include="stringUtil.c">
       <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="scrollFrame.c">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="canvas.c">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="clamp.c">
+      <Filter>Source Files\math</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -4,6 +4,9 @@
 #include "mouse.h"
 #include "textLabel.h"
 #include "imageLabel.h"
+#include "screenSize.h"
+#include "scrollFrame.h"
+#include "clamp.h"
 
 #include <stdio.h>
 
@@ -37,6 +40,31 @@ int pos_in_obj(vec2i pos, PT_GUI_OBJ* obj) {
 	return pos.x > left && pos.x < right&& pos.y > top && pos.y < bottom;
 }
 
+void obj_wheel_scroll(PT_GUI_OBJ* obj, int d) {
+	if (obj->visible && pos_in_obj(mousePos, obj)) {
+		Instance* instance = obj->instance;
+		
+		if (instance->instanceType == IT_SCROLLFRAME) {
+			PT_SCROLLFRAME* scrollframe = (PT_SCROLLFRAME*)instance->subInstance;
+			int topBound = 0;
+			vec2i canvasSize = calculate_screen_dimension(scrollframe->canvasSize, obj->lastAbsoluteDim.size);
+			int bottomBound = canvasSize.y - obj->lastAbsoluteDim.size.y;
+
+			int currentY = scrollframe->canvasPosition.y;
+
+			scrollframe->canvasPosition.y = clamp(currentY + d, topBound, bottomBound);
+		}
+	}	
+}
+
+void obj_scroll_up(PT_GUI_OBJ* obj) {
+	obj_wheel_scroll(obj, -50);
+}
+
+void obj_scroll_down(PT_GUI_OBJ* obj) {
+	obj_wheel_scroll(obj, 50);
+}
+
 void obj_mouse_moved(PT_GUI_OBJ* obj) {
 	if (obj->visible) {
 		int mouseWasInObj = obj->mouseInFrame;
@@ -44,33 +72,30 @@ void obj_mouse_moved(PT_GUI_OBJ* obj) {
 
 		if (mouseWasInObj != obj->mouseInFrame) {
 			if (obj->mouseInFrame) {
-				//printf("mouse entered %s\n", obj->instance->name);
-
 				PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
 			}
 			else {
-				//printf("mouse left %s\n", obj->instance->name);
-
 				PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseLeave, obj);
 			}
+		}
+
+		if (obj->pressed) {
+			PT_BINDABLE_EVENT_fire(&obj->e_obj_dragged, obj);
 		}
 	}
 }
 
-void obj_mouse_down(PT_GUI_OBJ* obj) {
+void obj_mouse1_down(PT_GUI_OBJ* obj) {
 	if (obj->visible && pos_in_obj(mousePos, obj)) {
 		obj->pressed = 1;
-
-		//printf("pressed %s\n", obj->instance->name);
 
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_pressed, obj);
 	}
 }
 
-void obj_mouse_up(PT_GUI_OBJ* obj) {
+void obj_mouse1_up(PT_GUI_OBJ* obj) {
 	if (obj->pressed) {
 		obj->pressed = 0;
-		//printf("released %s\n", obj->instance->name);
 
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_released, obj);
 
@@ -107,6 +132,15 @@ void enumerate_gui_objs(Instance* parent,  void(*callback)(PT_GUI_OBJ*)) {
 			PT_IMAGELABEL* imageLabel = (PT_IMAGELABEL*)parent->subInstance;
 			obj = imageLabel->guiObj;
 			break;
+		case IT_SCROLLFRAME:
+			;
+			PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)parent->subInstance;
+			obj = scrollFrame->guiObj;
+
+			callback(scrollFrame->vscrollBar);
+			callback(scrollFrame->hscrollBar);
+
+			break;
 		}
 
 		if (obj != NULL) {
@@ -125,17 +159,27 @@ void on_mouse_move(void* args) {
 }
 
 void on_mouse_up(void* args) {
-	enumerate_gui_objs(NULL, obj_mouse_up);
+	enumerate_gui_objs(NULL, obj_mouse1_up);
 }
 
 void on_mouse_down(void* args) {
-	enumerate_gui_objs(NULL, obj_mouse_down);
+	enumerate_gui_objs(NULL, obj_mouse1_down);
+}
+
+void on_wheel_scroll_up(void* args) {
+	enumerate_gui_objs(NULL, obj_scroll_up);
+}
+
+void on_wheel_scroll_down(void* args) {
+	enumerate_gui_objs(NULL, obj_scroll_down);
 }
 
 void PT_SCREEN_UI_init() {
 	PT_BINDABLE_EVENT_bind(&e_mouseMove, on_mouse_move);
-	PT_BINDABLE_EVENT_bind(&e_mouseUp, on_mouse_up);
-	PT_BINDABLE_EVENT_bind(&e_mouseDown, on_mouse_down);
+	PT_BINDABLE_EVENT_bind(&e_mouse1Up, on_mouse_up);
+	PT_BINDABLE_EVENT_bind(&e_mouse1Down, on_mouse_down);
+	PT_BINDABLE_EVENT_bind(&e_wheelUp, on_wheel_scroll_up);
+	PT_BINDABLE_EVENT_bind(&e_wheelDown, on_wheel_scroll_down);
 }
 
 Instance* PT_SCREEN_UI_new() {
@@ -189,6 +233,14 @@ void PT_SCREEN_UI_destroy(void* obj) {
 	free(screenUI);
 }
 
-PT_ABS_DIM PT_SCREEN_UI_render(PT_SCREEN_UI* ui, PT_ABS_DIM parentDims) {
-	return parentDims;
+PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
+	PT_canvas canvas = { 0 };
+
+	canvas.right = screenSize.x;
+	canvas.bottom = screenSize.y;
+
+	render_gui_children(ui->instance, canvas, ui->sortingType);
+	
+
+	return canvas;
 }

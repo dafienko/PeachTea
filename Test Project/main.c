@@ -8,11 +8,6 @@
 
 Instance* screenUI;
 
-const int default_padding = 0;
-
-LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-CHESS_GAME* chessGame;
 CHESS_GAME* chessGame;
 
 void onRender() {
@@ -21,13 +16,17 @@ void onRender() {
 	dims.size = screenSize;
 
 	PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
-	dims.sortingType = ZST_GLOBAL; // ui->sortingType;
+	dims.sortingType = ZST_GLOBAL; 
 
 	render_gui_instance(screenUI, dims);
 }
 
 int main() {
 	PT_CREATE_MAIN_WND((vec2i) { 600, 600 }, "PeachTea Chess");
+
+#ifndef _DEBUG 
+	ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
 
 	screenUI = PT_SCREEN_UI_new();
 
@@ -45,8 +44,8 @@ int main() {
 	boardFrame->visible = FALSE;
 	boardFrame->borderWidth = 0;
 	boardFrame->size = PT_REL_DIM_new(
-		1, -default_padding,
-		1, -default_padding
+		1, 0,
+		1, 0
 	);
 	boardFrame->position = PT_REL_DIM_new(0.5f, 0, 0.5f, 0);
 	boardFrame->visible = 1;

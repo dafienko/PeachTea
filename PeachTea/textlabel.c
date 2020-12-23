@@ -101,9 +101,12 @@ void free_lines(char** lines, int numlines) {
 	free(lines);
 }
 
-PT_ABS_DIM PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_ABS_DIM parentDims) {
+PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants) {
 	textlabel->guiObj->visible = textlabel->visible;
-	PT_ABS_DIM childDims = PT_GUI_OBJ_render(textlabel->guiObj, parentDims);
+	
+	PT_canvas childCanvas = PT_GUI_OBJ_render(textlabel->guiObj, parentCanvas, sortingType, 0);
+	vec2i childPos = canvas_pos(childCanvas);
+	vec2i childSize = canvas_size(childCanvas);
 
 	if (textlabel->visible) {
 		char_set* cs = get_char_set(textlabel->font, textlabel->textSize);
@@ -115,15 +118,15 @@ PT_ABS_DIM PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_ABS_DIM parentDims) {
 
 		int linePadding = 3;
 		int totalTextHeight = numLines * (textlabel->textSize + linePadding) - linePadding;
-		int baselineY = childDims.position.y;
+		int baselineY = childPos.y;
 		switch (textlabel->verticalAlignment) {
 		case PT_V_ALIGNMENT_CENTER:
 			;
-			int remainingHeight = childDims.size.y - totalTextHeight;
-			baselineY = childDims.position.y + remainingHeight / 2;
+			int remainingHeight = childSize.y - totalTextHeight;
+			baselineY = childPos.y + remainingHeight / 2;
 			break;
 		case PT_V_ALIGNMENT_BOTTOM:
-			baselineY = childDims.position.y + childDims.size.y + -totalTextHeight;
+			baselineY = childPos.y + childSize.y + -totalTextHeight;
 			break;
 		}
 
@@ -133,15 +136,15 @@ PT_ABS_DIM PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_ABS_DIM parentDims) {
 
 			int textWidth = get_text_width(cs, line);
 
-			int baselineX = childDims.position.x;
+			int baselineX = childPos.x;
 			switch (textlabel->horizontalAlignment) {
 			case PT_H_ALIGNMENT_CENTER:
 				;
-				int remainingWidth = childDims.size.x - textWidth;
-				baselineX = childDims.position.x + (remainingWidth / 2);
+				int remainingWidth = childSize.x - textWidth;
+				baselineX = childPos.x + (remainingWidth / 2);
 				break;
 			case PT_H_ALIGNMENT_RIGHT:
-				baselineX = childDims.position.x + childDims.size.x + -textWidth;
+				baselineX = childPos.x + childSize.x + -textWidth;
 				break;
 			}
 
@@ -158,6 +161,9 @@ PT_ABS_DIM PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_ABS_DIM parentDims) {
 		free_lines(lines, numLines);
 	}
 
+	if (renderDescendants) {
+		render_gui_children(textlabel->instance, childCanvas, sortingType);
+	}
 
-	return childDims;
+	return childCanvas;
 }

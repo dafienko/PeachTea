@@ -27,11 +27,3 @@ void mouse_input(RAWINPUT* raw) {
 
 	PT_BINDABLE_EVENT_fire(&e_mouseMove, NULL);
 }
-
-void mouse_button1_down() {
-	PT_BINDABLE_EVENT_fire(&e_mouseDown, NULL);
-}
-
-void mouse_button2_up() {
-	PT_BINDABLE_EVENT_fire(&e_mouseUp, NULL);
-}

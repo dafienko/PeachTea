@@ -14,15 +14,15 @@
 vec2i mousePos;
 
 PT_BINDABLE_EVENT e_mouseMove;
-PT_BINDABLE_EVENT e_mouseDown;
-PT_BINDABLE_EVENT e_mouseUp;
+
+PT_BINDABLE_EVENT e_mouse1Down;
+PT_BINDABLE_EVENT e_mouse1Up;
+
+PT_BINDABLE_EVENT e_wheelUp;
+PT_BINDABLE_EVENT e_wheelDown;
 
 void mouse_init(HWND hMainWnd);
 
 void mouse_input(RAWINPUT* raw);
-
-void mouse_button1_down();
-
-void mouse_button2_up();
 
 #endif

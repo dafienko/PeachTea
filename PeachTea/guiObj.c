@@ -5,6 +5,7 @@
 #include "PeachTea.h"
 #include "errorUtil.h"
 #include "PeachTeaShaders.h"
+#include "ScreenUI.h"
 
 #include "glUniformUtil.h"
 
@@ -84,29 +85,31 @@ PT_GUI_OBJ* PT_GUI_OBJ_clone(PT_GUI_OBJ* source, Instance* instanceClone) {
 	PT_GUI_OBJ* clone = calloc(1, sizeof(PT_GUI_OBJ));
 
 	memcpy(clone, source, sizeof(PT_GUI_OBJ));
-
-	clone->instance = instanceClone;
 	clone->sizeConstraint = PT_SIZE_CONSTRAINT_clone(source->sizeConstraint);
 
-	PT_BINDABLE_EVENT_bind(&instanceClone->childAdded, onDescendantsChanged);
-	PT_BINDABLE_EVENT_bind(&instanceClone->childRemoved, onDescendantsChanged);
+	clone->instance = instanceClone;
+
+	if (instanceClone) {
+		PT_BINDABLE_EVENT_bind(&instanceClone->childAdded, onDescendantsChanged);
+		PT_BINDABLE_EVENT_bind(&instanceClone->childRemoved, onDescendantsChanged);
+	}
 
 	return clone;
 }
 
-PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
+PT_canvas PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants) {
 	glUseProgram(PTS_guiObj);
 
 	Instance* instance = obj->instance;
 
+	PT_ABS_DIM parentDims = { 0 };
+	parentDims.position = canvas_pos(parentCanvas);
+	parentDims.size = canvas_size(parentCanvas);
+
 	vec2i frameSize = obj->sizeConstraint->calculateSize(obj, parentDims);
 	vec2i relPos = calculate_screen_dimension(obj->position, parentDims.size);
-	vec2i anchorPos = vector_add_2i(relPos, parentDims.position);
-	vec2i anchorOffset = (vec2i){
-		obj->anchorPosition.x * frameSize.x,
-		obj->anchorPosition.y * frameSize.y
-	};
-	vec2i framePos = vector_sub_2i(anchorPos, anchorOffset);
+	PT_canvas childCanvas = calculate_child_canvas(parentCanvas, relPos, frameSize, obj->anchorPosition, obj->clipDescendants);
+	vec2i framePos = canvas_pos(childCanvas);
 
 	if (obj->visible) {
 		vec2i borderSize = (vec2i){ obj->borderWidth * 2, obj->borderWidth * 2 };
@@ -120,6 +123,7 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 
 		GLuint fbcLoc, bcLoc, btLoc, cLoc, tLoc, ssLoc, mpLoc, mifLoc, dLoc;
 		GLuint rLoc, aborcLoc, abaccLoc, abordLoc, abacdLoc;
+		GLuint ucbLoc, clXLoc, clYLoc;
 
 		// general property uniforms
 		mpLoc = glGetUniformLocation(PTS_guiObj, "mousePos");
@@ -131,17 +135,24 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 		ssLoc = glGetUniformLocation(PTS_guiObj, "screenSize");
 		mifLoc = glGetUniformLocation(PTS_guiObj, "mouseInFrame");
 		dLoc = glGetUniformLocation(PTS_guiObj, "depth");
+		ucbLoc = glGetUniformLocation(PTS_guiObj, "useClipBounds");
+		clXLoc = glGetUniformLocation(PTS_guiObj, "clipX");
+		clYLoc = glGetUniformLocation(PTS_guiObj, "clipY");
 
 		int mif = mousePos.x > topLeft.x && mousePos.x < bottomRight.x; // "Mouse In Frame"
 		mif = mif && mousePos.y > topLeft.y && mousePos.y < bottomRight.y;
 
 		float depth;
-		if (parentDims.sortingType == ZST_SIBLING) {
+		if (sortingType == ZST_SIBLING) {
 			depth = 0;
 		}
 		else {
 			depth = obj->zIndex / 128.0f;
 		}
+
+		glUniform1i(ucbLoc, childCanvas.clipDescendants);
+		glUniform2i(clXLoc, childCanvas.cleft, childCanvas.cright);
+		glUniform2i(clYLoc, childCanvas.ctop, childCanvas.cbottom);
 
 		uniform_vec2i(mpLoc, mousePos);
 		uniform_vec2i(ssLoc, screenSize);
@@ -191,11 +202,14 @@ PT_ABS_DIM PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 	PT_ABS_DIM dims = { 0 };
 	dims.position = framePos;
 	dims.size = frameSize;
-	dims.sortingType = parentDims.sortingType;
 
 	obj->lastAbsoluteDim = dims;
 
-	return dims;
+	if (renderDescendants) {
+		render_gui_children(obj->instance, childCanvas, sortingType);
+	}
+
+	return childCanvas;
 }
 
 void PT_GUI_OBJ_destroy(void* obj) {

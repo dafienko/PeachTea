@@ -2,6 +2,7 @@
 #define PT_TEXTLABEL_H
 
 #include "guiObj.h"
+#include "ScreenUI.h"
 
 typedef struct {
 	Instance* instance;
@@ -25,6 +26,6 @@ Instance* PT_TEXTLABEL_new();
 void PT_TEXTLABEL_destroy(void* textlabel);
 PT_TEXTLABEL* PT_TEXTLABEL_clone(PT_TEXTLABEL* source, Instance* instanceClone);
 
-PT_ABS_DIM PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_ABS_DIM parentDims);
+PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants);
 
 #endif

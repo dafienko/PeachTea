@@ -6,6 +6,7 @@
 #include "PeachTeaShaders.h"
 #include <dwmapi.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #pragma comment(lib, "dwmapi")
 
@@ -131,16 +132,27 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_LBUTTONDOWN:
 		SetCapture(hMainWnd);
-		PT_BINDABLE_EVENT_fire(&e_mouseDown, NULL);
+		PT_BINDABLE_EVENT_fire(&e_mouse1Down, NULL);
 		break;
 	case WM_LBUTTONUP:
 		ReleaseCapture();
-		PT_BINDABLE_EVENT_fire(&e_mouseUp, NULL);
+		PT_BINDABLE_EVENT_fire(&e_mouse1Up, NULL);
 		break;
 	case WM_SETCURSOR:
 		if (LOWORD(lParam) == HTCLIENT) {
 			//SetCursor
 		}
+		break;
+	case WM_MOUSEWHEEL:
+		;
+		int d = GET_WHEEL_DELTA_WPARAM(wParam);
+		if (d > 0) {
+			PT_BINDABLE_EVENT_fire(&e_wheelUp, NULL);
+		}
+		else {
+			PT_BINDABLE_EVENT_fire(&e_wheelDown, NULL);
+		}
+
 		break;
 	}
 

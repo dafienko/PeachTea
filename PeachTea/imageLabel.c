@@ -32,15 +32,15 @@ PT_IMAGELABEL* PT_IMAGELABEL_clone(PT_IMAGELABEL* source, Instance* instanceClon
 	return clone;
 }
 
-PT_ABS_DIM PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_ABS_DIM parentDims) {
+PT_canvas PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants) {
 	img->guiObj->visible = img->visible;
-	PT_ABS_DIM childDims = PT_GUI_OBJ_render(img->guiObj, parentDims);
+	PT_canvas childCanvas = PT_GUI_OBJ_render(img->guiObj, parentCanvas, sortingType, 0);
 
 	if (img->visible) {
 		glUseProgram(PTS_img);
 
-		vec2i topLeft = childDims.position;
-		vec2i bottomRight = vector_add_2i(topLeft, childDims.size);
+		vec2i topLeft = canvas_pos(childCanvas);
+		vec2i bottomRight = vector_add_2i(topLeft, canvas_size(childCanvas));
 
 		int ssLoc = glGetUniformLocation(PTS_img, "screenSize");
 		int tLoc = glGetUniformLocation(PTS_img, "imageTransparency");
@@ -100,7 +100,11 @@ PT_ABS_DIM PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_ABS_DIM parentDims) {
 		glDrawArrays(GL_QUADS, 0, 4);
 	}
 
-	return childDims;
+	if (renderDescendants) {
+		render_gui_children(img->instance, childCanvas, sortingType);
+	}
+
+	return childCanvas;
 }
 
 void PT_IMAGELABEL_destroy(void* obj) {

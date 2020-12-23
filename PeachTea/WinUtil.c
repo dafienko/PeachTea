@@ -32,7 +32,7 @@ void initWinUtil(const HINSTANCE hInstance) {
 		MAIN_WNDCLASS.lpfnWndProc = DefWindowProc;
 		MAIN_WNDCLASS.hInstance = hInstance;
 		MAIN_WNDCLASS.lpszClassName = MAIN_WNDCLASS_CLASSNAME;
-		MAIN_WNDCLASS.hCursor = LoadCursor(NULL, IDC_CROSS);
+		MAIN_WNDCLASS.hCursor = LoadCursor(NULL, IDC_ARROW);
 		MAIN_WNDCLASS.hbrBackground = GetStockObject(DKGRAY_BRUSH);
 		MAIN_WNDCLASS.style = CS_OWNDC;
 		MAIN_WNDCLASS.cbClsExtra = 0;

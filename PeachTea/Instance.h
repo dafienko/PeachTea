@@ -9,11 +9,12 @@ typedef enum {
 	IT_GUI_OBJ,
 	IT_TEXTLABEL,
 	IT_IMAGELABEL,
+	IT_SCROLLFRAME,
 
 	IT_SCREEN_UI
 } INSTANCE_TYPE;
 
-#define IS_UI_INSTANCE(IT) IT >= 1 && IT <= 3
+#define IS_UI_INSTANCE(IT) IT >= 1 && IT <= 4
 
 typedef struct Instance {
 	INSTANCE_TYPE instanceType;

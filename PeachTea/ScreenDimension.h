@@ -2,6 +2,7 @@
 #define PT_DIMENSIONS_H
 
 #include "vectorMath.h"
+#include "canvas.h"
 
 typedef struct {
 	vec2i position;
@@ -28,6 +29,7 @@ typedef struct {
 } PT_REL_DIM;
 
 vec2i calculate_screen_dimension(PT_REL_DIM screenDimension, vec2i screenSize);
+PT_canvas calculate_child_canvas(PT_canvas parentCanvas, vec2i pos, vec2i size, vec2f anchorPoint, int clipDescendants);
 
 PT_REL_DIM PT_REL_DIM_new(float xScale, int xOff, float yScale, int yOff);
 

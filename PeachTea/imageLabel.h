@@ -4,6 +4,7 @@
 #include "Instance.h"
 #include "guiObj.h"
 #include "imageLoader.h"
+#include "ScreenUI.h"
 
 typedef struct {
 	Instance* instance;
@@ -24,7 +25,7 @@ typedef struct {
 Instance* PT_IMAGELABEL_new();
 PT_IMAGELABEL* PT_IMAGELABEL_clone(PT_IMAGELABEL* source, Instance* instanceClone);
 
-PT_ABS_DIM PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_ABS_DIM parentDims);
+PT_canvas PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants);
 
 void PT_IMAGELABEL_destroy(void* imgLabel);
 
