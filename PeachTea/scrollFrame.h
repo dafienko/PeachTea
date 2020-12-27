@@ -12,6 +12,7 @@ typedef struct {
 
 	PT_REL_DIM canvasSize;
 	vec2i canvasPosition;
+	int scrollBarThickness;
 
 	float xScrollAlpha, yScrollAlpha;
 

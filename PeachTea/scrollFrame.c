@@ -37,7 +37,7 @@ void onSrollDrag(void* args) {
 	int axisLength = 0;
 	if (scrollFrame->vscrollBar == scrollBarObj) {
 		originBound = framePos.y;
-		endBound = (framePos.y + frameSize.y) - SCROLL_FRAME_SIZE;
+		endBound = (framePos.y + frameSize.y) - scrollFrame->scrollBarThickness;
 		bwPos = mousePos.y -scrollFrame->dragStart.y;
 
 		axisLength = scrollCanvasSize.y;
@@ -46,7 +46,7 @@ void onSrollDrag(void* args) {
 	}
 	else { // horizontal scroll bar
 		originBound = framePos.x;
-		endBound = (framePos.x + frameSize.x) - SCROLL_FRAME_SIZE;
+		endBound = (framePos.x + frameSize.x) - scrollFrame->scrollBarThickness;
 		bwPos = mousePos.x -scrollFrame->dragStart.x;
 
 		axisLength = scrollCanvasSize.x;
@@ -72,13 +72,14 @@ void onSrollDrag(void* args) {
 Instance* PT_SCROLLFRAME_new() {
 	PT_SCROLLFRAME* scrollFrame = calloc(1, sizeof(PT_SCROLLFRAME));
 	scrollFrame->visible = 1;
+	scrollFrame->scrollBarThickness = 10;
 
 	Instance* instance = PT_GUI_OBJ_new();
 	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)instance->subInstance;
 
 	// vertical scroll bar
 	PT_GUI_OBJ* vscrollBarTrack = calloc(1, sizeof(PT_GUI_OBJ));
-	vscrollBarTrack->size = PT_REL_DIM_new(0, SCROLL_FRAME_SIZE, 1.0f, -SCROLL_FRAME_SIZE);
+	vscrollBarTrack->size = PT_REL_DIM_new(0, scrollFrame->scrollBarThickness, 1.0f, -scrollFrame->scrollBarThickness);
 	vscrollBarTrack->position = PT_REL_DIM_new(1.0f, 0, 0.0f, 0);
 	vscrollBarTrack->anchorPosition = (vec2f){ 1.0f, 0.0f };
 	vscrollBarTrack->sizeConstraint = PT_SIZE_CONSTRAINT_none();
@@ -103,7 +104,7 @@ Instance* PT_SCROLLFRAME_new() {
 
 	// horizontal scroll bar
 	PT_GUI_OBJ* hscrollBarTrack = PT_GUI_OBJ_clone(vscrollBarTrack, NULL); //calloc(1, sizeof(PT_GUI_OBJ));
-	hscrollBarTrack->size = PT_REL_DIM_new(1.0f, -SCROLL_FRAME_SIZE, 0, SCROLL_FRAME_SIZE);
+	hscrollBarTrack->size = PT_REL_DIM_new(1.0f, -scrollFrame->scrollBarThickness, 0, scrollFrame->scrollBarThickness);
 	hscrollBarTrack->position = PT_REL_DIM_new(0.0f, 0, 1.0f, 0);
 	hscrollBarTrack->anchorPosition = (vec2f){ 0.0f, 1.0f };
 
@@ -141,38 +142,61 @@ PT_SCROLLFRAME* PT_SCROLLFRAME_clone(PT_SCROLLFRAME* source, Instance* instanceC
 PT_canvas PT_SCROLLFRAME_update_size(PT_SCROLLFRAME* scrollFrame, PT_canvas parentCanvas) {
 	PT_canvas childCanvas = PT_GUI_OBJ_update_size(scrollFrame->guiObj, parentCanvas);
 
+	// if vscrollbar isn't visible, don't shorten hscrollbar and vice versa
+	if (scrollFrame->vscrollTrack->visible) {
+		scrollFrame->hscrollTrack->size = PT_REL_DIM_new(1, -scrollFrame->scrollBarThickness, 0, scrollFrame->scrollBarThickness);
+	}
+	else {
+		scrollFrame->hscrollTrack->size = PT_REL_DIM_new(1, 0, 0, scrollFrame->scrollBarThickness);
+	}
+
+	if (scrollFrame->hscrollTrack->visible) {
+		scrollFrame->vscrollTrack->size = PT_REL_DIM_new(0, scrollFrame->scrollBarThickness, 1, -scrollFrame->scrollBarThickness);
+	}
+	else {
+		scrollFrame->vscrollTrack->size = PT_REL_DIM_new(0, scrollFrame->scrollBarThickness, 1, 0);
+	}
+
+	PT_canvas vtrackCanvas = PT_GUI_OBJ_update_size(scrollFrame->vscrollTrack, childCanvas);
+	PT_canvas htrackCanvas = PT_GUI_OBJ_update_size(scrollFrame->hscrollTrack, childCanvas);
+
+
 	// update scrollbar sizes and positions based on canvas position
 	vec2i frameSize = canvas_size(childCanvas);
-
 	vec2i scrollCanvasSize = calculate_screen_dimension(scrollFrame->canvasSize, frameSize);
-
 	vec2i canvasMidPos = vector_add_2i(scrollFrame->canvasPosition, vector_div_2i(frameSize, 2));
 	vec2f canvasAlphaPos = (vec2f){ canvasMidPos.x / (float)scrollCanvasSize.x, canvasMidPos.y / (float)scrollCanvasSize.y };
 
 	// vertical scrollbar
 	if (frameSize.y < scrollCanvasSize.y) {
-		int scrollRange = frameSize.y - SCROLL_FRAME_SIZE;
+		int scrollRange = canvas_size(vtrackCanvas).y;
 		int scrollBarHeight = max((frameSize.y / (float)scrollCanvasSize.y) * scrollRange, 20);
 		int barPos = scrollRange * canvasAlphaPos.y;
 
 		scrollFrame->vscrollBar->position = PT_REL_DIM_new(.5f, 0, 0, barPos);
 		scrollFrame->vscrollBar->size = PT_REL_DIM_new(1, 0, 0, scrollBarHeight);
 	}
+	else {
+		scrollFrame->vscrollTrack->visible = 0;
+		scrollFrame->vscrollBar->visible = 0;
+	}
 
 	// horizontal scrollbar
 	if (frameSize.x < scrollCanvasSize.x) {
-		int scrollRange = frameSize.x - SCROLL_FRAME_SIZE;
+		int scrollRange = canvas_size(vtrackCanvas).x;
 		int scrollBarWidth = max((frameSize.x / (float)scrollCanvasSize.x) * scrollRange, 20);
 		int barPos = scrollRange * canvasAlphaPos.x;
 
 		scrollFrame->hscrollBar->position = PT_REL_DIM_new(0, barPos, .5f, 0);
 		scrollFrame->hscrollBar->size = PT_REL_DIM_new(0, scrollBarWidth, 1.0f, 0);
 	}
+	else {
+		scrollFrame->hscrollTrack->visible = 0;
+		scrollFrame->hscrollBar->visible = 0;
+	}
 
-	PT_canvas vtrackCanvas = PT_GUI_OBJ_update_size(scrollFrame->vscrollTrack, childCanvas);
+
 	PT_GUI_OBJ_update_size(scrollFrame->vscrollBar, vtrackCanvas);
-
-	PT_canvas htrackCanvas = PT_GUI_OBJ_update_size(scrollFrame->hscrollTrack, childCanvas);
 	PT_GUI_OBJ_update_size(scrollFrame->hscrollBar, htrackCanvas);
 
 

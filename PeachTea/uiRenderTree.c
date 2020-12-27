@@ -19,15 +19,12 @@ int comp_ui_render_tree(void* a, void* b) { // for sorting render trees by zinde
 	int zb = get_instance_zindex(uirtB->rootInstance);
 
 	if (za > zb) {
-		printf("1\n");
 		return 1;
 	} 
 	else if (za < zb) {
-		printf("-1\n");
 		return -1;
 	}
 	else {
-		printf("0\n");
 		return 0;
 	}
 }
