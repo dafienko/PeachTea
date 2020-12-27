@@ -123,3 +123,50 @@ void destroy_instance(Instance* instance) {
 
 	free(instance); 
 }
+
+unsigned int get_num_children(Instance* instance) {
+	return instance->numChildren;
+}
+
+unsigned int get_num_descendants(Instance* instance) {
+	int n = instance->numChildren;
+
+	for (int i = 0; i < instance->numChildren; i++) {
+		Instance* child = *(instance->children + i);
+		n += get_num_descendants(child);
+	}
+
+	return n;
+}
+
+Instance** get_descendants(Instance* parent, unsigned int* numDescendantsOut) {
+	unsigned int numDescendants = get_num_descendants(parent);
+	*numDescendantsOut = numDescendants;
+
+	Instance** descendants = NULL;
+
+	if (numDescendants > 0) {
+		descendants = calloc(numDescendants, sizeof(Instance*));
+	}
+
+	int descCount = 0;
+
+	for (int i = 0; i < parent->numChildren; i++) {
+		Instance* child = *(parent->children + i);
+
+		*(descendants + descCount) = child;
+		descCount++;
+
+		unsigned int numChildDescendants = 0u;
+		Instance** childDescendants = get_descendants(child, &numChildDescendants);
+
+		if (numChildDescendants > 0) {
+			memcpy(descendants + descCount, childDescendants, numChildDescendants * sizeof(Instance*));
+			free(childDescendants);
+
+			descCount += numChildDescendants;
+		}
+	}
+
+	return descendants;
+}

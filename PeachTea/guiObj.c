@@ -11,28 +11,39 @@
 
 #include <stdio.h>
 
-int get_instance_zindex(Instance* inst) {
-	int z = 0;
+int get_instance_zindex(Instance* instance) {
+	PT_GUI_OBJ* guiObj = NULL;
 
-	switch (inst->instanceType) {
+	switch (instance->instanceType) {
 	case IT_GUI_OBJ:
-		;
-		PT_GUI_OBJ* obj = (PT_GUI_OBJ*)inst->subInstance;
-		z = obj->zIndex;
+		guiObj = instance->subInstance;
 		break;
 	case IT_IMAGELABEL:
 		;
-		PT_IMAGELABEL* imagelabel = (PT_IMAGELABEL*)inst->subInstance;
-		z = imagelabel->guiObj->zIndex;
+		PT_IMAGELABEL* imageLabel = (PT_IMAGELABEL*)instance->subInstance;
+		guiObj = imageLabel->guiObj;
+
+		break;
+	case IT_SCROLLFRAME:
+		;
+		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)instance->subInstance;
+		guiObj = scrollFrame->guiObj;
+
 		break;
 	case IT_TEXTLABEL:
 		;
-		PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)inst->subInstance;
-		z = textlabel->guiObj->zIndex;
+		PT_TEXTLABEL* textLabel = (PT_TEXTLABEL*)instance->subInstance;
+		guiObj = textLabel->guiObj;
+
 		break;
 	}
 
-	return z;
+	if (guiObj) {
+		return guiObj->zIndex;
+	}
+	else {
+		return -1;
+	}
 }
 
 void compare_instances(void* v1, void* v2) {
@@ -97,11 +108,7 @@ PT_GUI_OBJ* PT_GUI_OBJ_clone(PT_GUI_OBJ* source, Instance* instanceClone) {
 	return clone;
 }
 
-PT_canvas PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants) {
-	glUseProgram(PTS_guiObj);
-
-	Instance* instance = obj->instance;
-
+PT_canvas PT_GUI_OBJ_update_size(PT_GUI_OBJ* obj, PT_canvas parentCanvas) {
 	PT_ABS_DIM parentDims = { 0 };
 	parentDims.position = canvas_pos(parentCanvas);
 	parentDims.size = canvas_size(parentCanvas);
@@ -110,6 +117,22 @@ PT_canvas PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_canvas parentCanvas, Z_SORTING_T
 	vec2i relPos = calculate_screen_dimension(obj->position, parentDims.size);
 	PT_canvas childCanvas = calculate_child_canvas(parentCanvas, relPos, frameSize, obj->anchorPosition, obj->clipDescendants);
 	vec2i framePos = canvas_pos(childCanvas);
+
+	PT_ABS_DIM dims = { 0 };
+	dims.position = framePos;
+	dims.size = frameSize;
+
+	obj->lastCanvas = childCanvas;
+	obj->lastAbsoluteDim = dims;
+
+	return childCanvas;
+}
+
+void PT_GUI_OBJ_render(PT_GUI_OBJ* obj) {
+	glUseProgram(PTS_guiObj);
+
+	vec2i frameSize = canvas_size(obj->lastCanvas);
+	vec2i framePos = canvas_pos(obj->lastCanvas);
 
 	if (obj->visible) {
 		vec2i borderSize = (vec2i){ obj->borderWidth * 2, obj->borderWidth * 2 };
@@ -142,17 +165,11 @@ PT_canvas PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_canvas parentCanvas, Z_SORTING_T
 		int mif = mousePos.x > topLeft.x && mousePos.x < bottomRight.x; // "Mouse In Frame"
 		mif = mif && mousePos.y > topLeft.y && mousePos.y < bottomRight.y;
 
-		float depth;
-		if (sortingType == ZST_SIBLING) {
-			depth = 0;
-		}
-		else {
-			depth = obj->zIndex / 128.0f;
-		}
+		float depth = 0.1f;
 
-		glUniform1i(ucbLoc, childCanvas.clipDescendants);
-		glUniform2i(clXLoc, childCanvas.cleft, childCanvas.cright);
-		glUniform2i(clYLoc, childCanvas.ctop, childCanvas.cbottom);
+		glUniform1i(ucbLoc, obj->lastCanvas.clipDescendants);
+		glUniform2i(clXLoc, obj->lastCanvas.cleft, obj->lastCanvas.cright);
+		glUniform2i(clYLoc, obj->lastCanvas.ctop, obj->lastCanvas.cbottom);
 
 		uniform_vec2i(mpLoc, mousePos);
 		uniform_vec2i(ssLoc, screenSize);
@@ -198,18 +215,6 @@ PT_canvas PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_canvas parentCanvas, Z_SORTING_T
 
 		glDrawArrays(GL_QUADS, 0, 4);
 	}
-
-	PT_ABS_DIM dims = { 0 };
-	dims.position = framePos;
-	dims.size = frameSize;
-
-	obj->lastAbsoluteDim = dims;
-
-	if (renderDescendants) {
-		render_gui_children(obj->instance, childCanvas, sortingType);
-	}
-
-	return childCanvas;
 }
 
 void PT_GUI_OBJ_destroy(void* obj) {

@@ -7,6 +7,7 @@
 
 #include "WinUtil.h"
 #include "errorUtil.h"
+#include "stringUtil.h"
 
 #include "glExtensions.h"
 #include "shaders.h"

@@ -18,7 +18,8 @@ typedef struct {
 	PT_REL_DIM size;
 	int visible;
 	int clipDescendants;
-	PT_ABS_DIM lastAbsoluteDim;
+	PT_canvas lastCanvas;
+	PT_ABS_DIM lastAbsoluteDim; // redundant, info can be extracted from lastCanvas
 	PT_SIZE_CONSTRAINT* sizeConstraint;
 	char zIndex;
 
@@ -45,7 +46,10 @@ typedef struct {
 	int pressed;
 } PT_GUI_OBJ;
 
-PT_canvas PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants);
+int get_instance_zindex(Instance* instance);
+
+void PT_GUI_OBJ_render(PT_GUI_OBJ* obj);
+PT_canvas PT_GUI_OBJ_update_size(PT_GUI_OBJ* obj, PT_canvas parentCanvas);
 
 void PT_GUI_OBJ_destroy(void* obj);
 

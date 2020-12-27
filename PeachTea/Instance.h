@@ -14,7 +14,7 @@ typedef enum {
 	IT_SCREEN_UI
 } INSTANCE_TYPE;
 
-#define IS_UI_INSTANCE(IT) IT >= 1 && IT <= 4
+#define IS_UI_INSTANCE(IT) IT > IT_UNDEF && IT < IT_SCREEN_UI
 
 typedef struct Instance {
 	INSTANCE_TYPE instanceType;
@@ -37,5 +37,9 @@ Instance* new_instance();
 void destroy_instance(Instance* i);
 Instance* get_child_from_name(Instance* parent, const char* name);
 Instance* clone_instance(Instance* source);
+
+unsigned int get_num_children(Instance* instance);
+unsigned int get_num_descendants(Instance* instance);
+Instance** get_descendants(Instance* parent, unsigned int* numDescendantsOut);
 
 #endif

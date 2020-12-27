@@ -9,42 +9,40 @@
 #include "scrollFrame.h"
 #include "PeachTeaShaders.h"
 
-void render_gui_instance(Instance* instance, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType) {
-	PT_canvas childCanvas;
-	
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas) {
+	PT_canvas canvas;
 
 	switch (instance->instanceType) {
 	case IT_GUI_OBJ:
-		childCanvas = PT_GUI_OBJ_render((PT_GUI_OBJ*)instance->subInstance, parentCanvas, sortingType, 1);
+		canvas = PT_GUI_OBJ_update_size((PT_GUI_OBJ*)instance->subInstance, parentCanvas);
 		break;
 	case IT_TEXTLABEL:
-		childCanvas = PT_TEXTLABEL_render((PT_TEXTLABEL*)instance->subInstance, parentCanvas, sortingType, 1);
+		canvas = PT_TEXTLABEL_update_size((PT_TEXTLABEL*)instance->subInstance, parentCanvas);
 		break;
 	case IT_IMAGELABEL:
-		childCanvas = PT_IMAGELABEL_render((PT_IMAGELABEL*)instance->subInstance, parentCanvas, sortingType, 1);
+		canvas = PT_IMAGELABEL_update_size((PT_IMAGELABEL*)instance->subInstance, parentCanvas);
 		break;
 	case IT_SCROLLFRAME:
-		childCanvas = PT_SCROLLFRAME_render((PT_IMAGELABEL*)instance->subInstance, parentCanvas, sortingType, 1);
-		break;
-	case IT_SCREEN_UI:
-		;
-		PT_SCREEN_UI* ui = (PT_SCREEN_UI*)instance->subInstance;
-
-		if (!ui->enabled) {
-			return;
-		}
-
-		childCanvas = PT_SCREEN_UI_render(ui);
+		canvas = PT_SCROLLFRAME_update_size((PT_SCROLLFRAME*)instance->subInstance, parentCanvas);
 		break;
 	}
+
+	return canvas;
 }
 
-void render_gui_children(Instance* instance, PT_canvas childCanvas, Z_SORTING_TYPE sortingType) {
-	for (int i = 0; i < instance->numChildren; i++) {
-		Instance* childInstance = *(instance->children + i);
-
-		render_gui_instance(childInstance, childCanvas, sortingType);
+void render_gui_instance(Instance* instance) {
+	switch (instance->instanceType) {
+	case IT_GUI_OBJ:
+		PT_GUI_OBJ_render((PT_GUI_OBJ*)instance->subInstance);
+		break;
+	case IT_TEXTLABEL:
+		PT_TEXTLABEL_render((PT_TEXTLABEL*)instance->subInstance);
+		break;
+	case IT_IMAGELABEL:
+		PT_IMAGELABEL_render((PT_IMAGELABEL*)instance->subInstance);
+		break;
+	case IT_SCROLLFRAME:
+		PT_SCROLLFRAME_render((PT_SCROLLFRAME*)instance->subInstance);
+		break;
 	}
 }

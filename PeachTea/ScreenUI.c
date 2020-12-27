@@ -7,6 +7,8 @@
 #include "screenSize.h"
 #include "scrollFrame.h"
 #include "clamp.h"
+#include "glExtensions.h"
+#include "uiRenderTree.h"
 
 #include <stdio.h>
 
@@ -233,14 +235,90 @@ void PT_SCREEN_UI_destroy(void* obj) {
 	free(screenUI);
 }
 
+void update_instance_size_recur(Instance* instance, PT_canvas parentCanvas) {
+	PT_canvas childCanvas = parentCanvas;
+	if (IS_UI_INSTANCE(instance->instanceType)) {
+		childCanvas = update_gui_instance_size(instance, parentCanvas);
+	}
+
+	const char* defName = "instance";
+	char* name = instance->name;
+	int shouldFreeName = 0;
+	if (name == NULL) {
+		shouldFreeName = 1;
+		name = calloc(strlen(defName) + 1, sizeof(char));
+		memcpy(name, defName, (strlen(defName)) * sizeof(char));
+	}
+
+	if (shouldFreeName) {
+		free(name);
+	}
+
+	for (int i = 0; i < instance->numChildren; i++) {
+		Instance* child = *(instance->children + i);
+		update_instance_size_recur(child, childCanvas);
+	}
+}
+
+/* for debugging render tree:
+char* get_tab_str(int n) {
+	char* str = calloc(n + 1, sizeof(char));
+	
+	for (int i = 0; i < n; i++) {
+		*(str + i) = '\t';
+	}
+
+	return str;
+}
+
+char* print_rt(PT_UI_RENDER_TREE* tree, int depth) {
+	const char* defName = "instance";
+	char* name = tree->rootInstance->name;
+	int shouldFreeName = 0;
+	if (name == NULL) {
+		shouldFreeName = 1;
+		name = calloc(strlen(defName) + 1, sizeof(char));
+		memcpy(name, defName, (strlen(defName)) * sizeof(char));
+	}
+
+	int zindex = get_instance_zindex(tree->rootInstance);
+
+	if (depth == 0) {
+		printf("%s %i\n", name, zindex);
+	}
+	else {
+		char* tabStr = get_tab_str(depth);
+	
+		printf("%s%s %i\n", tabStr, name, zindex);
+
+		free(tabStr);
+	}
+
+	if (shouldFreeName) {
+		free(name);
+	}
+
+	for (int i = 0; i < tree->numBranches; i++) {
+		PT_UI_RENDER_TREE* branch = *(tree->branches + i);
+		print_rt(branch, depth + 1);
+	}
+}
+*/
+
 PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 	PT_canvas canvas = { 0 };
 
 	canvas.right = screenSize.x;
 	canvas.bottom = screenSize.y;
 
-	render_gui_children(ui->instance, canvas, ui->sortingType);
-	
+	update_instance_size_recur(ui->instance, canvas);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
+	PT_UI_RENDER_TREE_render(tree);
+	PT_UI_RENDER_TREE_destroy(tree);
 
 	return canvas;
 }

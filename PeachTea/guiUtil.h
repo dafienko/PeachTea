@@ -28,7 +28,9 @@ typedef enum {
 	PT_FONT_TIMES
 } PT_FONT;
 
-void render_gui_instance(Instance* instance, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType);
-void render_gui_children(Instance* instance, PT_canvas childCanvas, Z_SORTING_TYPE sortingType);
+
+PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas);
+
+void render_gui_instance(Instance* instance);
 
 #endif

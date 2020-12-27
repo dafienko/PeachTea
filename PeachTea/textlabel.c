@@ -101,10 +101,16 @@ void free_lines(char** lines, int numlines) {
 	free(lines);
 }
 
-PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants) {
+PT_canvas PT_TEXTLABEL_update_size(PT_TEXTLABEL* textlabel, PT_canvas parentCanvas) {
+	return PT_GUI_OBJ_update_size(textlabel->guiObj, parentCanvas);
+}
+
+PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel) {
 	textlabel->guiObj->visible = textlabel->visible;
+
+	PT_GUI_OBJ_render(textlabel->guiObj);
 	
-	PT_canvas childCanvas = PT_GUI_OBJ_render(textlabel->guiObj, parentCanvas, sortingType, 0);
+	PT_canvas childCanvas = textlabel->guiObj->lastCanvas;
 	vec2i childPos = canvas_pos(childCanvas);
 	vec2i childSize = canvas_size(childCanvas);
 
@@ -159,10 +165,6 @@ PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_canvas parentCanvas, Z
 		}
 
 		free_lines(lines, numLines);
-	}
-
-	if (renderDescendants) {
-		render_gui_children(textlabel->instance, childCanvas, sortingType);
 	}
 
 	return childCanvas;

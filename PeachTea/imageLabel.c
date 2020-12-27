@@ -32,9 +32,13 @@ PT_IMAGELABEL* PT_IMAGELABEL_clone(PT_IMAGELABEL* source, Instance* instanceClon
 	return clone;
 }
 
-PT_canvas PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants) {
+PT_canvas PT_IMAGELABEL_update_size(PT_IMAGELABEL* imgLabel, PT_canvas parentCanvas) {
+	return PT_GUI_OBJ_update_size(imgLabel->guiObj, parentCanvas);
+}
+
+void PT_IMAGELABEL_render(PT_IMAGELABEL* img) {
 	img->guiObj->visible = img->visible;
-	PT_canvas childCanvas = PT_GUI_OBJ_render(img->guiObj, parentCanvas, sortingType, 0);
+	PT_canvas childCanvas = img->guiObj->lastCanvas;
 
 	if (img->visible) {
 		glUseProgram(PTS_img);
@@ -99,12 +103,6 @@ PT_canvas PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_canvas parentCanvas, Z_SOR
 
 		glDrawArrays(GL_QUADS, 0, 4);
 	}
-
-	if (renderDescendants) {
-		render_gui_children(img->instance, childCanvas, sortingType);
-	}
-
-	return childCanvas;
 }
 
 void PT_IMAGELABEL_destroy(void* obj) {

@@ -29,7 +29,8 @@ typedef struct {
 Instance* PT_SCROLLFRAME_new();
 PT_SCROLLFRAME* PT_SCROLLFRAME_clone(PT_SCROLLFRAME* scrollFrame, Instance* instanceClone);
 
-PT_canvas PT_SCROLLFRAME_render(PT_SCROLLFRAME* scrollFrame, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants);
+PT_canvas PT_SCROLLFRAME_update_size(PT_SCROLLFRAME* scrollFrame, PT_canvas parentCanvas);
+void PT_SCROLLFRAME_render(PT_SCROLLFRAME* scrollFrame);
 
 void PT_SCROLLFRAME_destroy(void* scrollFrame);
 

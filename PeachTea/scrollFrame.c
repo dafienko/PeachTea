@@ -138,59 +138,57 @@ PT_SCROLLFRAME* PT_SCROLLFRAME_clone(PT_SCROLLFRAME* source, Instance* instanceC
 	return clone;
 }
 
+PT_canvas PT_SCROLLFRAME_update_size(PT_SCROLLFRAME* scrollFrame, PT_canvas parentCanvas) {
+	PT_canvas childCanvas = PT_GUI_OBJ_update_size(scrollFrame->guiObj, parentCanvas);
 
-PT_canvas PT_SCROLLFRAME_render(PT_SCROLLFRAME* scrollFrame, PT_canvas parentCanvas, Z_SORTING_TYPE sortingType, int renderDescendants) {
-	scrollFrame->guiObj->visible = scrollFrame->visible;
-	PT_canvas childCanvas = PT_GUI_OBJ_render(scrollFrame->guiObj, parentCanvas, sortingType, 0);
+	// update scrollbar sizes and positions based on canvas position
 	vec2i frameSize = canvas_size(childCanvas);
 
+	vec2i scrollCanvasSize = calculate_screen_dimension(scrollFrame->canvasSize, frameSize);
+
+	vec2i canvasMidPos = vector_add_2i(scrollFrame->canvasPosition, vector_div_2i(frameSize, 2));
+	vec2f canvasAlphaPos = (vec2f){ canvasMidPos.x / (float)scrollCanvasSize.x, canvasMidPos.y / (float)scrollCanvasSize.y };
+
+	// vertical scrollbar
+	if (frameSize.y < scrollCanvasSize.y) {
+		int scrollRange = frameSize.y - SCROLL_FRAME_SIZE;
+		int scrollBarHeight = max((frameSize.y / (float)scrollCanvasSize.y) * scrollRange, 20);
+		int barPos = scrollRange * canvasAlphaPos.y;
+
+		scrollFrame->vscrollBar->position = PT_REL_DIM_new(.5f, 0, 0, barPos);
+		scrollFrame->vscrollBar->size = PT_REL_DIM_new(1, 0, 0, scrollBarHeight);
+	}
+
+	// horizontal scrollbar
+	if (frameSize.x < scrollCanvasSize.x) {
+		int scrollRange = frameSize.x - SCROLL_FRAME_SIZE;
+		int scrollBarWidth = max((frameSize.x / (float)scrollCanvasSize.x) * scrollRange, 20);
+		int barPos = scrollRange * canvasAlphaPos.x;
+
+		scrollFrame->hscrollBar->position = PT_REL_DIM_new(0, barPos, .5f, 0);
+		scrollFrame->hscrollBar->size = PT_REL_DIM_new(0, scrollBarWidth, 1.0f, 0);
+	}
+
+	PT_canvas vtrackCanvas = PT_GUI_OBJ_update_size(scrollFrame->vscrollTrack, childCanvas);
+	PT_GUI_OBJ_update_size(scrollFrame->vscrollBar, vtrackCanvas);
+
+	PT_canvas htrackCanvas = PT_GUI_OBJ_update_size(scrollFrame->hscrollTrack, childCanvas);
+	PT_GUI_OBJ_update_size(scrollFrame->hscrollBar, htrackCanvas);
+
+
+	// offset canvas after scroll tracks and bars have been updated (don't want to scroll objects to move when canvas is moved)
 	childCanvas.ox = scrollFrame->canvasPosition.x;
 	childCanvas.oy = scrollFrame->canvasPosition.y;
 
-	if (renderDescendants) {
-		render_gui_children(scrollFrame->instance, childCanvas, sortingType);
-	}
-	
-	childCanvas.ox = 0;
-	childCanvas.oy = 0;
+	return childCanvas;
+}
+
+void PT_SCROLLFRAME_render(PT_SCROLLFRAME* scrollFrame) {
+	scrollFrame->guiObj->visible = scrollFrame->visible;
 
 	if (scrollFrame->visible) {
-		glDepthFunc(GL_ALWAYS);
-		vec2i scrollCanvasSize = calculate_screen_dimension(scrollFrame->canvasSize, frameSize);
-
-		vec2i canvasMidPos = vector_add_2i(scrollFrame->canvasPosition, vector_div_2i(frameSize, 2));
-		vec2f canvasAlphaPos = (vec2f){ canvasMidPos.x / (float)scrollCanvasSize.x, canvasMidPos.y / (float)scrollCanvasSize.y };
-
-		// vertical scrollbar
-		if (frameSize.y < scrollCanvasSize.y) {
-			int scrollRange = frameSize.y - SCROLL_FRAME_SIZE;
-			int scrollBarHeight = max((frameSize.y / (float)scrollCanvasSize.y) * scrollRange, 20);
-			int barPos = scrollRange * canvasAlphaPos.y;
-
-			scrollFrame->vscrollBar->position = PT_REL_DIM_new(.5f, 0, 0, barPos);
-			scrollFrame->vscrollBar->size = PT_REL_DIM_new(1, 0, 0, scrollBarHeight);
-
-			PT_canvas trackCanvas = PT_GUI_OBJ_render(scrollFrame->vscrollTrack, childCanvas, sortingType, 0);
-			PT_GUI_OBJ_render(scrollFrame->vscrollBar, trackCanvas, sortingType, 0);
-		}
-
-		// horizontal scrollbar
-		if (frameSize.x < scrollCanvasSize.x) {
-			int scrollRange = frameSize.x - SCROLL_FRAME_SIZE;
-			int scrollBarWidth = max((frameSize.x / (float)scrollCanvasSize.x) * scrollRange, 20);
-			int barPos = scrollRange * canvasAlphaPos.x;
-
-			scrollFrame->hscrollBar->position = PT_REL_DIM_new(0, barPos, .5f, 0);
-			scrollFrame->hscrollBar->size = PT_REL_DIM_new(0, scrollBarWidth, 1.0f, 0);
-
-			PT_canvas trackCanvas = PT_GUI_OBJ_render(scrollFrame->hscrollTrack, childCanvas, sortingType, 0);
-			PT_GUI_OBJ_render(scrollFrame->hscrollBar, trackCanvas, sortingType, 0);
-		}
-
-		glDepthFunc(GL_LESS);
+		PT_GUI_OBJ_render(scrollFrame->guiObj);
 	}
-
-	return childCanvas;
 }
 
 void PT_SCROLLFRAME_destroy(void* obj) {

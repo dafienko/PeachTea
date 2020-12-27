@@ -36,6 +36,4 @@ void main() {
 		
 		
 	}
-	
-	FragColor = vec4(c.xyz, imageColor.a * (1 - imageTransparency));
 }

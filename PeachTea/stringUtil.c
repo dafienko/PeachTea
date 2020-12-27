@@ -13,7 +13,7 @@ void* clone_memory(void* source, int numBytes) {
 }
 
 char* create_heap_str(const char* source) {
-	return (char*)clone_memory(source, strlen(source) + 1);
+	return (char*)clone_memory(source, (strlen(source) + 1) * sizeof(char));
 }
 
 wchar_t* create_heap_wstr(const wchar_t* source) {

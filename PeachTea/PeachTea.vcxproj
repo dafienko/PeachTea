@@ -191,6 +191,7 @@
     <ClInclude Include="stringUtil.h" />
     <ClInclude Include="textLabel.h" />
     <ClInclude Include="tweenUtil.h" />
+    <ClInclude Include="uiRenderTree.h" />
     <ClInclude Include="vectorMath.h" />
     <ClInclude Include="wglext.h" />
     <ClInclude Include="WinUtil.h" />
@@ -260,6 +261,7 @@
     <ClCompile Include="stringUtil.c" />
     <ClCompile Include="textlabel.c" />
     <ClCompile Include="textureHandler.c" />
+    <ClCompile Include="uiRenderTree.c" />
     <ClCompile Include="WinUtil.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

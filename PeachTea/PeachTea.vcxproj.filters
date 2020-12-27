@@ -34,12 +34,6 @@
     <Filter Include="Source Files\math">
       <UniqueIdentifier>{5fc86fa1-c489-403a-8e75-3dbd04979b95}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\PeachTeaUtil">
-      <UniqueIdentifier>{e99bbfb6-271b-4da4-a851-8fc5e24dd079}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\PeachTeaUtil">
-      <UniqueIdentifier>{55c153bd-9bfc-440c-9bf3-f74209c22d61}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\libpng">
       <UniqueIdentifier>{30ecb4fa-e49d-40e3-91a1-3a0ee8db16a6}</UniqueIdentifier>
     </Filter>
@@ -52,14 +46,32 @@
     <Filter Include="Source Files\util">
       <UniqueIdentifier>{53ee642b-70ff-4c5c-b780-52cafa773392}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\uiUtil">
+      <UniqueIdentifier>{a32f7b98-d80c-45a1-88fb-142c6e284126}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\uiObjects">
+      <UniqueIdentifier>{6b987a59-9bb1-41af-bc8b-eacc3db22c0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\uiUtil">
+      <UniqueIdentifier>{84bc0dba-fcf1-4c08-b980-7b00b9d42937}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\uiObjects">
+      <UniqueIdentifier>{673ebe85-3713-4595-943f-9a3085a430e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\glUtil">
+      <UniqueIdentifier>{56aa4cff-faea-4283-a086-463188c02696}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glUtil">
+      <UniqueIdentifier>{84ae2ada-483d-4076-a06a-e83e3883043e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\PeachTeaCore">
+      <UniqueIdentifier>{e99bbfb6-271b-4da4-a851-8fc5e24dd079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PeachTeaCore">
+      <UniqueIdentifier>{55c153bd-9bfc-440c-9bf3-f74209c22d61}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="PeachTea.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WinUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="errorUtil.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
@@ -75,12 +87,6 @@
     <ClInclude Include="wglext.h">
       <Filter>Header Files\glExtensions</Filter>
     </ClInclude>
-    <ClInclude Include="glText.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="shaders.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
     <ClInclude Include="fileUtil.h">
       <Filter>Header Files\assets</Filter>
     </ClInclude>
@@ -90,59 +96,14 @@
     <ClInclude Include="vectorMath.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="guiUtil.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="bool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Instance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="screenSize.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mouse.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="imageLoader.h">
       <Filter>Header Files\assets</Filter>
-    </ClInclude>
-    <ClInclude Include="textLabel.h">
-      <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="ScreenUI.h">
       <Filter>Header Files\ui</Filter>
     </ClInclude>
-    <ClInclude Include="guiObj.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="fontHandler.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="Colors.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="glUniformUtil.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
     <ClInclude Include="BindableEvent.h">
-      <Filter>Header Files\PeachTeaUtil</Filter>
-    </ClInclude>
-    <ClInclude Include="imageLabel.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="PeachTeaShaders.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="SizeConstraint.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="ScreenDimension.h">
-      <Filter>Header Files\ui</Filter>
+      <Filter>Header Files\PeachTeaCore</Filter>
     </ClInclude>
     <ClInclude Include="sort.h">
       <Filter>Header Files\util</Filter>
@@ -150,17 +111,77 @@
     <ClInclude Include="stringUtil.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="scrollFrame.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
     <ClInclude Include="tweenUtil.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="canvas.h">
-      <Filter>Header Files\ui</Filter>
-    </ClInclude>
     <ClInclude Include="clamp.h">
       <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="canvas.h">
+      <Filter>Header Files\uiUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="fontHandler.h">
+      <Filter>Header Files\uiUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="guiUtil.h">
+      <Filter>Header Files\uiUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="PeachTeaShaders.h">
+      <Filter>Header Files\uiUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenDimension.h">
+      <Filter>Header Files\uiUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="uiRenderTree.h">
+      <Filter>Header Files\uiUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="SizeConstraint.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="guiObj.h">
+      <Filter>Header Files\ui\uiObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="imageLabel.h">
+      <Filter>Header Files\ui\uiObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="scrollFrame.h">
+      <Filter>Header Files\ui\uiObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="textLabel.h">
+      <Filter>Header Files\ui\uiObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="shaders.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="glText.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="glUniformUtil.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="Colors.h">
+      <Filter>Header Files\PeachTeaCore</Filter>
+    </ClInclude>
+    <ClInclude Include="bool.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="Instance.h">
+      <Filter>Header Files\PeachTeaCore</Filter>
+    </ClInclude>
+    <ClInclude Include="mouse.h">
+      <Filter>Header Files\PeachTeaCore</Filter>
+    </ClInclude>
+    <ClInclude Include="PeachTea.h">
+      <Filter>Header Files\PeachTeaCore</Filter>
+    </ClInclude>
+    <ClInclude Include="WinUtil.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer.h">
+      <Filter>Header Files\PeachTeaCore</Filter>
+    </ClInclude>
+    <ClInclude Include="screenSize.h">
+      <Filter>Header Files\uiUtil</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -169,12 +190,6 @@
     </ClCompile>
     <ClCompile Include="glExtensions.c">
       <Filter>Source Files\glExtensions</Filter>
-    </ClCompile>
-    <ClCompile Include="glText.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="shaders.c">
-      <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="assets.c">
       <Filter>Source Files\assets</Filter>
@@ -188,59 +203,17 @@
     <ClCompile Include="matrixMath.c">
       <Filter>Source Files\math</Filter>
     </ClCompile>
-    <ClCompile Include="guiUtil.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="peachTea.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Instance.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="screenSize.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mouse.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="renderer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="imageLoader.c">
       <Filter>Source Files\assets</Filter>
     </ClCompile>
     <ClCompile Include="pngReader.c">
       <Filter>Source Files\assets</Filter>
     </ClCompile>
-    <ClCompile Include="textlabel.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
     <ClCompile Include="ScreenUI.c">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
-    <ClCompile Include="guiObj.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="fontHandler.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="ScreenDimension.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="Colors.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="glUniformUtil.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
     <ClCompile Include="BindableEvent.c">
-      <Filter>Source Files\PeachTeaUtil</Filter>
-    </ClCompile>
-    <ClCompile Include="textureHandler.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="imageLabel.c">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source Files\PeachTeaCore</Filter>
     </ClCompile>
     <ClCompile Include="lpng1637\adler32.c">
       <Filter>Source Files\libpng</Filter>
@@ -335,9 +308,6 @@
     <ClCompile Include="lpng1637\zutil.c">
       <Filter>Source Files\libpng</Filter>
     </ClCompile>
-    <ClCompile Include="PeachTeaShaders.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
     <ClCompile Include="SizeConstraint.c">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
@@ -350,14 +320,68 @@
     <ClCompile Include="stringUtil.c">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="scrollFrame.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="canvas.c">
-      <Filter>Source Files\ui</Filter>
-    </ClCompile>
     <ClCompile Include="clamp.c">
       <Filter>Source Files\math</Filter>
+    </ClCompile>
+    <ClCompile Include="canvas.c">
+      <Filter>Source Files\uiUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="fontHandler.c">
+      <Filter>Source Files\uiUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="guiObj.c">
+      <Filter>Source Files\ui\uiObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="guiUtil.c">
+      <Filter>Source Files\uiUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="imageLabel.c">
+      <Filter>Source Files\ui\uiObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="PeachTeaShaders.c">
+      <Filter>Source Files\uiUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenDimension.c">
+      <Filter>Source Files\uiUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="scrollFrame.c">
+      <Filter>Source Files\ui\uiObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="shaders.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="glUniformUtil.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="glText.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="textlabel.c">
+      <Filter>Source Files\ui\uiObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="textureHandler.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="uiRenderTree.c">
+      <Filter>Source Files\uiUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer.c">
+      <Filter>Source Files\PeachTeaCore</Filter>
+    </ClCompile>
+    <ClCompile Include="Instance.c">
+      <Filter>Source Files\PeachTeaCore</Filter>
+    </ClCompile>
+    <ClCompile Include="mouse.c">
+      <Filter>Source Files\PeachTeaCore</Filter>
+    </ClCompile>
+    <ClCompile Include="peachTea.c">
+      <Filter>Source Files\PeachTeaCore</Filter>
+    </ClCompile>
+    <ClCompile Include="screenSize.c">
+      <Filter>Source Files\uiUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="Colors.c">
+      <Filter>Source Files\PeachTeaCore</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
