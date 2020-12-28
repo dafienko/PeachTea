@@ -183,12 +183,12 @@ PT_canvas PT_SCROLLFRAME_update_size(PT_SCROLLFRAME* scrollFrame, PT_canvas pare
 
 	// horizontal scrollbar
 	if (frameSize.x < scrollCanvasSize.x) {
-		int scrollRange = canvas_size(vtrackCanvas).x;
+		int scrollRange = canvas_size(htrackCanvas).x;
 		int scrollBarWidth = max((frameSize.x / (float)scrollCanvasSize.x) * scrollRange, 20);
 		int barPos = scrollRange * canvasAlphaPos.x;
 
 		scrollFrame->hscrollBar->position = PT_REL_DIM_new(0, barPos, .5f, 0);
-		scrollFrame->hscrollBar->size = PT_REL_DIM_new(0, scrollBarWidth, 1.0f, 0);
+		scrollFrame->hscrollBar->size = PT_REL_DIM_new(0, scrollBarWidth, 1, 0);
 	}
 	else {
 		scrollFrame->hscrollTrack->visible = 0;

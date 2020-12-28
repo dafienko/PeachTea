@@ -33,7 +33,7 @@ void main() {
 			float alpha = 1 - clamp((dist - activeBackgroundRange.x) / activeRange, 0, 1);
 			c = mix(c, activeBackgroundColor, alpha);
 		}
-		
-		
 	}
+	
+	FragColor = vec4(c.xyz, imageColor.a * (1 - imageTransparency));
 }
