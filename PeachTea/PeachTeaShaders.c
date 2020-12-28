@@ -31,11 +31,13 @@ void PT_SHADERS_init() {
 
 	GLuint qvs = create_vertex_shader("shaders\\basicQuad.vs");
 
-	GLuint tfs = create_fragment_shader("shaders\\textQuad.fs");
+	GLuint tqfs = create_fragment_shader("shaders\\textQuad.fs");
 	GLuint ifs = create_fragment_shader("shaders\\imageQuad.fs");
 	GLuint uifs = create_fragment_shader("shaders\\UIframe.fs");
-	
-	GLuint quadShaders[] = { qvs, tfs };
+	GLuint bfs = create_fragment_shader("shaders\\blur.fs");
+	GLuint tfs = create_fragment_shader("shaders\\tex.fs");
+
+	GLuint quadShaders[] = { qvs, tqfs };
 	PTS_text = create_program(quadShaders, 2);
 
 	quadShaders[1] = ifs;
@@ -43,4 +45,10 @@ void PT_SHADERS_init() {
 
 	quadShaders[1] = uifs;
 	PTS_guiObj = create_program(quadShaders, 2);
+
+	quadShaders[1] = bfs;
+	PTS_blur = create_program(quadShaders, 2);
+
+	quadShaders[1] = tfs;
+	PTS_tex = create_program(quadShaders, 2);
 }

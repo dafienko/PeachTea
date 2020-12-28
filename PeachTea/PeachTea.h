@@ -8,6 +8,7 @@
 #include "WinUtil.h"
 #include "errorUtil.h"
 #include "stringUtil.h"
+#include "expandableArray.h"
 
 #include "glExtensions.h"
 #include "shaders.h"
@@ -23,7 +24,6 @@
 
 #include "Colors.h"
 #include "glText.h"
-#include "guiUtil.h"
 #include "ScreenDimension.h"
 
 #include "Instance.h"

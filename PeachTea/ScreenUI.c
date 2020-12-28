@@ -9,6 +9,7 @@
 #include "clamp.h"
 #include "glExtensions.h"
 #include "uiRenderTree.h"
+#include "frameTexture.h"
 
 #include <stdio.h>
 
@@ -187,7 +188,14 @@ void PT_SCREEN_UI_init() {
 Instance* PT_SCREEN_UI_new() {
 	PT_SCREEN_UI* ui = calloc(1, sizeof(PT_SCREEN_UI));
 	ui->enabled = 1;
-	
+	ui->frameTexture = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y);
+	ui->effectTexture1 = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y);
+	ui->effectTexture2 = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y);
+
+	PT_FRAMETEXTURE_bind_to_screensize(&ui->frameTexture);
+	PT_FRAMETEXTURE_bind_to_screensize(&ui->effectTexture1);
+	PT_FRAMETEXTURE_bind_to_screensize(&ui->effectTexture2);
+
 	Instance* instance = new_instance();
 	instance->instanceType = IT_SCREEN_UI;
 	instance->subInstance = (void*)ui;
@@ -204,6 +212,7 @@ PT_SCREEN_UI* PT_SCREEN_UI_clone(PT_SCREEN_UI* source, Instance* instanceClone) 
 	memcpy(clone, source, sizeof(PT_SCREEN_UI));
 
 	clone->instance = instanceClone;
+	clone->frameTexture = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y);
 
 	add_screen_ui(clone);
 
@@ -260,51 +269,6 @@ void update_instance_size_recur(Instance* instance, PT_canvas parentCanvas) {
 	}
 }
 
-/* for debugging render tree:
-char* get_tab_str(int n) {
-	char* str = calloc(n + 1, sizeof(char));
-	
-	for (int i = 0; i < n; i++) {
-		*(str + i) = '\t';
-	}
-
-	return str;
-}
-
-char* print_rt(PT_UI_RENDER_TREE* tree, int depth) {
-	const char* defName = "instance";
-	char* name = tree->rootInstance->name;
-	int shouldFreeName = 0;
-	if (name == NULL) {
-		shouldFreeName = 1;
-		name = calloc(strlen(defName) + 1, sizeof(char));
-		memcpy(name, defName, (strlen(defName)) * sizeof(char));
-	}
-
-	int zindex = get_instance_zindex(tree->rootInstance);
-
-	if (depth == 0) {
-		printf("%s %i\n", name, zindex);
-	}
-	else {
-		char* tabStr = get_tab_str(depth);
-	
-		printf("%s%s %i\n", tabStr, name, zindex);
-
-		free(tabStr);
-	}
-
-	if (shouldFreeName) {
-		free(name);
-	}
-
-	for (int i = 0; i < tree->numBranches; i++) {
-		PT_UI_RENDER_TREE* branch = *(tree->branches + i);
-		print_rt(branch, depth + 1);
-	}
-}
-*/
-
 PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 	PT_canvas canvas = { 0 };
 
@@ -317,7 +281,11 @@ PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
-	PT_UI_RENDER_TREE_render(tree);
+
+	PT_FRAMETEXTURE_bind(ui->frameTexture);
+	PT_UI_RENDER_TREE_render(tree, ui);
+	PT_FRAMETEXTURE_copy_to_framebuffer(ui->frameTexture, 0);	
+
 	PT_UI_RENDER_TREE_destroy(tree);
 
 	return canvas;

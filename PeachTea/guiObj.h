@@ -3,12 +3,12 @@
 
 #include "Instance.h"
 #include "vectorMath.h"
-#include "guiUtil.h"
 #include "ScreenDimension.h"
 #include "Colors.h"
 #include "BindableEvent.h"
 #include "SizeConstraint.h"
 #include "canvas.h"
+#include "ScreenUI.h"
 
 typedef struct {
 	Instance* instance;
@@ -22,6 +22,10 @@ typedef struct {
 	PT_ABS_DIM lastAbsoluteDim; // redundant, info can be extracted from lastCanvas
 	PT_SIZE_CONSTRAINT* sizeConstraint;
 	char zIndex;
+
+	int blurred;
+	float blurAlpha;
+	int blurRadius;
 
 	int reactive;
 	PT_COLOR activeBorderColor;
@@ -48,7 +52,7 @@ typedef struct {
 
 int get_instance_zindex(Instance* instance);
 
-void PT_GUI_OBJ_render(PT_GUI_OBJ* obj);
+void PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_SCREEN_UI* ui);
 PT_canvas PT_GUI_OBJ_update_size(PT_GUI_OBJ* obj, PT_canvas parentCanvas);
 
 void PT_GUI_OBJ_destroy(void* obj);

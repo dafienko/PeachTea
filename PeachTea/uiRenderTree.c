@@ -100,25 +100,25 @@ PT_UI_RENDER_TREE* PT_UI_RENDER_TREE_generate(PT_SCREEN_UI* screenUi) {
 	return tree;
 }
 
-void PT_UI_RENDER_TREE_render(PT_UI_RENDER_TREE* tree) {
+void PT_UI_RENDER_TREE_render(PT_UI_RENDER_TREE* tree, PT_SCREEN_UI* ui) {
 	if (IS_UI_INSTANCE(tree->rootInstance->instanceType)) {
 		Instance* instance = tree->rootInstance;
-		render_gui_instance(tree->rootInstance);
+		render_gui_instance(tree->rootInstance, ui);
 	}
 
 	for (int i = 0; i < tree->numBranches; i++) {
 		PT_UI_RENDER_TREE* branch = *(tree->branches + i);
-		PT_UI_RENDER_TREE_render(branch);
+		PT_UI_RENDER_TREE_render(branch, ui);
 	}
 
 	// draw scrollframe ui controls atop descendants
 	if (tree->rootInstance->instanceType == IT_SCROLLFRAME) {
 		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)tree->rootInstance->subInstance;
-		PT_GUI_OBJ_render(scrollFrame->vscrollTrack);
-		PT_GUI_OBJ_render(scrollFrame->vscrollBar);
+		PT_GUI_OBJ_render(scrollFrame->vscrollTrack, ui);
+		PT_GUI_OBJ_render(scrollFrame->vscrollBar, ui);
 
-		PT_GUI_OBJ_render(scrollFrame->hscrollTrack);
-		PT_GUI_OBJ_render(scrollFrame->hscrollBar);
+		PT_GUI_OBJ_render(scrollFrame->hscrollTrack, ui);
+		PT_GUI_OBJ_render(scrollFrame->hscrollBar, ui);
 	}
 }
 
@@ -130,6 +130,7 @@ void PT_UI_RENDER_TREE_destroy(PT_UI_RENDER_TREE* tree) {
 
 	if (tree->branches != NULL) {
 		free(tree->branches);
-		free(tree);
 	}
+
+	free(tree);
 }

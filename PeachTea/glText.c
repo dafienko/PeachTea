@@ -7,7 +7,7 @@
 #include "errorUtil.h"
 #include "glExtensions.h"
 #include "glText.h"
-#include "guiUtil.h"
+#include "ScreenUI.h"
 #include "shaders.h"
 #include "screenSize.h"
 #include "glUniformUtil.h"

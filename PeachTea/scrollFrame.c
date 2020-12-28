@@ -207,11 +207,11 @@ PT_canvas PT_SCROLLFRAME_update_size(PT_SCROLLFRAME* scrollFrame, PT_canvas pare
 	return childCanvas;
 }
 
-void PT_SCROLLFRAME_render(PT_SCROLLFRAME* scrollFrame) {
+void PT_SCROLLFRAME_render(PT_SCROLLFRAME* scrollFrame, PT_SCREEN_UI* ui) {
 	scrollFrame->guiObj->visible = scrollFrame->visible;
 
 	if (scrollFrame->visible) {
-		PT_GUI_OBJ_render(scrollFrame->guiObj);
+		PT_GUI_OBJ_render(scrollFrame->guiObj, ui);
 	}
 }
 

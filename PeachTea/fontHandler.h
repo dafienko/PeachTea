@@ -2,7 +2,7 @@
 #define PT_FONT_HANDLER
 
 #include "glText.h"
-#include "guiUtil.h"
+#include "ScreenUI.h"
 
 char_set* get_char_set(PT_FONT font, int fontSize);
 

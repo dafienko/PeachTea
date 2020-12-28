@@ -26,7 +26,7 @@ Instance* PT_IMAGELABEL_new();
 PT_IMAGELABEL* PT_IMAGELABEL_clone(PT_IMAGELABEL* source, Instance* instanceClone);
 
 PT_canvas PT_IMAGELABEL_update_size(PT_IMAGELABEL* imgLabel, PT_canvas parentCanvas);
-void PT_IMAGELABEL_render(PT_IMAGELABEL* img);
+void PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_SCREEN_UI* ui);
 
 void PT_IMAGELABEL_destroy(void* imgLabel);
 

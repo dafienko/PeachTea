@@ -26,7 +26,7 @@ Instance* PT_TEXTLABEL_new();
 void PT_TEXTLABEL_destroy(void* textlabel);
 PT_TEXTLABEL* PT_TEXTLABEL_clone(PT_TEXTLABEL* source, Instance* instanceClone);
 
-PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel);
+PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_SCREEN_UI* ui);
 PT_canvas PT_TEXTLABEL_update_size(PT_TEXTLABEL* textlabel, PT_canvas parentCanvas);
 
 #endif

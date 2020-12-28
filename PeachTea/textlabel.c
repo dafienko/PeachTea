@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "textLabel.h"
 #include "guiObj.h"
-#include "guiUtil.h"
+#include "ScreenUI.h"
 #include "glText.h"
 
 #include "fontHandler.h"
@@ -105,10 +105,10 @@ PT_canvas PT_TEXTLABEL_update_size(PT_TEXTLABEL* textlabel, PT_canvas parentCanv
 	return PT_GUI_OBJ_update_size(textlabel->guiObj, parentCanvas);
 }
 
-PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel) {
+PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_SCREEN_UI* ui) {
 	textlabel->guiObj->visible = textlabel->visible;
 
-	PT_GUI_OBJ_render(textlabel->guiObj);
+	PT_GUI_OBJ_render(textlabel->guiObj, ui);
 	
 	PT_canvas childCanvas = textlabel->guiObj->lastCanvas;
 	vec2i childPos = canvas_pos(childCanvas);

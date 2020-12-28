@@ -6,7 +6,7 @@ unsigned int* qVAO;
 unsigned int* qVBO;
 
 float DEFAULT_QUAD_CORNERS[8];
-unsigned int PTS_text, PTS_guiObj, PTS_img;
+unsigned int PTS_text, PTS_guiObj, PTS_img, PTS_blur, PTS_tex;
 
 void PT_SHADERS_init(); // init core shaders
 

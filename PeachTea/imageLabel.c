@@ -36,9 +36,11 @@ PT_canvas PT_IMAGELABEL_update_size(PT_IMAGELABEL* imgLabel, PT_canvas parentCan
 	return PT_GUI_OBJ_update_size(imgLabel->guiObj, parentCanvas);
 }
 
-void PT_IMAGELABEL_render(PT_IMAGELABEL* img) {
+void PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_SCREEN_UI* ui) {
 	img->guiObj->visible = img->visible;
 	PT_canvas childCanvas = img->guiObj->lastCanvas;
+
+	PT_GUI_OBJ_render(img->guiObj, ui);
 
 	if (img->visible) {
 		glUseProgram(PTS_img);
@@ -72,34 +74,15 @@ void PT_IMAGELABEL_render(PT_IMAGELABEL* img) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, img->image.texId);
 
-		glBindVertexArray(*qVAO);
-
-		glBindBuffer(GL_ARRAY_BUFFER, *qVBO);
-		int quadPositions[] = {
-			topLeft.x, topLeft.y,
-			topLeft.x, bottomRight.y,
-			bottomRight.x, bottomRight.y,
-			bottomRight.x, topLeft.y
-		};
-
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadPositions), quadPositions, GL_DYNAMIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, NULL);
-
-		glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
 
 		PT_IMAGE image = img->image;
 
-		float quadCorners[] = {
-			image.topLeft.x / (float)image.totalImageSize.x, image.topLeft.y / (float)image.totalImageSize.y, // top left
-			image.topLeft.x / (float)image.totalImageSize.x, image.bottomRight.y / (float)image.totalImageSize.y, // bottom left
-			image.bottomRight.x / (float)image.totalImageSize.x, image.bottomRight.y / (float)image.totalImageSize.y, // bottom right
-			image.bottomRight.x / (float)image.totalImageSize.x, image.topLeft.y / (float)image.totalImageSize.y, // top right
-		};
+		vec2f topLeftCorner = (vec2f){ image.topLeft.x / (float)image.totalImageSize.x, image.topLeft.y / (float)image.totalImageSize.y };
+		vec2f bottomRightCorner = (vec2f){ image.bottomRight.x / (float)image.totalImageSize.x, image.bottomRight.y / (float)image.totalImageSize.y };
 
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadCorners), quadCorners, GL_DYNAMIC_DRAW);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+		set_quad_positions(topLeft, bottomRight);
+		set_quad_corners(topLeftCorner, bottomRightCorner);
+
 
 		glDrawArrays(GL_QUADS, 0, 4);
 	}

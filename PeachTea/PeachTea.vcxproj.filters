@@ -123,9 +123,6 @@
     <ClInclude Include="fontHandler.h">
       <Filter>Header Files\uiUtil</Filter>
     </ClInclude>
-    <ClInclude Include="guiUtil.h">
-      <Filter>Header Files\uiUtil</Filter>
-    </ClInclude>
     <ClInclude Include="PeachTeaShaders.h">
       <Filter>Header Files\uiUtil</Filter>
     </ClInclude>
@@ -182,6 +179,12 @@
     </ClInclude>
     <ClInclude Include="screenSize.h">
       <Filter>Header Files\uiUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="frameTexture.h">
+      <Filter>Header Files\glUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="expandableArray.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -382,6 +385,12 @@
     </ClCompile>
     <ClCompile Include="Colors.c">
       <Filter>Source Files\PeachTeaCore</Filter>
+    </ClCompile>
+    <ClCompile Include="frameTexture.c">
+      <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="expandableArray.c">
+      <Filter>Source Files\util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

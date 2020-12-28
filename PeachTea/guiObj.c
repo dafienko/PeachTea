@@ -1,5 +1,5 @@
 #include "guiObj.h"
-#include "guiUtil.h"
+#include "ScreenUI.h"
 #include "glExtensions.h"
 #include "screenSize.h"
 #include "PeachTea.h"
@@ -9,6 +9,7 @@
 
 #include "glUniformUtil.h"
 
+#include <stdlib.h>
 #include <stdio.h>
 
 int get_instance_zindex(Instance* instance) {
@@ -128,13 +129,20 @@ PT_canvas PT_GUI_OBJ_update_size(PT_GUI_OBJ* obj, PT_canvas parentCanvas) {
 	return childCanvas;
 }
 
-void PT_GUI_OBJ_render(PT_GUI_OBJ* obj) {
-	glUseProgram(PTS_guiObj);
+void PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_SCREEN_UI* ui) {
 
 	vec2i frameSize = canvas_size(obj->lastCanvas);
 	vec2i framePos = canvas_pos(obj->lastCanvas);
 
 	if (obj->visible) {
+		if (obj->blurred) {
+			PT_FRAMETEXTURE_blur(ui->frameTexture.tex, ui->effectTexture1, (vec2f) { 0, 1 }, 20, 0);
+			PT_FRAMETEXTURE_blur(ui->effectTexture1.tex, ui->effectTexture2, (vec2f) { 1, 0 }, 20, 1);
+			PT_FRAMETEXTURE_bind(ui->frameTexture);
+		}
+
+		glUseProgram(PTS_guiObj);
+
 		vec2i borderSize = (vec2i){ obj->borderWidth * 2, obj->borderWidth * 2 };
 		vec2i totalFrameSize = vector_add_2i(frameSize, borderSize);
 		vec2i topLeft = (vec2i){ framePos.x - obj->borderWidth, framePos.y - obj->borderWidth };
@@ -147,6 +155,7 @@ void PT_GUI_OBJ_render(PT_GUI_OBJ* obj) {
 		GLuint fbcLoc, bcLoc, btLoc, cLoc, tLoc, ssLoc, mpLoc, mifLoc, dLoc;
 		GLuint rLoc, aborcLoc, abaccLoc, abordLoc, abacdLoc;
 		GLuint ucbLoc, clXLoc, clYLoc;
+		GLuint bLoc, brLoc, baLoc;
 
 		// general property uniforms
 		mpLoc = glGetUniformLocation(PTS_guiObj, "mousePos");
@@ -194,24 +203,26 @@ void PT_GUI_OBJ_render(PT_GUI_OBJ* obj) {
 		uniform_vec2f(abordLoc, obj->activeBorderRange);
 		uniform_vec2f(abacdLoc, obj->activeBackgroundRange);
 
-		glBindVertexArray(*qVAO);
+		// blur property uniforms
+		bLoc = glGetUniformLocation(PTS_guiObj, "blurred");
+		glUniform1i(bLoc, obj->blurred);
 
-		glBindBuffer(GL_ARRAY_BUFFER, *qVBO);
-		int quadPositions[] = {
-			topLeft.x, topLeft.y,
-			topLeft.x, bottomRight.y,
-			bottomRight.x, bottomRight.y,
-			bottomRight.x, topLeft.y
-		};
+		if (obj->blurred) {
+			brLoc = glGetUniformLocation(PTS_guiObj, "blurRadius");
+			baLoc = glGetUniformLocation(PTS_guiObj, "blurAlpha");
 
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadPositions), quadPositions, GL_DYNAMIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, NULL);
+			glUniform1i(brLoc, obj->blurRadius);
+			glUniform1f(baLoc, obj->blurAlpha);
 
-		glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
-		glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_QUAD_CORNERS), DEFAULT_QUAD_CORNERS, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+			glUseProgram(PTS_guiObj);
+
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, ui->effectTexture2.tex);
+		}
+
+		set_quad_positions(topLeft, bottomRight);
+		default_quad_corners();
 
 		glDrawArrays(GL_QUADS, 0, 4);
 	}

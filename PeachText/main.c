@@ -28,44 +28,59 @@ int main() {
 	PT_GUI_OBJ* backgroundObj = (PT_GUI_OBJ*)backgroundInstance->subInstance;
 	backgroundObj->backgroundColor = PT_COLOR_fromRGB(60, 60, 60);
 	backgroundObj->size = PT_REL_DIM_new(1.0f, 0, 1.0f, 0);
-
-	const int SIDE_PANEL_THICKNESS = 40;
-
-	Instance* scrollFrameInstance = PT_SCROLLFRAME_new();
-	scrollFrameInstance->name = create_heap_str("scrollframe");
-	PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)scrollFrameInstance->subInstance;
-	PT_GUI_OBJ* scrollFrameObj = scrollFrame->guiObj;
-	scrollFrameObj->size = PT_REL_DIM_new(1.0f, -SIDE_PANEL_THICKNESS, 1.0f, 0);
-	scrollFrameObj->position = PT_REL_DIM_new(0, SIDE_PANEL_THICKNESS, 0, 0);
-	scrollFrameObj->backgroundColor = PT_COLOR_fromRGB(30, 30, 30);
-	scrollFrameObj->clipDescendants = 1;
-	scrollFrame->canvasSize = PT_REL_DIM_new(0, 0, 2.3f, 0);
+	backgroundObj->zIndex = 0;
 
 	set_instance_parent(backgroundInstance, screenUI);
 
-	set_instance_parent(scrollFrameInstance, backgroundInstance);
+	Instance* greenFrame = PT_GUI_OBJ_new();
+	greenFrame->name = create_heap_str("green frame");
+	PT_GUI_OBJ* greenObj = (PT_GUI_OBJ*)greenFrame->subInstance;
+	greenObj->backgroundColor = PT_COLOR_fromRGB(0, 255, 0);
+	greenObj->position = PT_REL_DIM_new(0.1f, 0, 0.1f, 0);
+	greenObj->size = PT_REL_DIM_new(0.45f, 0, 0.45f, 0);
+	greenObj->zIndex = 1;
 
-	Instance* sidePanel = PT_GUI_OBJ_new();
-	sidePanel->name = create_heap_str("side panel");
-	PT_GUI_OBJ* sideObj = (PT_GUI_OBJ*)sidePanel->subInstance;
-	sideObj->backgroundColor = PT_COLOR_fromRGB(255, 0, 0);
-	sideObj->position = PT_REL_DIM_new(0, 0, 0, 0);
-	sideObj->size = PT_REL_DIM_new(0, SIDE_PANEL_THICKNESS, 1.0f, 0);
-	sideObj->clipDescendants = 1;
+	set_instance_parent(greenFrame, backgroundInstance);
+
+	Instance* blueFrame = PT_GUI_OBJ_new();
+	blueFrame->name = create_heap_str("blue frame");
+	PT_GUI_OBJ* blueObj = (PT_GUI_OBJ*)blueFrame->subInstance;
+	blueObj->backgroundColor = PT_COLOR_fromRGB(0, 0, 255);
+	blueObj->position = PT_REL_DIM_new(0.6f, 0, 0.1f, 0);
+	blueObj->size = PT_REL_DIM_new(0.3, 0, 0.83f, 0);
+	blueObj->zIndex = 2;
+	blueObj->blurred = 1;
+	blueObj->blurAlpha = .5f;
+	blueObj->blurRadius = 10;
+
+	set_instance_parent(blueFrame, backgroundInstance);
+
+	Instance* yellowFrame = PT_GUI_OBJ_new();
+	yellowFrame->name = create_heap_str("yellow frame");
+	PT_GUI_OBJ* yellowObj = (PT_GUI_OBJ*)yellowFrame->subInstance;
+	yellowObj->backgroundColor = PT_COLOR_fromRGB(255, 255, 0);
+	yellowObj->position = PT_REL_DIM_new(0.2f, 0, 0.62f, 0);
+	yellowObj->size = PT_REL_DIM_new(0.68f, 0, 0.22f, 0);
+	yellowObj->zIndex = 3;
+
+	set_instance_parent(yellowFrame, backgroundInstance);
+
+
+	Instance* redFrame = PT_GUI_OBJ_new();
+	redFrame->name = create_heap_str("red frame");
+	PT_GUI_OBJ* redObj = (PT_GUI_OBJ*)redFrame->subInstance;
+	redObj->backgroundColor = PT_COLOR_fromRGB(255, 0, 0);
+	redObj->position = PT_REL_DIM_new(0.63f, 0, 0.2f, 0);
+	redObj->size = PT_REL_DIM_new(0.45f, 0, 1.0f, 0);
+	//redObj->size = PT_REL_DIM_new(1.0f, 0, 1.0f, 0);
 	
-	set_instance_parent(sidePanel, backgroundInstance);
-	
-	Instance* testFrame = PT_GUI_OBJ_new();
-	testFrame->name = create_heap_str("green frame");
-	PT_GUI_OBJ* testObj = (PT_GUI_OBJ*)testFrame->subInstance;
-	testObj->anchorPosition = (vec2f){ .5f, .5f };
-	testObj->backgroundColor = PT_COLOR_fromRGB(0, 255, 0);
-	testObj->position = PT_REL_DIM_new(0.5f, 0, 0.5f, 0);
-	testObj->size = PT_REL_DIM_new(0, 200, 0, 100);
+	redObj->zIndex = 1;
+	redObj->blurred = 1;
+	redObj->blurAlpha = .5f;
+	redObj->blurRadius = 20;
 
-	set_instance_parent(testFrame, scrollFrameInstance);
-
-
+	set_instance_parent(redFrame, yellowFrame);
+	//set_instance_parent(redFrame, backgroundInstance);
 
 	PT_RUN(onRender);
 }

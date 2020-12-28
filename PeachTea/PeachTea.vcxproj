@@ -164,6 +164,7 @@
     <ClInclude Include="clamp.h" />
     <ClInclude Include="Colors.h" />
     <ClInclude Include="errorUtil.h" />
+    <ClInclude Include="expandableArray.h" />
     <ClInclude Include="fileUtil.h" />
     <ClInclude Include="fontHandler.h" />
     <ClInclude Include="glext.h" />
@@ -171,7 +172,6 @@
     <ClInclude Include="glText.h" />
     <ClInclude Include="glUniformUtil.h" />
     <ClInclude Include="guiObj.h" />
-    <ClInclude Include="guiUtil.h" />
     <ClInclude Include="imageLabel.h" />
     <ClInclude Include="imageLoader.h" />
     <ClInclude Include="Instance.h" />
@@ -190,6 +190,7 @@
     <ClInclude Include="sort.h" />
     <ClInclude Include="stringUtil.h" />
     <ClInclude Include="textLabel.h" />
+    <ClInclude Include="frameTexture.h" />
     <ClInclude Include="tweenUtil.h" />
     <ClInclude Include="uiRenderTree.h" />
     <ClInclude Include="vectorMath.h" />
@@ -203,6 +204,7 @@
     <ClCompile Include="clamp.c" />
     <ClCompile Include="Colors.c" />
     <ClCompile Include="errorUtil.c" />
+    <ClCompile Include="expandableArray.c" />
     <ClCompile Include="floatVectorMath.c" />
     <ClCompile Include="fontHandler.c" />
     <ClCompile Include="glExtensions.c" />
@@ -260,6 +262,7 @@
     <ClCompile Include="quicksort.c" />
     <ClCompile Include="stringUtil.c" />
     <ClCompile Include="textlabel.c" />
+    <ClCompile Include="frameTexture.c" />
     <ClCompile Include="textureHandler.c" />
     <ClCompile Include="uiRenderTree.c" />
     <ClCompile Include="WinUtil.c" />
