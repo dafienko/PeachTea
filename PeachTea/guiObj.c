@@ -130,7 +130,6 @@ PT_canvas PT_GUI_OBJ_update_size(PT_GUI_OBJ* obj, PT_canvas parentCanvas) {
 }
 
 void PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_SCREEN_UI* ui) {
-
 	vec2i frameSize = canvas_size(obj->lastCanvas);
 	vec2i framePos = canvas_pos(obj->lastCanvas);
 

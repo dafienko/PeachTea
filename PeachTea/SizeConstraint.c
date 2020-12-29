@@ -6,10 +6,7 @@
 
 #include <string.h>
 #include <stdio.h>
-
-#define min(a, b) a > b ? b : a
-#define max(a, b) a > b ? a : b
-#define clamp(x, f, c) min(c, max(x, f))
+#include "clamp.h"
 
 vec2i onResize_none(PT_GUI_OBJ* obj, PT_ABS_DIM parentDims) {
 	vec2i dims = calculate_screen_dimension(obj->size, parentDims.size);

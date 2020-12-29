@@ -44,63 +44,6 @@ void PT_TEXTLABEL_destroy(void* obj) {
 	free(textlabel);
 }
 
-void getStrLines(const char* str, char*** linesOut, int* numLinesOut) {
-	int len = strlen(str);
-	
-	int linesBufferSize = 1;
-	int numLines = 0;
-	char** lines = calloc(linesBufferSize, sizeof(char*));
-
-	int bufferSize = 10;
-	int numUsedBufferChars = 0;
-	char* lineBuffer = calloc(bufferSize, sizeof(char));
-
-	int lastLineIndex = -1;
-	for (int i = 0; i < len; i++) {
-		char c = *(str + i);
-
-		if (numUsedBufferChars + 2 > bufferSize) {
-			bufferSize *= 2; 
-			lineBuffer = realloc(lineBuffer, bufferSize * sizeof(char));
-		}
-
-		*(lineBuffer + numUsedBufferChars) = c;
-		numUsedBufferChars++;
-
-		if (c == '\n' || i == len - 1) {
-			if (numLines + 1 > linesBufferSize) {
-				linesBufferSize *= 2;
-				lines = realloc(lines, linesBufferSize * sizeof(char*));
-			}
-
-			lineBuffer = realloc(lineBuffer, (numUsedBufferChars + 1) * sizeof(char));
-			*(lineBuffer + numUsedBufferChars) = 0;
-			*(lines + numLines) = lineBuffer;
-			numLines++;
-
-			if (i != len - 1) {
-				bufferSize = 10;
-				numUsedBufferChars = 0;
-				lineBuffer = calloc(bufferSize, sizeof(char));
-			}
-		}
-	}
-
-	lines = realloc(lines, numLines * sizeof(char*));
-
-	*linesOut = lines;
-	*numLinesOut = numLines;
-}
-
-void free_lines(char** lines, int numlines) {
-	for (int i = 0; i < numlines; i++) {
-		char* line = *(lines + i);
-		free(line);
-	}
-
-	free(lines);
-}
-
 PT_canvas PT_TEXTLABEL_update_size(PT_TEXTLABEL* textlabel, PT_canvas parentCanvas) {
 	return PT_GUI_OBJ_update_size(textlabel->guiObj, parentCanvas);
 }

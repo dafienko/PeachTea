@@ -29,20 +29,67 @@ PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas) {
 	return canvas;
 }
 
+PT_canvas get_instance_canvas(Instance* instance) {
+	PT_canvas canvas = { 0 };
+	
+	if (instance) {
+		PT_GUI_OBJ* obj;
+
+		switch (instance->instanceType) {
+		case IT_SCREEN_UI:
+			canvas.bottom = screenSize.y;
+			canvas.right = screenSize.x;
+			break;
+		case IT_GUI_OBJ:
+			;
+			obj = (PT_GUI_OBJ*)instance->subInstance;
+			canvas = obj->lastCanvas;
+			break;
+		case IT_SCROLLFRAME:
+			;
+			PT_SCROLLFRAME* scrollframe = (PT_SCROLLFRAME*)instance->subInstance;
+			obj = scrollframe->guiObj;
+			canvas = obj->lastCanvas;
+			break;
+		case IT_IMAGELABEL:
+			;
+			PT_IMAGELABEL* imagelabel = (PT_IMAGELABEL*)instance->subInstance;
+			obj = imagelabel->guiObj;
+			canvas = obj->lastCanvas;
+			break;
+		case IT_TEXTLABEL:
+			;
+			PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)instance->subInstance;
+			obj = textlabel->guiObj;
+			canvas = obj->lastCanvas;
+			break;
+		default:
+			return get_instance_canvas(instance->parent); 
+		}
+	}
+
+	return canvas;
+}
+
 void render_gui_instance(Instance* instance, PT_SCREEN_UI* ui) {
-	switch (instance->instanceType) {
-	case IT_GUI_OBJ:
-		PT_GUI_OBJ_render((PT_GUI_OBJ*)instance->subInstance, ui);
-		break;
-	case IT_TEXTLABEL:
-		PT_TEXTLABEL_render((PT_TEXTLABEL*)instance->subInstance, ui);
-		break;
-	case IT_IMAGELABEL:
-		PT_IMAGELABEL_render((PT_IMAGELABEL*)instance->subInstance, ui);
-		break;
-	case IT_SCROLLFRAME:
-		PT_SCROLLFRAME_render((PT_SCROLLFRAME*)instance->subInstance, ui);
-		break;
+	PT_canvas parentCanvas = get_instance_canvas(instance->parent);
+	PT_canvas childCanvas = get_instance_canvas(instance);
+	
+	if (child_canvas_in_parent_canvas(childCanvas, parentCanvas)) {
+		switch (instance->instanceType) {
+		case IT_GUI_OBJ:
+			PT_GUI_OBJ_render((PT_GUI_OBJ*)instance->subInstance, ui);
+			break;
+		case IT_TEXTLABEL:
+			PT_TEXTLABEL_render((PT_TEXTLABEL*)instance->subInstance, ui);
+			break;
+		case IT_IMAGELABEL:
+			PT_IMAGELABEL_render((PT_IMAGELABEL*)instance->subInstance, ui);
+			break;
+		case IT_SCROLLFRAME:
+			PT_SCROLLFRAME_render((PT_SCROLLFRAME*)instance->subInstance, ui);
+			break;
+		}
 	}
 }
 

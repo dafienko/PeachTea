@@ -94,6 +94,12 @@ void PT_FRAMETEXTURE_unbind() {
 	glViewport(0, 0, screenSize.x, screenSize.y);
 }
 
+PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex) {
+	glBindFramebuffer(GL_FRAMEBUFFER, tex.fbo);
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
+}
 
 // texture effects
 void PT_FRAMETEXTURE_blur(GLuint src, PT_FRAMETEXTURE dest, vec2f dir, int blurRadius, int textureFlipped) {
