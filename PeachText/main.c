@@ -82,6 +82,7 @@ int main() {
 	blueObj->blurred = 1;
 	blueObj->blurAlpha = .5f;
 	blueObj->blurRadius = 10;
+	blueObj->clipDescendants = 1;
 
 	set_instance_parent(blueFrame, backgroundInstance);
 

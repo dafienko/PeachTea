@@ -3,6 +3,7 @@
 #include "guiObj.h"
 #include "ScreenUI.h"
 #include "glText.h"
+#include "PeachTeaShaders.h"
 
 #include "fontHandler.h"
 #include "stringUtil.h"
@@ -97,6 +98,16 @@ PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_SCREEN_UI* ui) {
 				break;
 			}
 
+			glUseProgram(PTS_text);
+
+			// clipping bounds
+			GLuint ucbLoc, clXLoc, clYLoc;
+			ucbLoc = glGetUniformLocation(PTS_text, "useClipBounds");
+			clXLoc = glGetUniformLocation(PTS_text, "clipX");
+			clYLoc = glGetUniformLocation(PTS_text, "clipY");
+			glUniform1i(ucbLoc, textlabel->guiObj->lastCanvas.clipDescendants);
+			glUniform2i(clXLoc, textlabel->guiObj->lastCanvas.cleft, textlabel->guiObj->lastCanvas.cright);
+			glUniform2i(clYLoc, textlabel->guiObj->lastCanvas.ctop, textlabel->guiObj->lastCanvas.cbottom);
 
 			render_text(
 				cs, 

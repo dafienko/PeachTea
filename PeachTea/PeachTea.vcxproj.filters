@@ -386,11 +386,11 @@
     <ClCompile Include="Colors.c">
       <Filter>Source Files\PeachTeaCore</Filter>
     </ClCompile>
-    <ClCompile Include="frameTexture.c">
-      <Filter>Source Files\glUtil</Filter>
-    </ClCompile>
     <ClCompile Include="expandableArray.c">
       <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="frameTexture.c">
+      <Filter>Source Files\glUtil</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

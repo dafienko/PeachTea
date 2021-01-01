@@ -154,6 +154,12 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 
 		break;
+	case WM_GETMINMAXINFO:
+		;
+		LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+		lpMMI->ptMinTrackSize.x = 300;
+		lpMMI->ptMinTrackSize.y = 300;
+		break;
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);

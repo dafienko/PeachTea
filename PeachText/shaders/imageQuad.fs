@@ -14,26 +14,42 @@ uniform int reactive;
 uniform vec3 activeBackgroundColor;
 uniform vec2 activeBackgroundRange;
 
+uniform int useClipBounds;
+uniform ivec2 clipX;
+uniform ivec2 clipY;
+
 layout (binding=0) uniform sampler2D tex;
 
 out vec4 FragColor;
 
 void main() {
-	vec4 imageColor = texture(tex, pos);
-	vec3 c = mix(imageColor.xyz, imageTint, imageTintAlpha).xyz;
+	int shouldBeRendered = 1;
 	
-	float dist = 0;
-	if (reactive != 0) {
-		dist = length(posPx - mousePos);
-	}
-	
-	if (reactive != 0) {
-		if (mouseInFrame > 0) {
-			float activeRange = activeBackgroundRange.y - activeBackgroundRange.x;
-			float alpha = 1 - clamp((dist - activeBackgroundRange.x) / activeRange, 0, 1);
-			c = mix(c, activeBackgroundColor, alpha);
+	if (useClipBounds == 1) {
+		if (!(posPx.x > clipX.x && posPx.x < clipX.y && posPx.y > clipY.x && posPx.y < clipY.y)) {
+			shouldBeRendered = 0;
 		}
 	}
 	
-	FragColor = vec4(c.xyz, imageColor.a * (1 - imageTransparency));
+	if (shouldBeRendered == 1) {
+		vec4 imageColor = texture(tex, pos);
+		vec3 c = mix(imageColor.xyz, imageTint, imageTintAlpha).xyz;
+		
+		float dist = 0;
+		if (reactive != 0) {
+			dist = length(posPx - mousePos);
+		}
+		
+		if (reactive != 0) {
+			if (mouseInFrame > 0) {
+				float activeRange = activeBackgroundRange.y - activeBackgroundRange.x;
+				float alpha = 1 - clamp((dist - activeBackgroundRange.x) / activeRange, 0, 1);
+				c = mix(c, activeBackgroundColor, alpha);
+			}
+		}
+		
+		FragColor = vec4(c.xyz, imageColor.a * (1 - imageTransparency));
+	} else {
+		FragColor = vec4(0, 0, 0, 0);
+	}
 }

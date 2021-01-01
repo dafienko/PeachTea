@@ -153,7 +153,6 @@ void PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_SCREEN_UI* ui) {
 
 		GLuint fbcLoc, bcLoc, btLoc, cLoc, tLoc, ssLoc, mpLoc, mifLoc, dLoc;
 		GLuint rLoc, aborcLoc, abaccLoc, abordLoc, abacdLoc;
-		GLuint ucbLoc, clXLoc, clYLoc;
 		GLuint bLoc, brLoc, baLoc;
 
 		// general property uniforms
@@ -166,15 +165,17 @@ void PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_SCREEN_UI* ui) {
 		ssLoc = glGetUniformLocation(PTS_guiObj, "screenSize");
 		mifLoc = glGetUniformLocation(PTS_guiObj, "mouseInFrame");
 		dLoc = glGetUniformLocation(PTS_guiObj, "depth");
-		ucbLoc = glGetUniformLocation(PTS_guiObj, "useClipBounds");
-		clXLoc = glGetUniformLocation(PTS_guiObj, "clipX");
-		clYLoc = glGetUniformLocation(PTS_guiObj, "clipY");
 
 		int mif = mousePos.x > topLeft.x && mousePos.x < bottomRight.x; // "Mouse In Frame"
 		mif = mif && mousePos.y > topLeft.y && mousePos.y < bottomRight.y;
 
 		float depth = 0.1f;
 
+		// clipping bounds
+		GLuint ucbLoc, clXLoc, clYLoc;
+		ucbLoc = glGetUniformLocation(PTS_guiObj, "useClipBounds");
+		clXLoc = glGetUniformLocation(PTS_guiObj, "clipX");
+		clYLoc = glGetUniformLocation(PTS_guiObj, "clipY");
 		glUniform1i(ucbLoc, obj->lastCanvas.clipDescendants);
 		glUniform2i(clXLoc, obj->lastCanvas.cleft, obj->lastCanvas.cright);
 		glUniform2i(clYLoc, obj->lastCanvas.ctop, obj->lastCanvas.cbottom);

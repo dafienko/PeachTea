@@ -45,6 +45,15 @@ void PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_SCREEN_UI* ui) {
 	if (img->visible) {
 		glUseProgram(PTS_img);
 
+		// clipping bounds
+		GLuint ucbLoc, clXLoc, clYLoc;
+		ucbLoc = glGetUniformLocation(PTS_img, "useClipBounds");
+		clXLoc = glGetUniformLocation(PTS_img, "clipX");
+		clYLoc = glGetUniformLocation(PTS_img, "clipY");
+		glUniform1i(ucbLoc, img->guiObj->lastCanvas.clipDescendants);
+		glUniform2i(clXLoc, img->guiObj->lastCanvas.cleft, img->guiObj->lastCanvas.cright);
+		glUniform2i(clYLoc, img->guiObj->lastCanvas.ctop, img->guiObj->lastCanvas.cbottom);
+
 		vec2i topLeft = canvas_pos(childCanvas);
 		vec2i bottomRight = vector_add_2i(topLeft, canvas_size(childCanvas));
 
