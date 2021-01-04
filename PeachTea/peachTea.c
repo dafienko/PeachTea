@@ -7,6 +7,7 @@
 #include <dwmapi.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/timeb.h>
 
 #pragma comment(lib, "dwmapi")
 
@@ -48,8 +49,17 @@ void PT_INIT(vec2i screenSize) {
 	update_main_window_pos();
 }
 
-void PT_UPDATE() {
+struct timeb lastTime;
+float PT_UPDATE() {
+	struct timeb t;
+
+	ftime(&t);
+
+	float diff = (t.time - lastTime.time) + (t.millitm - lastTime.millitm)/1000.0f;
 	
+	lastTime = t;
+
+	return diff;
 }
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -154,6 +164,17 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 
 		break;
+	case WM_CHAR:
+		;
+		char c = wParam == '\r' ? '\n' : wParam; // convert '\r' to '\n'
+		PT_BINDABLE_EVENT_fire(&eOnCharTyped, (void*)&c);
+		break;
+	case WM_KEYDOWN:
+		PT_BINDABLE_EVENT_fire(&eOnKeyPress, (void*)&wParam);
+		break;
+	case WM_KEYUP:
+		PT_BINDABLE_EVENT_fire(&eOnKeyRelease, (void*)&wParam);
+		break;
 	case WM_GETMINMAXINFO:
 		;
 		LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
@@ -165,11 +186,13 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-int mainProgramLoop(void(*renderCB)(void)) {
+int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
 	static MSG msg;
 	int exitCode = 0;
 
 	renderCallback = renderCB;
+
+	ftime(&lastTime);
 
 	while (1) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -182,7 +205,9 @@ int mainProgramLoop(void(*renderCB)(void)) {
 			}
 		}
 
-		PT_UPDATE();
+		float dt = PT_UPDATE();
+		updateCallback(dt);
+
 		render(renderCallback);
 	}
 
@@ -194,8 +219,8 @@ int mainProgramLoop(void(*renderCB)(void)) {
 	return exitCode;
 }
 
-int PT_RUN(void(*renderCallback)(void)) {
-	return mainProgramLoop(renderCallback);
+int PT_RUN(void(*updateCallback)(float), void(*renderCallback)(void)) {
+	return mainProgramLoop(updateCallback, renderCallback);
 }
 
 

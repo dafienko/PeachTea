@@ -9,6 +9,7 @@
 #include "errorUtil.h"
 #include "stringUtil.h"
 #include "expandableArray.h"
+#include "fontHandler.h"
 
 #include "glExtensions.h"
 #include "shaders.h"
@@ -20,6 +21,7 @@
 #include "imageLoader.h"
 
 #include "mouse.h"
+#include "keyboard.h"
 #include "screenSize.h"
 
 #include "Colors.h"
@@ -33,7 +35,7 @@
 #include "imageLabel.h"
 #include "scrollFrame.h"
 
-int PT_RUN(void(*renderCallback)(void));
+int PT_RUN(void(*updateCallback)(float), void(*renderCallback)(void));
 
 void PT_CREATE_MAIN_WND(vec2i size, const char* title);
 void PT_GET_MAIN_HWND();

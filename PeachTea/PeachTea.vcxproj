@@ -175,6 +175,7 @@
     <ClInclude Include="imageLabel.h" />
     <ClInclude Include="imageLoader.h" />
     <ClInclude Include="Instance.h" />
+    <ClInclude Include="keyboard.h" />
     <ClInclude Include="lightWindows.h" />
     <ClInclude Include="matrixMath.h" />
     <ClInclude Include="mouse.h" />
@@ -216,6 +217,7 @@
     <ClCompile Include="imageLoader.c" />
     <ClCompile Include="Instance.c" />
     <ClCompile Include="intVectorMath.c" />
+    <ClCompile Include="keyboard.c" />
     <ClCompile Include="lpng1637\adler32.c" />
     <ClCompile Include="lpng1637\compress.c" />
     <ClCompile Include="lpng1637\crc32.c" />

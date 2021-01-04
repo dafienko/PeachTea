@@ -186,6 +186,9 @@
     <ClInclude Include="expandableArray.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="keyboard.h">
+      <Filter>Header Files\PeachTeaCore</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinUtil.c">
@@ -391,6 +394,9 @@
     </ClCompile>
     <ClCompile Include="frameTexture.c">
       <Filter>Source Files\glUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="keyboard.c">
+      <Filter>Source Files\PeachTeaCore</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

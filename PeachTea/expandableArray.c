@@ -23,6 +23,10 @@ void* PT_EXPANDABLE_ARRAY_get(PT_EXPANDABLE_ARRAY* arr, int i) {
 	return arr->data + i * arr->elementSize;
 }
 
+void PT_EXPANDABLE_ARRAY_set(PT_EXPANDABLE_ARRAY* arr, int i, void* element) {
+	memcpy(arr->data + i * arr->elementSize, element, arr->elementSize);
+}
+
 void accomodate_size(PT_EXPANDABLE_ARRAY* arr, int size) {
 	int sizeChanged = 0;
 	while (size > arr->elementSpace) {

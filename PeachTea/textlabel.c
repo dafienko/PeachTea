@@ -58,7 +58,7 @@ PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_SCREEN_UI* ui) {
 	vec2i childPos = canvas_pos(childCanvas);
 	vec2i childSize = canvas_size(childCanvas);
 
-	if (textlabel->visible) {
+	if (textlabel->visible && textlabel->text != NULL) {
 		char_set* cs = get_char_set(textlabel->font, textlabel->textSize);
 
 		char** lines;

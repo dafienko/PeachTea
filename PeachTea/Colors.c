@@ -1,5 +1,6 @@
 #include "Colors.h"
 #include <math.h>
+#include "vectorMath.h"
 
 // "constructors"
 PT_COLOR PT_COLOR_fromRGB(int r, int g, int b) {
@@ -15,27 +16,31 @@ PT_COLOR PT_COLOR_fromRGB(int r, int g, int b) {
 // source: https://www.rapidtables.com/convert/color/hsv-to-rgb.html
 PT_COLOR PT_COLOR_fromHSV(float h, float s, float v) { //  0 <= h <= 360;   0 <= s & h <= 1;
 	float C = v * s;
-	float x = C * (1 - abs(fmod(h / 60.0f, 2.0f) - 1));
+	float x = C * (1.0f - fabsf( fmodf( h / 60.0f, 2.0f ) - 1.0f ) );
 	float m = v - C;
 
+	vec3f cprime = { 0 };
+
 	if (h < 60.0f) {
-		return PT_COLOR_new(C, x, 0);
+		cprime = (vec3f) { C, x, 0 };
 	} 
-	else if (h < 120) {
-		return PT_COLOR_new(x, C, 0);
+	else if (h < 120.0f) {
+		cprime = (vec3f){ x, C, 0 };
 	}
-	else if (h < 180) {
-		return PT_COLOR_new(0, C, x);
+	else if (h < 180.0f) {
+		cprime = (vec3f){ 0, C, x };
 	}
-	else if (h < 240) {
-		return PT_COLOR_new(0, x, C);
+	else if (h < 240.0f) {
+		cprime = (vec3f){ 0, x, C };
 	}
-	else if (h < 300) {
-		return PT_COLOR_new(x, 0, C);
+	else if (h < 300.0f) {
+		cprime = (vec3f){ x, 0, C };
 	}
 	else { // 300 <= h < 360
-		return PT_COLOR_new(C, 0, x);
+		cprime = (vec3f){ C, 0, x };
 	}
+
+	return PT_COLOR_new(cprime.x + m, cprime.y + m, cprime.z + m);
 }
 
 PT_COLOR PT_COLOR_new(float r, float g, float b) {

@@ -175,6 +175,9 @@ PT_canvas PT_SCROLLFRAME_update_size(PT_SCROLLFRAME* scrollFrame, PT_canvas pare
 
 		scrollFrame->vscrollBar->position = PT_REL_DIM_new(.5f, 0, 0, barPos);
 		scrollFrame->vscrollBar->size = PT_REL_DIM_new(1, 0, 0, scrollBarHeight);
+
+		scrollFrame->vscrollTrack->visible = 1;
+		scrollFrame->vscrollBar->visible = 1;
 	}
 	else {
 		scrollFrame->vscrollTrack->visible = 0;
@@ -189,6 +192,9 @@ PT_canvas PT_SCROLLFRAME_update_size(PT_SCROLLFRAME* scrollFrame, PT_canvas pare
 
 		scrollFrame->hscrollBar->position = PT_REL_DIM_new(0, barPos, .5f, 0);
 		scrollFrame->hscrollBar->size = PT_REL_DIM_new(0, scrollBarWidth, 1, 0);
+
+		scrollFrame->hscrollTrack->visible = 1;
+		scrollFrame->hscrollBar->visible = 1;
 	}
 	else {
 		scrollFrame->hscrollTrack->visible = 0;
