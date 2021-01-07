@@ -12,6 +12,7 @@ typedef struct {
 	Instance* cursorFrame;
 } TEXT_CURSOR;
 
-void insert_str_at_cursor(TEXT_CURSOR cursor, char* str, int len);
+void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len);
+void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end);
 
 #endif

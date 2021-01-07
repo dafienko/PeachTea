@@ -206,7 +206,9 @@ int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
 		}
 
 		float dt = PT_UPDATE();
-		updateCallback(dt);
+		if (updateCallback) {
+			updateCallback(dt);
+		}
 
 		render(renderCallback);
 	}

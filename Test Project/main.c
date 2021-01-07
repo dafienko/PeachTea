@@ -18,7 +18,7 @@ void onRender() {
 	PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
 	dims.sortingType = ZST_GLOBAL; 
 
-	render_gui_instance(screenUI, dims);
+	PT_SCREEN_UI_render((PT_SCREEN_UI*)screenUI->subInstance);
 }
 
 int main() {
@@ -58,7 +58,7 @@ int main() {
 
 	chessGame = create_chess_game(frameInstance);
 
-	int exitCode = PT_RUN(onRender);
+	int exitCode = PT_RUN(NULL, onRender);
 
 	return exitCode;
 }

@@ -9,6 +9,8 @@ typedef struct {
 } TEXT_LINE;
 
 typedef struct {
+	int textHeight, charWidth, linePadding;
+
 	PT_EXPANDABLE_ARRAY* textLines;
 	PT_EXPANDABLE_ARRAY* textCursors;
 
