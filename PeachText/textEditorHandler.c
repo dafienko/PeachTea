@@ -12,8 +12,13 @@ int keyDownBound = 0;
 void on_char_typed(void* args) {
 	char* c = (char*)args;
 	
-	for (int i = currentTextEditor->textCursors->numElements - 1; i >= 0; i--) {
-		TEXT_CURSOR* cursor = (TEXT_CURSOR*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textCursors, i);
+	TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
+	int cursorY = cursor->position.y;
+	int cloneLineY = cursorY + cursor->cloneLineOffset;
+
+	int startY = min(cursorY, cloneLineY);
+	int endY = max(cursorY, cloneLineY);
+	for (int y = endY; y >= startY; y--) {
 		vec2i cursorPos = cursor->position;
 
 		if (*c == '\b') {
@@ -34,20 +39,103 @@ void on_char_typed(void* args) {
 			}
 		}
 		else {
-			insert_str_at_cursor(cursor, c, 1);
+			vec2i p = (vec2i){ cursor->position.x, y };
+			insert_str_at_cursor(cursor, p, c, 1);
+		}
+	}	
+}
+
+vec2i get_dir(int key) {
+	vec2i dir = { 0 };
+
+	switch (key) {
+	case VK_UP:
+		dir.y = 1;
+		break;
+	case VK_DOWN:
+		dir.y = -1;
+		break;
+	case VK_LEFT:
+		dir.x = -1;
+		break;
+	case VK_RIGHT:
+		dir.x = 1;
+		break;
+	}
+
+	return dir;
+}
+
+/*
+u/d/l/r -> move cursor position; bring cursor selection position to cursor position
+
+alt + u/d -> drag selected lines up/down
+
+shift + u/d/l/r -> move cursor selection position
+
+alt + shift + u/d -> move cursor clone line offset
+*/
+void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
+	int thisY = cursor->position.y;
+	int lastY = max(thisY - 1, 0);
+	int nextY = min(thisY + 1, cursor->textArray->numElements - 1);
+
+	TEXT_LINE thisLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, thisY);
+	TEXT_LINE lastLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, lastY);
+	TEXT_LINE nextLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, nextY);
+
+	if (shiftDown && altDown) { // move cursor clone line offset
+		if (dir.y != 0) {
+
 		}
 	}
-	
+	else if (shiftDown) { // 
+
+	}
+	else if (altDown) { // drag selected lines up/down
+
+	}
+	else { // move cursor
+
+	}
 }
+
+
+void on_key_down(void* args) {
+	if (!currentTextEditor) {
+		return; // don't do anything if there is no current text editor
+	}
+
+	int key = *(int*)args;
+	vec2i dir = get_dir(key);
+
+	int shiftDown = is_key_down(VK_SHIFT);
+	if (dir.x != 0 && dir.y != 0) { // if the cursor actually moved
+		move_cursor(&currentTextEditor->textCursor, dir, shiftDown, 0);
+	}
+}
+
+void on_sys_key_down(void* args) {
+	if (!currentTextEditor) {
+		return; 
+	}
+
+	int key = *(int*)args;
+	vec2i dir = get_dir(key);
+
+	int shiftDown = is_key_down(VK_SHIFT);
+	if (dir.x != 0 && dir.y != 0) { // if the cursor actually moved
+		move_cursor(&currentTextEditor->textCursor, dir, shiftDown, 1);
+	}
+}
+
+
 
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe) {
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
 
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(50, sizeof(TEXT_LINE));
-
-	editor->textCursors = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
-	*editor->textCursors = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_CURSOR));
 
 	editor->numTextLabels = 20;
 	editor->textlabels = calloc(editor->numTextLabels, sizeof(Instance*));
@@ -90,6 +178,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe) {
 	Instance* cursorFrame = PT_GUI_OBJ_new();
 	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
 	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
+	cursorObj->zIndex = 5;
 
 	set_instance_parent(cursorFrame, scrollframe);
 
@@ -97,14 +186,15 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe) {
 	mainCursor.position = (vec2i){ 0, 0 };
 	mainCursor.textArray = editor->textLines;
 	mainCursor.cursorFrame = cursorFrame;
-
-	PT_EXPANDABLE_ARRAY_add(editor->textCursors, (void*)&mainCursor);
+	editor->textCursor = mainCursor;
 
 	currentTextEditor = editor;
 
 	if (!keyDownBound) {
 		keyDownBound = 1;
 		PT_BINDABLE_EVENT_bind(&eOnCharTyped, on_char_typed);
+		PT_BINDABLE_EVENT_bind(&eOnKeyPress, on_key_down);
+		PT_BINDABLE_EVENT_bind(&eOnSysKeyPress, on_sys_key_down);
 	}
 
 	return editor;
@@ -125,12 +215,16 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 		textlabel->text = str;
 	}
 
-	for (int i = 0; i < editor->textCursors->numElements; i++) {
-		TEXT_CURSOR* cursor = (TEXT_CURSOR*)PT_EXPANDABLE_ARRAY_get(editor->textCursors, i);
-		
-		vec2i cursorPos = cursor->position;
+	TEXT_CURSOR* textCursor = &editor->textCursor;
+	int cursorY = textCursor->position.y;
+	int cloneLineY = cursorY + textCursor->cloneLineOffset;
 
-		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursor->cursorFrame->subInstance;
+	int startY = min(cursorY, cloneLineY);
+	int endY = max(cursorY, cloneLineY);
+	for (int y = startY; y <= endY; y++) {
+		vec2i cursorPos = textCursor->position;
+
+		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
 		cursorObj->position = PT_REL_DIM_new(
 			0, 20 + cursorPos.x * editor->charWidth,
 			0, cursorPos.y * (editor->linePadding + editor->textHeight)

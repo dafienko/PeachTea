@@ -1,4 +1,5 @@
 #include "textCursor.h"
+#include "textEditorHandler.h"
 
 void format_insert_str(const char* str, int strLen, char*** linesOut, int** lengthsOut, int* numLinesOut) {
 	// count lines
@@ -105,16 +106,16 @@ void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 	cursor->position = start;
 }
 
-void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
-	TEXT_LINE* currentLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, cursor->position.y);
+void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
+	TEXT_LINE* currentLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, pos.y);
 
-	int beforeLen = cursor->position.x;
+	int beforeLen = pos.x;
 	char* beforeStr = calloc(beforeLen + 1, sizeof(char));
 	if (beforeLen > 0) {
 		memcpy(beforeStr, currentLine->str, beforeLen * sizeof(char)); // copy everything before cursor
 	}
 
-	int afterLen = (currentLine->numChars - cursor->position.x);
+	int afterLen = (currentLine->numChars - pos.x);
 	char* afterStr = calloc(afterLen + 1, sizeof(char));
 	if (afterLen > 0) {
 		memcpy(afterStr, currentLine->str + beforeLen, afterLen * sizeof(char)); // copy everything before cursor
@@ -156,19 +157,19 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 
 		if (i == 0) { // if this is the first line, free the existing line and replace array's index with new line
 			free(currentLine->str);
-			PT_EXPANDABLE_ARRAY_set(cursor->textArray, cursor->position.y, (void*)&insertLine);
+			PT_EXPANDABLE_ARRAY_set(cursor->textArray, pos.y, (void*)&insertLine);
 		}
 		else { // if this isn't the first line, insert this text line into the array
-			PT_EXPANDABLE_ARRAY_insert(cursor->textArray, cursor->position.y + i, (void*)&insertLine);
+			PT_EXPANDABLE_ARRAY_insert(cursor->textArray, pos.y + i, (void*)&insertLine);
 		}
 
 		free(line);
 	}
 
-	TEXT_LINE* lastLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, cursor->position.y + numLines - 1);
+	TEXT_LINE* lastLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, pos.y + numLines - 1);
 	cursor->position = (vec2i){
 		lastLine->numChars - afterLen,
-		cursor->position.y + numLines - 1
+		pos.y + numLines - 1
 	};
 
 	free(beforeStr);

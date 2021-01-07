@@ -175,6 +175,12 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 		PT_BINDABLE_EVENT_fire(&eOnKeyRelease, (void*)&wParam);
 		break;
+	case WM_SYSKEYDOWN:
+		PT_BINDABLE_EVENT_fire(&eOnSysKeyPress, (void*)&wParam);
+		break;
+	case WM_SYSKEYUP:
+		PT_BINDABLE_EVENT_fire(&eOnSysKeyRelease, (void*)&wParam);
+		break;
 	case WM_GETMINMAXINFO:
 		;
 		LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;

@@ -2,6 +2,7 @@
 #define TEXT_EDITOR_HANDLER_H
 
 #include "PeachTea.h"
+#include "textCursor.h"
 
 typedef struct {
 	char* str;
@@ -12,7 +13,7 @@ typedef struct {
 	int textHeight, charWidth, linePadding;
 
 	PT_EXPANDABLE_ARRAY* textLines;
-	PT_EXPANDABLE_ARRAY* textCursors;
+	TEXT_CURSOR textCursor;
 
 	Instance** textlabels;
 	int numTextLabels;
