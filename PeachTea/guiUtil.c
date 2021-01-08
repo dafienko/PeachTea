@@ -85,7 +85,7 @@ void render_gui_instance(Instance* instance, PT_SCREEN_UI* ui) {
 	PT_canvas parentCanvas = get_instance_canvas(instance->parent);
 	PT_canvas childCanvas = get_instance_canvas(instance);
 	
-	if (child_canvas_in_parent_canvas(childCanvas, parentCanvas)) {
+	if (child_canvas_in_parent_canvas(childCanvas, parentCanvas) || child_canvas_in_parent_canvas(parentCanvas, childCanvas)) {
 		switch (instance->instanceType) {
 		case IT_GUI_OBJ:
 			PT_GUI_OBJ_render((PT_GUI_OBJ*)instance->subInstance, ui);

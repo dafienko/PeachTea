@@ -9,9 +9,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-unsigned int shader;
-
-
 Instance* screenUI;
 TEXT_EDITOR* textEditor;
 
@@ -45,6 +42,7 @@ int main() {
 	set_instance_parent(backgroundInstance, screenUI);
 
 	const int SIDE_BAR_WIDTH = 40;
+	const int SIDE_BAR_PADDING = 3;
 
 	// main text scrollframe 
 	Instance* scrollFrameInstance = PT_SCROLLFRAME_new();
@@ -82,6 +80,26 @@ int main() {
 
 	set_instance_parent(sideBarInstance, backgroundInstance);
 
+	Instance* menuButtonInstance = PT_IMAGELABEL_new();
+	PT_IMAGELABEL* menuButton = (PT_IMAGELABEL*)menuButtonInstance->subInstance;
+	menuButton->image = PT_IMAGE_from_png("assets\\images\\menu.png");
+
+	PT_GUI_OBJ* menuButtonObj = menuButton->guiObj;
+	menuButtonObj->size = PT_REL_DIM_new(0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2, 0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2);
+	menuButtonObj->anchorPosition = (vec2f){ 1, 0 };
+	menuButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 0, SIDE_BAR_PADDING);
+	
+	menuButtonObj->backgroundColor = PT_COLOR_new(1, 1, 1);
+	menuButtonObj->backgroundTransparency = 1;
+
+	menuButtonObj->reactive = 1;
+	menuButtonObj->borderWidth = sideBarObj->borderWidth;
+	menuButtonObj->borderColor = sideBarObj->borderColor;
+	menuButtonObj->activeBorderRange = sideBarObj->activeBorderRange;
+	menuButtonObj->activeBorderColor = sideBarObj->activeBorderColor;
+
+	set_instance_parent(menuButtonInstance, sideBarInstance);
+
 
 	Instance* renderInstance = PT_RENDERFRAME_new();
 	PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)renderInstance->subInstance;
@@ -92,19 +110,6 @@ int main() {
 	renderObj->backgroundTransparency = 1;
 
 	set_instance_parent(renderInstance, scrollFrameInstance);
-
-
-
-
-
-	unsigned int vs = create_vertex_shader("shaders\\core\\basicQuad.vs");
-	unsigned int fs = create_fragment_shader("shaders\\test.fs");
-	unsigned int shaders[] = {
-		vs, fs
-	};
-
-	shader = create_program(shaders, 2);
-
 
 
 

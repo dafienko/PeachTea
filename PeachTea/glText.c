@@ -121,8 +121,7 @@ char_set create_char_set(const char* filename, const int textSize) {
 
 const int TAB_WIDTH = 60;
 
-int get_text_width(char_set* cs, const char* str) {
-	int len = strlen(str);
+int get_text_width(char_set* cs, const char* str, int len) {
 	int xOff = 0;
 
 	for (int i = 0; i < len; i++) {
@@ -141,9 +140,7 @@ int get_text_width(char_set* cs, const char* str) {
 	return xOff;
 }
 
-void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int baseline_x, int baseline_y) {
-	int len = strlen(str);
-
+void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

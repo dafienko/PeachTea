@@ -13,13 +13,11 @@ typedef struct {
 	int textHeight, charWidth, linePadding;
 	char_set* charSet;
 
+	PT_SCROLLFRAME* scrollFrame;
 	PT_RENDERFRAME* renderFrame;
 
 	PT_EXPANDABLE_ARRAY* textLines;
 	TEXT_CURSOR textCursor;
-
-	Instance** textlabels;
-	int numTextLabels;
 } TEXT_EDITOR;
 
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame);

@@ -3,6 +3,8 @@
 in vec2 pos;
 in vec2 posPx;
 
+uniform ivec2 charSize;
+
 uniform int useClipBounds;
 uniform ivec2 clipX;
 uniform ivec2 clipY;
@@ -24,7 +26,12 @@ void main() {
 	}
 	
 	if (shouldBeRendered == 1) {
-		FragColor = vec4(color, texture(tex, pos).r * (1 - transparency));
+		float texColor = texture(tex, pos).r;
+		
+		ivec2 samplePos = ivec2(charSize.x * pos.x, charSize.y * pos.y);
+		texColor = texelFetch(tex, samplePos, 0).r;
+		
+		FragColor = vec4(color, texColor * (1 - transparency));
 	} else {
 		FragColor = vec4(0, 0, 0, 0);
 	}

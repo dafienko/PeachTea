@@ -51,8 +51,13 @@ void obj_wheel_scroll(PT_GUI_OBJ* obj, int d) {
 		if (instance->instanceType == IT_SCROLLFRAME) {
 			PT_SCROLLFRAME* scrollframe = (PT_SCROLLFRAME*)instance->subInstance;
 			int topBound = 0;
-			vec2i canvasSize = calculate_screen_dimension(scrollframe->canvasSize, obj->lastAbsoluteDim.size);
-			int bottomBound = canvasSize.y - obj->lastAbsoluteDim.size.y;
+
+			PT_canvas lastCanvas = scrollframe->guiObj->lastCanvas;
+			vec2i size = canvas_size(lastCanvas);
+
+			vec2i scrollFrameCanvasSize = calculate_screen_dimension(scrollframe->canvasSize, size);
+			
+			int bottomBound = max(0, scrollFrameCanvasSize.y - size.y);
 
 			int currentY = scrollframe->canvasPosition.y;
 

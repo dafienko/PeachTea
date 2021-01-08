@@ -35,7 +35,7 @@ void accomodate_size(PT_EXPANDABLE_ARRAY* arr, int size) {
 	}
 
 	if (sizeChanged) {
-		arr->data = realloc(arr->data, arr->elementSpace);
+		arr->data = realloc(arr->data, arr->elementSpace * arr->elementSize);
 	}
 }
 

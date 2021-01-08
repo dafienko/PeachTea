@@ -160,7 +160,12 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
 			PT_EXPANDABLE_ARRAY_set(cursor->textArray, pos.y, (void*)&insertLine);
 		}
 		else { // if this isn't the first line, insert this text line into the array
-			PT_EXPANDABLE_ARRAY_insert(cursor->textArray, pos.y + i, (void*)&insertLine);
+			if (pos.y + i >= cursor->textArray->elementSpace) {
+				PT_EXPANDABLE_ARRAY_add(cursor->textArray, (void*)&insertLine);
+			}
+			else {
+				PT_EXPANDABLE_ARRAY_insert(cursor->textArray, pos.y + i, (void*)&insertLine);
+			}
 		}
 
 		free(line);

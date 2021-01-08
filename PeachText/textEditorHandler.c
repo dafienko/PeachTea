@@ -109,7 +109,7 @@ void on_render_frame_render(PT_RENDERFRAME* renderFrame) {
 	}
 }
 
-TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame) {
+TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* renderFrame) {
 	if (!keyDownBound) {
 		keyDownBound = 1;
 		PT_BINDABLE_EVENT_bind(&eOnCharTyped, on_char_typed);
@@ -120,14 +120,17 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame)
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
 
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
-	*editor->textLines = PT_EXPANDABLE_ARRAY_new(50, sizeof(TEXT_LINE));
+	*editor->textLines = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_LINE));
 
 	editor->textHeight = 20;
 	editor->linePadding = 10;
 	editor->charWidth = 11;
 
 	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
+
 	editor->renderFrame = renderFrame;
+	editor->scrollFrame = (PT_SCROLLFRAME*)scrollframeInstance->subInstance;
+
 
 	renderFrame->render = on_render_frame_render;
 
@@ -144,15 +147,13 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame)
 	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
 	cursorObj->zIndex = 5;
 
-	set_instance_parent(cursorFrame, scrollframe);
+	set_instance_parent(cursorFrame, scrollframeInstance);
 
 	TEXT_CURSOR mainCursor = { 0 };
 	mainCursor.position = (vec2i){ 0, 0 };
 	mainCursor.textArray = editor->textLines;
 	mainCursor.cursorFrame = cursorFrame;
 	editor->textCursor = mainCursor;
-
-
 
 	currentTextEditor = editor;
 
