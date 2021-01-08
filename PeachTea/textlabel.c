@@ -3,6 +3,7 @@
 #include "guiObj.h"
 #include "ScreenUI.h"
 #include "glText.h"
+#include "screenSize.h"
 #include "PeachTeaShaders.h"
 
 #include "fontHandler.h"
@@ -110,6 +111,7 @@ PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_SCREEN_UI* ui) {
 			glUniform2i(clYLoc, textlabel->guiObj->lastCanvas.ctop, textlabel->guiObj->lastCanvas.cbottom);
 
 			render_text(
+				screenSize,
 				cs, 
 				textlabel->textColor, 
 				textlabel->textTransparency,

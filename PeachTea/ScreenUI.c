@@ -10,6 +10,7 @@
 #include "glExtensions.h"
 #include "uiRenderTree.h"
 #include "frameTexture.h"
+#include "renderFrame.h"
 
 #include <stdio.h>
 
@@ -144,6 +145,11 @@ void enumerate_gui_objs(Instance* parent,  void(*callback)(PT_GUI_OBJ*)) {
 			callback(scrollFrame->hscrollBar);
 
 			break;
+		case IT_RENDERFRAME:
+			;
+			PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)parent->subInstance;
+			obj = renderFrame->guiObj;
+			break;
 		}
 
 		if (obj != NULL) {
@@ -188,9 +194,9 @@ void PT_SCREEN_UI_init() {
 Instance* PT_SCREEN_UI_new() {
 	PT_SCREEN_UI* ui = calloc(1, sizeof(PT_SCREEN_UI));
 	ui->enabled = 1;
-	ui->frameTexture = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y);
-	ui->effectTexture1 = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y);
-	ui->effectTexture2 = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y);
+	ui->frameTexture = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y, 0);
+	ui->effectTexture2 = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y, 0);
+	ui->effectTexture1 = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y, 0);
 
 	PT_FRAMETEXTURE_bind_to_screensize(&ui->frameTexture);
 	PT_FRAMETEXTURE_bind_to_screensize(&ui->effectTexture1);
@@ -212,7 +218,7 @@ PT_SCREEN_UI* PT_SCREEN_UI_clone(PT_SCREEN_UI* source, Instance* instanceClone) 
 	memcpy(clone, source, sizeof(PT_SCREEN_UI));
 
 	clone->instance = instanceClone;
-	clone->frameTexture = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y);
+	clone->frameTexture = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y, 0);
 
 	add_screen_ui(clone);
 

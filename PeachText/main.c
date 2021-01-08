@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+unsigned int shader;
+
+
 Instance* screenUI;
 TEXT_EDITOR* textEditor;
 
@@ -79,7 +82,35 @@ int main() {
 
 	set_instance_parent(sideBarInstance, backgroundInstance);
 
-	textEditor = TEXT_EDITOR_new(scrollFrameInstance);
+
+	Instance* renderInstance = PT_RENDERFRAME_new();
+	PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)renderInstance->subInstance;
+	PT_GUI_OBJ* renderObj = renderFrame->guiObj;
+	renderObj->position = PT_REL_DIM_new(0, 0, 0, 0);
+	renderObj->size = PT_REL_DIM_new(0, 500, 0, 500);
+	renderObj->zIndex = 5;
+	renderObj->backgroundTransparency = 1;
+
+	set_instance_parent(renderInstance, scrollFrameInstance);
+
+
+
+
+
+	unsigned int vs = create_vertex_shader("shaders\\core\\basicQuad.vs");
+	unsigned int fs = create_fragment_shader("shaders\\test.fs");
+	unsigned int shaders[] = {
+		vs, fs
+	};
+
+	shader = create_program(shaders, 2);
+
+
+
+
+
+
+	textEditor = TEXT_EDITOR_new(scrollFrameInstance, renderFrame);
 
 	PT_RUN(onUpdate, onRender);
 }

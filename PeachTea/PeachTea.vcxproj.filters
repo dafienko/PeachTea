@@ -123,9 +123,6 @@
     <ClInclude Include="fontHandler.h">
       <Filter>Header Files\uiUtil</Filter>
     </ClInclude>
-    <ClInclude Include="PeachTeaShaders.h">
-      <Filter>Header Files\uiUtil</Filter>
-    </ClInclude>
     <ClInclude Include="ScreenDimension.h">
       <Filter>Header Files\uiUtil</Filter>
     </ClInclude>
@@ -191,6 +188,9 @@
     </ClInclude>
     <ClInclude Include="renderFrame.h">
       <Filter>Header Files\ui\uiObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="PeachTeaShaders.h">
+      <Filter>Header Files\PeachTeaCore</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -347,9 +347,6 @@
     <ClCompile Include="imageLabel.c">
       <Filter>Source Files\ui\uiObjects</Filter>
     </ClCompile>
-    <ClCompile Include="PeachTeaShaders.c">
-      <Filter>Source Files\uiUtil</Filter>
-    </ClCompile>
     <ClCompile Include="ScreenDimension.c">
       <Filter>Source Files\uiUtil</Filter>
     </ClCompile>
@@ -403,6 +400,9 @@
     </ClCompile>
     <ClCompile Include="renderFrame.c">
       <Filter>Source Files\ui\uiObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="PeachTeaShaders.c">
+      <Filter>Source Files\PeachTeaCore</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

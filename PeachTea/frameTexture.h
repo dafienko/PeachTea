@@ -6,11 +6,12 @@
 
 typedef struct {
 	int width, height;
+	int multisampled;
 
 	GLuint fbo, tex, rbo;
 } PT_FRAMETEXTURE;
 
-PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h);
+PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled);
 PT_FRAMETEXTURE PT_FRAMETEXTURE_resize(PT_FRAMETEXTURE tex, int w, int h);
 void PT_FRAMETEXTURE_destroy(PT_FRAMETEXTURE tex);
 

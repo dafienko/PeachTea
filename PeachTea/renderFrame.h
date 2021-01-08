@@ -13,7 +13,7 @@ typedef struct {
 	int visible;
 
 	PT_FRAMETEXTURE renderTexture;
-	void (*render)(PT_RENDERFRAME*);
+	void (*render)(struct PT_RENDERFRAME*);
 } PT_RENDERFRAME;
 
 void PT_RENDERFRAME_render(PT_RENDERFRAME* obj, PT_SCREEN_UI* ui);

@@ -7,6 +7,7 @@
 #include "textLabel.h"
 #include "scrollFrame.h"
 #include "PeachTeaShaders.h"
+#include "renderFrame.h"
 
 PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas) {
 	PT_canvas canvas;
@@ -23,6 +24,9 @@ PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas) {
 		break;
 	case IT_SCROLLFRAME:
 		canvas = PT_SCROLLFRAME_update_size((PT_SCROLLFRAME*)instance->subInstance, parentCanvas);
+		break;
+	case IT_RENDERFRAME:
+		canvas = PT_RENDERFRAME_update_size((PT_RENDERFRAME*)instance->subInstance, parentCanvas);
 		break;
 	}
 
@@ -63,6 +67,12 @@ PT_canvas get_instance_canvas(Instance* instance) {
 			obj = textlabel->guiObj;
 			canvas = obj->lastCanvas;
 			break;
+		case IT_RENDERFRAME:
+			;
+			PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)instance->subInstance;
+			obj = renderFrame->guiObj;
+			canvas = obj->lastCanvas;
+			break;
 		default:
 			return get_instance_canvas(instance->parent); 
 		}
@@ -88,6 +98,9 @@ void render_gui_instance(Instance* instance, PT_SCREEN_UI* ui) {
 			break;
 		case IT_SCROLLFRAME:
 			PT_SCROLLFRAME_render((PT_SCROLLFRAME*)instance->subInstance, ui);
+			break;
+		case IT_RENDERFRAME:
+			PT_RENDERFRAME_render((PT_RENDERFRAME*)instance->subInstance, ui);
 			break;
 		}
 	}

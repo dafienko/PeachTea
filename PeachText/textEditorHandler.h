@@ -11,6 +11,9 @@ typedef struct {
 
 typedef struct {
 	int textHeight, charWidth, linePadding;
+	char_set* charSet;
+
+	PT_RENDERFRAME* renderFrame;
 
 	PT_EXPANDABLE_ARRAY* textLines;
 	TEXT_CURSOR textCursor;
@@ -19,7 +22,7 @@ typedef struct {
 	int numTextLabels;
 } TEXT_EDITOR;
 
-TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe);
+TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame);
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt);
 
 #endif

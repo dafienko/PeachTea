@@ -13,6 +13,7 @@
 
 #include "glExtensions.h"
 #include "shaders.h"
+#include "glUniformUtil.h"
 
 #include "matrixMath.h"
 #include "vectorMath.h"

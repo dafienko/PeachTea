@@ -29,13 +29,13 @@ void PT_SHADERS_init() {
 	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
 	glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_QUAD_CORNERS), DEFAULT_QUAD_CORNERS, GL_STATIC_DRAW);
 
-	GLuint qvs = create_vertex_shader("shaders\\basicQuad.vs");
+	GLuint qvs = create_vertex_shader("shaders\\core\\basicQuad.vs");
 
-	GLuint tqfs = create_fragment_shader("shaders\\textQuad.fs");
-	GLuint ifs = create_fragment_shader("shaders\\imageQuad.fs");
-	GLuint uifs = create_fragment_shader("shaders\\UIframe.fs");
-	GLuint bfs = create_fragment_shader("shaders\\blur.fs");
-	GLuint tfs = create_fragment_shader("shaders\\tex.fs");
+	GLuint tqfs = create_fragment_shader("shaders\\core\\textQuad.fs");
+	GLuint ifs = create_fragment_shader("shaders\\core\\imageQuad.fs");
+	GLuint uifs = create_fragment_shader("shaders\\core\\UIframe.fs");
+	GLuint bfs = create_fragment_shader("shaders\\core\\blur.fs");
+	GLuint tfs = create_fragment_shader("shaders\\core\\tex.fs");
 
 	GLuint quadShaders[] = { qvs, tqfs };
 	PTS_text = create_program(quadShaders, 2);

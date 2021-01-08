@@ -1,6 +1,7 @@
 #include "textEditorHandler.h"
 #include "PeachTea.h";
 #include "textCursor.h"
+#include "textEditorRenderer.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -102,41 +103,33 @@ char get_last_char(TEXT_LINE line) {
 	return *(line.str + (line.numChars - 1));
 }
 
-TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe) {
+void on_render_frame_render(PT_RENDERFRAME* renderFrame) {
+	if (currentTextEditor && currentTextEditor->renderFrame == renderFrame) {
+		render_text_editor(*currentTextEditor);
+	}
+}
+
+TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame) {
+	if (!keyDownBound) {
+		keyDownBound = 1;
+		PT_BINDABLE_EVENT_bind(&eOnCharTyped, on_char_typed);
+		PT_BINDABLE_EVENT_bind(&eOnKeyPress, on_key_down);
+		PT_BINDABLE_EVENT_bind(&eOnSysKeyPress, on_sys_key_down);
+	}
+	
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
 
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(50, sizeof(TEXT_LINE));
 
-	editor->numTextLabels = 20;
-	editor->textlabels = calloc(editor->numTextLabels, sizeof(Instance*));
-
 	editor->textHeight = 20;
 	editor->linePadding = 10;
 	editor->charWidth = 11;
 
-	for (int i = 0; i < editor->numTextLabels; i++) {
-		Instance* textlabelInstance = PT_TEXTLABEL_new();
+	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
+	editor->renderFrame = renderFrame;
 
-		PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)textlabelInstance->subInstance;
-		textlabel->font = PT_FONT_CONSOLA;
-		textlabel->textSize = editor->textHeight;
-		textlabel->textColor = PT_COLOR_new(1, 1, 1);
-		textlabel->horizontalAlignment = PT_H_ALIGNMENT_LEFT;
-		textlabel->verticalAlignment = PT_V_ALIGNMENT_CENTER;
-
-		PT_GUI_OBJ* textobj = textlabel->guiObj;
-		textobj->size = PT_REL_DIM_new(1.0f, -40, 0, editor->textHeight);
-		textobj->anchorPosition = (vec2f){ .5f, 0 };
-		textobj->position = PT_REL_DIM_new(.5f, 0, 0, (editor->textHeight + editor->linePadding) * i);
-		textobj->backgroundTransparency = 1;
-		//float h = ((float)rand() / (float)RAND_MAX) * 360.0f;
-		//textobj->backgroundColor = PT_COLOR_fromHSV(h, 1, 1);
-
-		set_instance_parent(textlabelInstance, scrollframe);
-
-		*(editor->textlabels + i) = textlabelInstance;
-	}
+	renderFrame->render = on_render_frame_render;
 
 	// init first text line
 	TEXT_LINE firstLine = { 0 };
@@ -159,33 +152,14 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe) {
 	mainCursor.cursorFrame = cursorFrame;
 	editor->textCursor = mainCursor;
 
-	currentTextEditor = editor;
 
-	if (!keyDownBound) {
-		keyDownBound = 1;
-		PT_BINDABLE_EVENT_bind(&eOnCharTyped, on_char_typed);
-		PT_BINDABLE_EVENT_bind(&eOnKeyPress, on_key_down);
-		PT_BINDABLE_EVENT_bind(&eOnSysKeyPress, on_sys_key_down);
-	}
+
+	currentTextEditor = editor;
 
 	return editor;
 }
 
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
-	for (int i = 0; i < editor->numTextLabels; i++) {
-		Instance* instance = *(editor->textlabels + i);
-		PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)instance->subInstance;
-
-		char* str = NULL;
-
-		if (i < editor->textLines->numElements) {
-			TEXT_LINE textline = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(editor->textLines, i);
-			str = textline.str;
-		}
-
-		textlabel->text = str;
-	}
-
 	TEXT_CURSOR* textCursor = &editor->textCursor;
 	int cursorY = textCursor->position.y;
 	int cloneLineY = cursorY + textCursor->cloneLineOffset;
@@ -197,7 +171,7 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 
 		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
 		cursorObj->position = PT_REL_DIM_new(
-			0, 20 + cursorPos.x * editor->charWidth,
+			0, (5 + cursorPos.x) * editor->charWidth,
 			0, cursorPos.y * (editor->linePadding + editor->textHeight)
 		); 
 	}

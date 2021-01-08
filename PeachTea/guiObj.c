@@ -37,6 +37,10 @@ int get_instance_zindex(Instance* instance) {
 		guiObj = textLabel->guiObj;
 
 		break;
+	case IT_RENDERFRAME:
+		;
+		PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)instance->subInstance;
+		guiObj = renderFrame->guiObj;
 	}
 
 	if (guiObj) {

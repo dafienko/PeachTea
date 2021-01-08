@@ -51,6 +51,9 @@ char_set* get_char_set(PT_FONT font, int fontSize) {
 	case PT_FONT_CONSOLA:
 		fontPath = "assets\\fonts\\consola.ttf";
 		break;
+	case PT_FONT_CONSOLA_B:
+		fontPath = "assets\\fonts\\consolab.ttf";
+		break;
 	case PT_FONT_TIMES:
 		fontPath = "assets\\fonts\\times.ttf";
 		break;

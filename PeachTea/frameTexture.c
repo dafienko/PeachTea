@@ -6,36 +6,48 @@
 #include "glUniformUtil.h"
 #include "expandableArray.h"
 
-PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h) {
+PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
 	PT_FRAMETEXTURE frameTexture = { 0 };
 
 	GLuint fbo;
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	
+
 	GLuint tex;
 	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP); 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-	
+	if (multisampled) {
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, tex);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, w, h, GL_TRUE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, tex, 0);
+		CHECK_GL_ERRORS;
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+	}
 
 	GLuint rbo;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h);
+	if (multisampled) {
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT, w, h);
+	}
+	else {
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h);
+	}
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		fatal_error(L"frametexture creation failed");
 	}
 
 
+	frameTexture.multisampled = multisampled;
 	frameTexture.width = w;
 	frameTexture.height = h;
 	frameTexture.fbo = fbo;
@@ -70,14 +82,14 @@ PT_FRAMETEXTURE_bind_to_screensize(PT_FRAMETEXTURE* frameTexture) {
 PT_FRAMETEXTURE PT_FRAMETEXTURE_resize(PT_FRAMETEXTURE frameTexture, int w, int h) {
 	PT_FRAMETEXTURE_destroy(frameTexture);
 
-	return PT_FRAMETEXTURE_new(w, h);
+	return PT_FRAMETEXTURE_new(w, h, frameTexture.multisampled);
 }
 
 void PT_FRAMETEXTURE_destroy(PT_FRAMETEXTURE tex) {
 	glBindFramebuffer(GL_FRAMEBUFFER, tex.fbo);
 
 	// unbind fbo renderbuffer and texture
-	glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT0, GL_RGBA, 0, 0);
+	glFramebufferTexture2D(GL_TEXTURE_2D_MULTISAMPLE, GL_COLOR_ATTACHMENT0, GL_RGBA, 0, 0);
 	glFramebufferRenderbuffer(GL_RENDERBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
 
 	glDeleteRenderbuffers(1, &tex.rbo);

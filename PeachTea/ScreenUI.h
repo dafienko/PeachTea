@@ -31,7 +31,10 @@ typedef enum {
 
 typedef enum {
 	PT_FONT_COMIC,
+
 	PT_FONT_CONSOLA,
+	PT_FONT_CONSOLA_B,
+
 	PT_FONT_TIMES
 } PT_FONT;
 
