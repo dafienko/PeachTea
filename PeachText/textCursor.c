@@ -178,3 +178,115 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
 	free(strLines);
 	free(lengths);
 }
+
+// z is new targetX;
+vec3i calculate_text_position(PT_EXPANDABLE_ARRAY* textArray, vec2i pos, vec2i dir, int targetX) {
+	vec3i newPos = (vec3i){ pos.x, pos.y, targetX };
+
+	int thisY = pos.y;
+	int lastY = max(thisY - 1, 0);
+	int nextY = min(thisY + 1, textArray->numElements - 1);
+
+	TEXT_LINE thisLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textArray, thisY);
+	TEXT_LINE lastLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textArray, lastY);
+	TEXT_LINE nextLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textArray, nextY);
+
+	if (dir.x == 1) { // move right
+		newPos.x++;
+
+		int numChars = thisLine.numChars;
+		if (get_last_char(thisLine) == '\n') {
+			numChars--;
+		}
+
+		if (newPos.x > numChars) {
+			if (nextY > thisY) {
+				newPos.x = 0;
+				newPos.y = nextY;
+			}
+			else {
+				newPos.x = numChars;
+			}
+		}
+
+		newPos.z = newPos.x;
+	}
+	else if (dir.x == -1) { // move left
+		newPos.x--;
+
+		if (newPos.x < 0) {
+			if (lastY < thisY) {
+				newPos.x = lastLine.numChars - 1; // move cursor to before the last line's '\n' character
+				newPos.y = lastY;
+			}
+			else {
+				newPos.x = 0;
+			}
+		}
+
+		newPos.z = newPos.x;
+	}
+	else if (dir.y == 1) { // move up
+		if (thisY > lastY) { // if pos isn't on the first line (the cursor has a line to move up to)
+			newPos.y = lastY;
+
+			int lastLineNumChars = lastLine.numChars;
+			if (get_last_char(lastLine) == '\n') {
+				lastLineNumChars--;
+			}
+			newPos.x = min(targetX, lastLineNumChars);
+		}
+		else { // pos is on the first line
+			newPos.x = 0; // move to the beginning of first line
+			newPos.z = newPos.x;
+		}
+	}
+	else if (dir.y == -1) { // move down
+		if (thisY < nextY) { // if pos isn't on the last line (the cursor has a line to move down to)
+			newPos.y = nextY;
+
+			int nextLineNumChars = nextLine.numChars;
+			if (get_last_char(nextLine) == '\n') {
+				nextLineNumChars--;
+			}
+			newPos.x = min(targetX, nextLineNumChars);
+		}
+		else { // pos is on the last line
+			newPos.x = nextLine.numChars; // move to end of last line line
+			newPos.z = newPos.x;
+		}
+	}
+
+	return newPos;
+}
+
+/*
+u/d/l/r -> move cursor position; bring cursor selection position to cursor position
+
+alt + u/d -> drag selected lines up/down
+
+shift + u/d/l/r -> move cursor selection position
+
+alt + shift + u/d -> move cursor clone line offset
+*/
+void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
+	vec3i newPosData = calculate_text_position(cursor->textArray, cursor->position, dir, cursor->targetX);
+
+	vec2i newPos = (vec2i){ newPosData.x, newPosData.y };
+
+	// there is at least one line clone and at least alt or shift is being held down
+	if (abs(cursor->cloneLineOffset) > 0 && (altDown || shiftDown)) {
+		int dy = newPos.y - cursor->position.y;
+		cursor->cloneLineOffset -= dy;
+	}
+	else if (altDown && !shiftDown) { // drag selection with cursor
+
+	}
+	else if (!(shiftDown || altDown)) {
+		cursor->selectTo = newPos;
+		cursor->cloneLineOffset = 0;
+	}
+
+	cursor->position = newPos;
+	cursor->targetX = newPosData.z;
+}

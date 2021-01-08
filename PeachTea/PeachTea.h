@@ -34,6 +34,7 @@
 #include "textLabel.h"
 #include "imageLabel.h"
 #include "scrollFrame.h"
+#include "renderFrame.h"
 
 int PT_RUN(void(*updateCallback)(float), void(*renderCallback)(void));
 

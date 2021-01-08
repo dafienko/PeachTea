@@ -7,43 +7,7 @@
 
 TEXT_EDITOR* currentTextEditor;
 PT_EXPANDABLE_ARRAY* lines;
-
 int keyDownBound = 0;
-void on_char_typed(void* args) {
-	char* c = (char*)args;
-	
-	TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
-	int cursorY = cursor->position.y;
-	int cloneLineY = cursorY + cursor->cloneLineOffset;
-
-	int startY = min(cursorY, cloneLineY);
-	int endY = max(cursorY, cloneLineY);
-	for (int y = endY; y >= startY; y--) {
-		vec2i cursorPos = cursor->position;
-
-		if (*c == '\b') {
-			vec2i end = cursorPos;
-			vec2i start = (vec2i){ 0 };
-
-			if (end.y > 0 || end.x > 0) { // can't delete anything if cursor is at 0, 0
-				start.x = end.x - 1;
-				start.y = end.y;
-
-				if (start.x < 0) { // -x line index, go up a line and put x at the end of that line
-					TEXT_LINE lastLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, end.y - 1);
-					start.y = end.y - 1;
-					start.x = lastLine.numChars - 1; // sub 1 so we're before the last line's '\n'
-				}
-
-				remove_str_at_cursor(cursor, start, end);
-			}
-		}
-		else {
-			vec2i p = (vec2i){ cursor->position.x, y };
-			insert_str_at_cursor(cursor, p, c, 1);
-		}
-	}	
-}
 
 vec2i get_dir(int key) {
 	vec2i dir = { 0 };
@@ -66,40 +30,45 @@ vec2i get_dir(int key) {
 	return dir;
 }
 
-/*
-u/d/l/r -> move cursor position; bring cursor selection position to cursor position
+void on_char_typed(void* args) {
+	char c = *(char*)args;
 
-alt + u/d -> drag selected lines up/down
+	if (c < 32 && c != '\b' && c != '\n' && c != '\t') { // if its not a text-releated visible character (like ESC)
+		return;
+	}
+	
+	TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
+	int cursorY = cursor->position.y;
+	int cloneLineY = cursorY + cursor->cloneLineOffset;
 
-shift + u/d/l/r -> move cursor selection position
+	int startY = min(cursorY, cloneLineY);
+	int endY = max(cursorY, cloneLineY);
+	for (int y = endY; y >= startY; y--) {
+		vec2i cursorPos = cursor->position;
 
-alt + shift + u/d -> move cursor clone line offset
-*/
-void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
-	int thisY = cursor->position.y;
-	int lastY = max(thisY - 1, 0);
-	int nextY = min(thisY + 1, cursor->textArray->numElements - 1);
+		if (c == '\b') {
+			vec2i end = cursorPos;
+			vec2i start = (vec2i){ 0 };
 
-	TEXT_LINE thisLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, thisY);
-	TEXT_LINE lastLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, lastY);
-	TEXT_LINE nextLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, nextY);
+			if (end.y > 0 || end.x > 0) { // can't delete anything if cursor is at 0, 0
+				start.x = end.x - 1;
+				start.y = end.y;
 
-	if (shiftDown && altDown) { // move cursor clone line offset
-		if (dir.y != 0) {
+				if (start.x < 0) { // -x line index, go up a line and put x at the end of that line
+					TEXT_LINE lastLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, end.y - 1);
+					start.y = end.y - 1;
+					start.x = lastLine.numChars - 1; // sub 1 so we're before the last line's '\n'
+				}
 
+				remove_str_at_cursor(cursor, start, end);
+			}
 		}
-	}
-	else if (shiftDown) { // 
-
-	}
-	else if (altDown) { // drag selected lines up/down
-
-	}
-	else { // move cursor
-
-	}
+		else {
+			vec2i p = (vec2i){ cursor->position.x, y };
+			insert_str_at_cursor(cursor, p, &c, 1);
+		}
+	}	
 }
-
 
 void on_key_down(void* args) {
 	if (!currentTextEditor) {
@@ -110,26 +79,28 @@ void on_key_down(void* args) {
 	vec2i dir = get_dir(key);
 
 	int shiftDown = is_key_down(VK_SHIFT);
-	if (dir.x != 0 && dir.y != 0) { // if the cursor actually moved
+	if (dir.x != 0 || dir.y != 0) { // if the cursor actually moved
 		move_cursor(&currentTextEditor->textCursor, dir, shiftDown, 0);
 	}
 }
 
 void on_sys_key_down(void* args) {
 	if (!currentTextEditor) {
-		return; 
+		return;
 	}
 
 	int key = *(int*)args;
 	vec2i dir = get_dir(key);
 
 	int shiftDown = is_key_down(VK_SHIFT);
-	if (dir.x != 0 && dir.y != 0) { // if the cursor actually moved
+	if (dir.x != 0 || dir.y != 0) { // if the cursor actually moved
 		move_cursor(&currentTextEditor->textCursor, dir, shiftDown, 1);
 	}
 }
 
-
+char get_last_char(TEXT_LINE line) {
+	return *(line.str + (line.numChars - 1));
+}
 
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe) {
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
