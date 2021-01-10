@@ -1,4 +1,5 @@
 #include "fontHandler.h"
+#include "expandableArray.h"
 
 typedef struct {
 	PT_FONT font;
@@ -7,29 +8,25 @@ typedef struct {
 	char_set* cs;
 } PT_LOADED_FONT;
 
-int initialized;
+int fontHandlerInitialized;
 
-PT_LOADED_FONT** loadedFonts;
-int numLoadedFonts;
-int loadedFontsSize;
+PT_EXPANDABLE_ARRAY loadedFonts;
 
 
 void init_fontHandler() {
-	loadedFontsSize = 10;
-	numLoadedFonts = 0;
-	loadedFonts = calloc(10, sizeof(PT_LOADED_FONT*));
+	loadedFonts = PT_EXPANDABLE_ARRAY_new(10, sizeof(PT_LOADED_FONT*));
 
-	initialized = 1;
+	fontHandlerInitialized = 1;
 }
 
 char_set* get_char_set(PT_FONT font, int fontSize) {
-	if (!initialized) {
+	if (!fontHandlerInitialized) {
 		init_fontHandler();
 	}
 
 	// check to see if the font is already loaded
-	for (int i = 0; i < numLoadedFonts; i++) {
-		PT_LOADED_FONT* f = *(loadedFonts + i);
+	for (int i = 0; i < loadedFonts.numElements; i++) {
+		PT_LOADED_FONT* f = *(PT_LOADED_FONT**)PT_EXPANDABLE_ARRAY_get(&loadedFonts, i);
 		if (f->font == font && f->fontSize == fontSize) {
 			return f->cs;
 		}
@@ -37,11 +34,6 @@ char_set* get_char_set(PT_FONT font, int fontSize) {
 
 	// if we haven't returned by now, the font doesn't exist and it needs to be created
 
-	// make sure there is room to store the created font
-	if (numLoadedFonts + 1 > loadedFontsSize) {
-		loadedFontsSize *= 2;
-		loadedFonts = realloc(loadedFonts, loadedFontsSize * sizeof(PT_LOADED_FONT*));
-	}
 
 	char* fontPath = "";
 	switch (font) {
@@ -71,9 +63,7 @@ char_set* get_char_set(PT_FONT font, int fontSize) {
 	loadedFont->font = font;
 
 	// cache new font
-	*(loadedFonts + numLoadedFonts) = loadedFont;
-
-	numLoadedFonts += 1;
+	PT_EXPANDABLE_ARRAY_add(&loadedFonts, &loadedFont);
 
 	return charset;
 }

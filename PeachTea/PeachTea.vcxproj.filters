@@ -192,6 +192,9 @@
     <ClInclude Include="PeachTeaShaders.h">
       <Filter>Header Files\PeachTeaCore</Filter>
     </ClInclude>
+    <ClInclude Include="peachTime.h">
+      <Filter>Header Files\PeachTeaCore</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinUtil.c">
@@ -403,6 +406,12 @@
     </ClCompile>
     <ClCompile Include="PeachTeaShaders.c">
       <Filter>Source Files\PeachTeaCore</Filter>
+    </ClCompile>
+    <ClCompile Include="peachTime.c">
+      <Filter>Source Files\PeachTeaCore</Filter>
+    </ClCompile>
+    <ClCompile Include="tweenUtil.c">
+      <Filter>Source Files\math</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

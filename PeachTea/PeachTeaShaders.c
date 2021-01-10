@@ -36,6 +36,7 @@ void PT_SHADERS_init() {
 	GLuint uifs = create_fragment_shader("shaders\\core\\UIframe.fs");
 	GLuint bfs = create_fragment_shader("shaders\\core\\blur.fs");
 	GLuint tfs = create_fragment_shader("shaders\\core\\tex.fs");
+	GLuint rfs = create_fragment_shader("shaders\\core\\rectangle.fs");
 
 	GLuint quadShaders[] = { qvs, tqfs };
 	PTS_text = create_program(quadShaders, 2);
@@ -51,4 +52,7 @@ void PT_SHADERS_init() {
 
 	quadShaders[1] = tfs;
 	PTS_tex = create_program(quadShaders, 2);
+
+	quadShaders[1] = rfs;
+	PTS_rect = create_program(quadShaders, 2);
 }

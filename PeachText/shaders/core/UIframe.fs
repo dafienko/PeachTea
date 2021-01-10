@@ -77,14 +77,14 @@ void main() {
 				}
 			}
 			
-			//calculate blur effect
-			if (blurred > 0) {
-				vec2 screenPosAlpha = posPx / screenSize;
-				vec3 blurColor = texture(blurTex, screenPosAlpha).xyz;
-				color = mix(color, blurColor, blurAlpha);
-			}
-			
 			transparency = 1 - backgroundTransparency;
+		}
+		
+		//calculate blur effect
+		if (blurred > 0) {
+			vec2 screenPosAlpha = posPx / screenSize;
+			vec3 blurColor = texture(blurTex, screenPosAlpha).xyz;
+			color = mix(color, blurColor, blurAlpha);
 		}
 		
 		FragColor = vec4(color, transparency);

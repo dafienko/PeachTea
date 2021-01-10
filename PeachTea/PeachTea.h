@@ -4,16 +4,19 @@
 #pragma comment(lib, "PeachTea")
 
 #include "sort.h"
+#include "tweenUtil.h"
 
 #include "WinUtil.h"
 #include "errorUtil.h"
 #include "stringUtil.h"
 #include "expandableArray.h"
 #include "fontHandler.h"
+#include "peachTime.h"
 
 #include "glExtensions.h"
 #include "shaders.h"
 #include "glUniformUtil.h"
+#include "PeachTeaShaders.h"
 
 #include "matrixMath.h"
 #include "vectorMath.h"
@@ -43,5 +46,13 @@ void PT_CREATE_MAIN_WND(vec2i size, const char* title);
 void PT_GET_MAIN_HWND();
 
 PT_COLOR accentColor;
+
+typedef enum {
+	PT_PASTE,
+	PT_COPY,
+	PT_CUT,
+} PT_COMMAND;
+
+PT_BINDABLE_EVENT eOnCommand;
 
 #endif

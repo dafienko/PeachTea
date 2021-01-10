@@ -12,12 +12,72 @@
 Instance* screenUI;
 TEXT_EDITOR* textEditor;
 
+PT_TEXTLABEL* statusBarLabel;
+char* status;
+
+const int STATUS_BAR_HEIGHT = 20;
+
+const int SIDE_BAR_WIDTH = 40;
+const int SIDE_BAR_PADDING = 3;
+
+const int SIDE_MENU_WIDTH = 220;
+
 void onRender() {
 	PT_SCREEN_UI_render(screenUI->subInstance);
 }
 
+int frames = 0;
+int fps = 0;
+int cpm = 0;
+int lastTimeIndex = 0;
+float fpsUpdateInterval = 5.0f;
 void onUpdate(float dt) {
+	float time = PT_TIME_get();
+	frames++;
+	int tIndex = floorf(time / fpsUpdateInterval);
+	if (tIndex > lastTimeIndex) {
+		fps = frames / fpsUpdateInterval;
+		frames = 0;
+
+		int* pCharsTyped = get_charsTyped();
+		cpm = (*pCharsTyped * 60) / fpsUpdateInterval;
+		*pCharsTyped = 0;
+
+		lastTimeIndex = tIndex;
+	}
+
 	TEXT_EDITOR_update(textEditor, dt);
+
+	vec2i cursorPosition = textEditor->textCursor.position;
+
+	const char* s = "      ";
+	memset(status, 0, 200 * sizeof(char));
+	sprintf(
+		status, 
+		"fps: %i%scpm: %i%sln: %i%scol: %i%s", 
+		fps, s,
+		cpm, s,
+		cursorPosition.y + 1, s,
+		cursorPosition.x + 1, s
+	);
+}
+
+int menuOpen = 0;
+PT_REL_DIM MENU_OPEN_POS;
+PT_REL_DIM MENU_CLOSE_POS;
+PT_TWEEN* openMenuTween;
+PT_TWEEN* closeMenuTween;
+void on_menu_activated(void* args) {
+	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
+
+	menuOpen = !menuOpen;
+
+	if (menuOpen) {
+		PT_TWEEN_play(openMenuTween);
+	}
+	else {
+		PT_TWEEN_play(closeMenuTween);
+	}
 }
 
 int main() {
@@ -27,6 +87,11 @@ int main() {
 	ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
+	status = calloc(200, sizeof(char));
+
+	MENU_OPEN_POS = PT_REL_DIM_new(0, SIDE_MENU_WIDTH, 0, 0);
+	MENU_CLOSE_POS = PT_REL_DIM_new(0, SIDE_BAR_WIDTH, 0, 0);
+
 	screenUI = PT_SCREEN_UI_new();
 	screenUI->name = create_heap_str("screenUI");
 	PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
@@ -35,51 +100,83 @@ int main() {
 	Instance* backgroundInstance = PT_GUI_OBJ_new();
 	backgroundInstance->name = create_heap_str("background");
 	PT_GUI_OBJ* backgroundObj = (PT_GUI_OBJ*)backgroundInstance->subInstance;
-	backgroundObj->backgroundColor = PT_COLOR_fromHSV(0, 0, .3f);
+	backgroundObj->backgroundColor = PT_COLOR_fromHSV(0, 0, 30.0f/255.0f);
 	backgroundObj->size = PT_REL_DIM_new(1.0f, 0, 1.0f, 0);
 	backgroundObj->zIndex = 0;
 
 	set_instance_parent(backgroundInstance, screenUI);
-
-	const int SIDE_BAR_WIDTH = 40;
-	const int SIDE_BAR_PADDING = 3;
 
 	// main text scrollframe 
 	Instance* scrollFrameInstance = PT_SCROLLFRAME_new();
 	scrollFrameInstance->name = create_heap_str("green frame");
 	PT_SCROLLFRAME* scrollframe = (PT_SCROLLFRAME*)scrollFrameInstance->subInstance;
 	scrollframe->canvasSize = PT_REL_DIM_new(0.0f, 0, 0.0f, 1000);
+	scrollframe->scrollBarThickness = 12;
+
+	PT_GUI_OBJ* vTrack = scrollframe->vscrollTrack;
+	vTrack->backgroundTransparency = 1;
+	PT_GUI_OBJ* hTrack = scrollframe->hscrollTrack;
+	hTrack->backgroundTransparency = vTrack->backgroundTransparency;
+
+	PT_GUI_OBJ* vBar = scrollframe->vscrollBar;
+	vBar->backgroundColor = PT_COLOR_fromHSV(0, 0, .85f);
+	vBar->backgroundTransparency = 0.1f;
+	vBar->blurred = 1;
+	vBar->blurAlpha = .87f;
+	vBar->blurRadius = 15;
+	vBar->reactive = 1;
+	vBar->activeBackgroundColor = PT_COLOR_fromHSV(0, 0, 1);
+	vBar->activeBackgroundRange = (vec2f){ 10, 80 };
+	PT_GUI_OBJ* hBar = scrollframe->hscrollBar;
+	hBar->backgroundColor = vBar->backgroundColor;
+	hBar->backgroundTransparency = vBar->backgroundTransparency;
+	hBar->blurred = vBar->blurred;
+	hBar->blurAlpha = vBar->blurAlpha;
+	hBar->blurRadius = vBar->blurRadius;
+	hBar->reactive = vBar->reactive;
+	hBar->activeBackgroundColor = vBar->activeBackgroundColor;
+	hBar->activeBackgroundRange = vBar->activeBackgroundRange;
+
 	PT_GUI_OBJ* scrollObj = scrollframe->guiObj;
 	scrollObj->backgroundColor = backgroundObj->backgroundColor;
 	scrollObj->position = PT_REL_DIM_new(0, SIDE_BAR_WIDTH, 0, 0);
-	scrollObj->size = PT_REL_DIM_new(1.0f, -SIDE_BAR_WIDTH, 1.0f, 0);
+	scrollObj->size = PT_REL_DIM_new(1.0f, -SIDE_BAR_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
 	scrollObj->zIndex = 1;
 	scrollObj->clipDescendants = 1;
 
 	set_instance_parent(scrollFrameInstance, backgroundInstance);
 
-	// menu side bar
+	// side menu 
 	Instance* sideBarInstance = PT_GUI_OBJ_new();
 	PT_GUI_OBJ* sideBarObj = (PT_GUI_OBJ*)sideBarInstance->subInstance;
-	sideBarObj->size = PT_REL_DIM_new(0, 220, 1.0f, 0);
-	sideBarObj->anchorPosition = (vec2f){1.0f - (float)SIDE_BAR_WIDTH/(float)sideBarObj->size.xOffset, 0.0f };
-	sideBarObj->position = PT_REL_DIM_new(0.0f, 0, 0, 0);
+	sideBarObj->size = PT_REL_DIM_new(0, SIDE_MENU_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
+	sideBarObj->anchorPosition = (vec2f){1.0f, 0.0f };
+	sideBarObj->position = MENU_CLOSE_POS;
 	
 	sideBarObj->blurred = 1;
-	sideBarObj->blurAlpha = 0.3f;
-	sideBarObj->blurRadius = 30;
+	sideBarObj->blurAlpha = 0.6f;
+	sideBarObj->blurRadius = 20;
 
 	sideBarObj->backgroundColor = PT_COLOR_fromRGB(0, 0, 0);
 
-	sideBarObj->borderWidth = 1;
+	sideBarObj->borderWidth = 0;
 	sideBarObj->reactive = 1;
 	sideBarObj->borderColor = PT_COLOR_fromRGB(40, 40, 40);
 	sideBarObj->activeBorderColor = PT_COLOR_fromRGB(100, 100, 100);
 	sideBarObj->activeBorderRange = (vec2f){ 10, 80 };
 	sideBarObj->zIndex = 10;
 
+	TWEEN_CONFIG config = { 0 };
+	config.direction = PT_OUT;
+	config.duration = .35f;
+	config.type = PT_CUBIC;
+
+	openMenuTween = PT_TWEEN_PT_REL_DIM_new(MENU_OPEN_POS, &sideBarObj->position, config);
+	closeMenuTween = PT_TWEEN_PT_REL_DIM_new(MENU_CLOSE_POS, &sideBarObj->position, config);
+
 	set_instance_parent(sideBarInstance, backgroundInstance);
 
+	// side menu collapse/expand button
 	Instance* menuButtonInstance = PT_IMAGELABEL_new();
 	PT_IMAGELABEL* menuButton = (PT_IMAGELABEL*)menuButtonInstance->subInstance;
 	menuButton->image = PT_IMAGE_from_png("assets\\images\\menu.png");
@@ -93,14 +190,48 @@ int main() {
 	menuButtonObj->backgroundTransparency = 1;
 
 	menuButtonObj->reactive = 1;
-	menuButtonObj->borderWidth = sideBarObj->borderWidth;
+	menuButtonObj->borderWidth = 1;
 	menuButtonObj->borderColor = sideBarObj->borderColor;
 	menuButtonObj->activeBorderRange = sideBarObj->activeBorderRange;
 	menuButtonObj->activeBorderColor = sideBarObj->activeBorderColor;
 
+	PT_BINDABLE_EVENT_bind(&menuButtonObj->e_obj_activated, on_menu_activated);
+
 	set_instance_parent(menuButtonInstance, sideBarInstance);
 
+	// bottom status bar
+	Instance* statusBarInstance = PT_TEXTLABEL_new();
 
+	statusBarLabel = (PT_TEXTLABEL*)statusBarInstance->subInstance;
+	statusBarLabel->horizontalAlignment = PT_H_ALIGNMENT_RIGHT;
+	statusBarLabel->verticalAlignment = PT_V_ALIGNMENT_CENTER;
+	statusBarLabel->textColor = PT_COLOR_fromHSV(0, 0, .85f);
+	statusBarLabel->font = PT_FONT_CONSOLA_B;
+	statusBarLabel->textSize = 15;
+	statusBarLabel->text = status;
+	statusBarLabel->textTransparency = .1f;
+
+	PT_GUI_OBJ* statusBarObj = statusBarLabel->guiObj;
+	statusBarObj->size = PT_REL_DIM_new(1, 0, 0, STATUS_BAR_HEIGHT);
+	statusBarObj->anchorPosition = (vec2f){ 1, 1 };
+	statusBarObj->position = PT_REL_DIM_new(1, 0, 1, 0);
+	statusBarObj->zIndex = 10;
+	statusBarObj->backgroundColor = sideBarObj->backgroundColor;
+	statusBarObj->backgroundTransparency = sideBarObj->backgroundTransparency;
+
+	statusBarObj->blurred = sideBarObj->blurred;
+	statusBarObj->blurAlpha = sideBarObj->blurAlpha;
+	statusBarObj->blurRadius = sideBarObj->blurRadius;
+
+	statusBarObj->reactive = 1;
+	statusBarObj->borderWidth = sideBarObj->borderWidth;
+	statusBarObj->borderColor = sideBarObj->borderColor;
+	statusBarObj->activeBorderRange = sideBarObj->activeBorderRange;
+	statusBarObj->activeBorderColor = sideBarObj->activeBorderColor;
+
+	set_instance_parent(statusBarInstance, backgroundInstance);
+
+	// text editor render instance
 	Instance* renderInstance = PT_RENDERFRAME_new();
 	PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)renderInstance->subInstance;
 	PT_GUI_OBJ* renderObj = renderFrame->guiObj;
@@ -111,11 +242,9 @@ int main() {
 
 	set_instance_parent(renderInstance, scrollFrameInstance);
 
-
-
-
-
 	textEditor = TEXT_EDITOR_new(scrollFrameInstance, renderFrame);
 
 	PT_RUN(onUpdate, onRender);
+
+	free(status);
 }

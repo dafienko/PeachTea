@@ -23,6 +23,51 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 	char* lineNumStr = calloc(20, sizeof(char));
 
+	// render selection bounding box
+	TEXT_CURSOR cursor = textEditor.textCursor;
+	if (!vector_equal_2i(cursor.position, cursor.selectTo)) { // if there is some selected text;
+		glUseProgram(PTS_rect);
+
+		uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), canvasSize);
+		uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), accentColor);
+		glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .1f);
+
+		if (cursor.cloneLineOffset == 0) {
+			vec2i start, end;
+			get_cursor_selection_bounds(cursor, &start, &end);
+
+			for (int y = start.y; y <= end.y; y++) {
+				TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
+				int xi = 0;
+				int xf = line.numChars;
+
+				if (y == start.y) {
+					xi = start.x;
+				}
+
+				if (y == end.y) {
+					xf = end.x;
+				}
+
+				int lineThickness = textEditor.textHeight + textEditor.linePadding;
+				int yPos = y * lineThickness;
+				int xiPos = textEditor.charWidth * 5 + get_text_width(textEditor.charSet, line.str, xi);
+				int xfPos = textEditor.charWidth * 5 + get_text_width(textEditor.charSet, line.str, xf);
+				if (xf == 1 && y < end.y) {
+					xfPos += textEditor.charWidth / 2; // signify selection of newline
+				}
+
+				default_quad_corners();
+				set_quad_positions(
+					(vec2i) {xiPos, yPos}, 
+					(vec2i) {xfPos, yPos + lineThickness}
+				);
+
+				glDrawArrays(GL_QUADS, 0, 4);
+			}
+		}
+	}
+	
 
 	for (int y = 0; y < textEditor.textLines->numElements; y++) {
 		xPos = xMargin;
@@ -34,7 +79,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		render_text(
 			canvasSize,
 			textEditor.charSet,
-			PT_COLOR_fromRGB(35, 149, 161),
+			accentColor, //PT_COLOR_fromRGB(43, 145, 175),
 			0,
 			lineNumStr,
 			strlen(lineNumStr),
@@ -52,7 +97,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			render_text(
 				canvasSize,
 				textEditor.charSet,
-				PT_COLOR_new(1, 1, 1),
+				PT_COLOR_fromHSV(0, 0, .8),
 				0,
 				line.str,
 				line.numChars,

@@ -122,22 +122,22 @@ char_set create_char_set(const char* filename, const int textSize) {
 const int TAB_WIDTH = 60;
 
 int get_text_width(char_set* cs, const char* str, int len) {
-	int xOff = 0;
+	int penX = 0;
 
 	for (int i = 0; i < len; i++) {
 		char c = *(str + i);
 
 		if (c == '\t') {
-			int nextTabIndex = (int)floor((double)xOff / (double)TAB_WIDTH) + 1;
-			xOff = nextTabIndex * TAB_WIDTH;
+			int nextTabIndex = (int)floor((double)penX / (double)TAB_WIDTH) + 1;
+			penX = nextTabIndex * TAB_WIDTH;
 		}
 		else if (c != '\n') {
 			int advance = *(cs->advance + c);
-			xOff += advance >> 6;
+			penX += advance >> 6;
 		}
 	}
 
-	return xOff;
+	return penX;
 }
 
 void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y) {
@@ -151,8 +151,8 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 		char c = *(str + i);
 
 		if (c == '\t') {
-			int nextTabIndex = (int)floor((double)penX / (double)TAB_WIDTH) + 1;
-			penX = nextTabIndex * TAB_WIDTH;
+			int nextTabIndex = (int)floor((double)(penX - baseline_x) / (double)TAB_WIDTH) + 1;
+			penX = baseline_x + nextTabIndex * TAB_WIDTH;
 		}
 		else if (c != '\n') {
 			vec2i bearing = *(cs->bearing + c);

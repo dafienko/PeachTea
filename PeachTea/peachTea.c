@@ -17,7 +17,7 @@ HWND hMainWnd = NULL;
 
 void(*renderCallback)(void);
 
-int mainProgramLoop(void(*renderCallback)(void));
+int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void));
 
 void update_main_window_pos() {
 	static RECT rect;
@@ -41,6 +41,8 @@ void PT_INIT(vec2i screenSize) {
 	GLEInit();
 	initFT();
 	PT_SHADERS_init();
+	PT_TIME_start();
+	PT_TWEEN_init();
 
 	renderer_init();
 
@@ -49,15 +51,15 @@ void PT_INIT(vec2i screenSize) {
 	update_main_window_pos();
 }
 
-struct timeb lastTime;
+float lastTime;
 float PT_UPDATE() {
-	struct timeb t;
+	float time = PT_TIME_get();
 
-	ftime(&t);
+	float diff = time - lastTime;
 
-	float diff = (t.time - lastTime.time) + (t.millitm - lastTime.millitm)/1000.0f;
-	
-	lastTime = t;
+	lastTime = time;
+
+	PT_TWEEN_update();
 
 	return diff;
 }
@@ -170,7 +172,22 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PT_BINDABLE_EVENT_fire(&eOnCharTyped, (void*)&c);
 		break;
 	case WM_KEYDOWN:
-		PT_BINDABLE_EVENT_fire(&eOnKeyPress, (void*)&wParam);
+		if (is_key_down(VK_LCONTROL)) {
+			switch(wParam) {
+			case 'V':
+				PT_BINDABLE_EVENT_fire(&eOnCommand, PT_PASTE);
+				break;
+			case 'X':
+				PT_BINDABLE_EVENT_fire(&eOnCommand, PT_CUT);
+				break;
+			case 'C':
+				PT_BINDABLE_EVENT_fire(&eOnCommand, PT_COPY);
+				break;
+			}
+		}
+		else {
+			PT_BINDABLE_EVENT_fire(&eOnKeyPress, (void*)&wParam);
+		}
 		break;
 	case WM_KEYUP:
 		PT_BINDABLE_EVENT_fire(&eOnKeyRelease, (void*)&wParam);

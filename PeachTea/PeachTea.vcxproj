@@ -181,6 +181,7 @@
     <ClInclude Include="mouse.h" />
     <ClInclude Include="PeachTea.h" />
     <ClInclude Include="PeachTeaShaders.h" />
+    <ClInclude Include="peachTime.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="renderFrame.h" />
     <ClInclude Include="ScreenDimension.h" />
@@ -254,6 +255,7 @@
     <ClCompile Include="mouse.c" />
     <ClCompile Include="peachTea.c" />
     <ClCompile Include="PeachTeaShaders.c" />
+    <ClCompile Include="peachTime.c" />
     <ClCompile Include="pngReader.c" />
     <ClCompile Include="renderer.c" />
     <ClCompile Include="renderFrame.c" />
@@ -268,6 +270,7 @@
     <ClCompile Include="textlabel.c" />
     <ClCompile Include="frameTexture.c" />
     <ClCompile Include="textureHandler.c" />
+    <ClCompile Include="tweenUtil.c" />
     <ClCompile Include="uiRenderTree.c" />
     <ClCompile Include="WinUtil.c" />
   </ItemGroup>

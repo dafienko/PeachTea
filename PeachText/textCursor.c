@@ -1,6 +1,14 @@
 #include "textCursor.h"
 #include "textEditorHandler.h"
 
+int is_text_pos_in_range(vec2i p, vec2i start, vec2i end) {
+	int afterRightBound = (p.x >= start.x && p.y == start.y) || p.y > start.y;
+	int beforeLeftBound = (p.x <= end.x && p.y == end.y) || p.y < end.y;
+	
+	return afterRightBound && beforeLeftBound;
+}
+
+// splits str by '\n' and adds each string and its length to linesOut and lengthsOut
 void format_insert_str(const char* str, int strLen, char*** linesOut, int** lengthsOut, int* numLinesOut) {
 	// count lines
 	int numLines = 1;
@@ -59,6 +67,9 @@ void format_insert_str(const char* str, int strLen, char*** linesOut, int** leng
 }
 
 void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
+	float time = PT_TIME_get();
+	cursor->lastTypedTime = time;
+
 	TEXT_LINE startLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, start.y);
 	TEXT_LINE endLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, end.y);
 	
@@ -104,9 +115,36 @@ void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 
 	// move cursor to start of deletion range
 	cursor->position = start;
+	cursor->selectTo = start;
+}
+
+void get_cursor_selection_bounds(TEXT_CURSOR cursor, vec2i* startOut, vec2i* endOut) {
+	vec2i cPos = cursor.position;
+	vec2i sPos = cursor.selectTo;
+	if (cPos.y < sPos.y || (cPos.y == sPos.y && cPos.x < sPos.x)) { // selecTo is after cursor position
+		*startOut = cPos;
+		*endOut = sPos;
+	}
+	else { // selectTo is before cursor position
+		*startOut = sPos;
+		*endOut = cPos;
+	}
+}
+
+void delete_cursor_selection(TEXT_CURSOR* cursor) {
+	if (!vector_equal_2i(cursor->selectTo, cursor->position)) { // if there is actually something selected...
+		vec2i start, end;
+		get_cursor_selection_bounds(*cursor, &start, &end);
+		remove_str_at_cursor(cursor, start, end);
+	}
 }
 
 void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
+	float time = PT_TIME_get();
+	cursor->lastTypedTime = time;
+
+	delete_cursor_selection(cursor);
+
 	TEXT_LINE* currentLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, pos.y);
 
 	int beforeLen = pos.x;
@@ -176,6 +214,7 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
 		lastLine->numChars - afterLen,
 		pos.y + numLines - 1
 	};
+	cursor->selectTo = cursor->position;
 
 	free(beforeStr);
 	free(afterStr);
@@ -275,6 +314,9 @@ shift + u/d/l/r -> move cursor selection position
 alt + shift + u/d -> move cursor clone line offset
 */
 void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
+	float time = PT_TIME_get();
+	cursor->lastTypedTime = time;
+	
 	vec3i newPosData = calculate_text_position(cursor->textArray, cursor->position, dir, cursor->targetX);
 
 	vec2i newPos = (vec2i){ newPosData.x, newPosData.y };

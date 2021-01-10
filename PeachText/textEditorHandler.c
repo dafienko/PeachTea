@@ -10,6 +10,12 @@ TEXT_EDITOR* currentTextEditor;
 PT_EXPANDABLE_ARRAY* lines;
 int keyDownBound = 0;
 
+int charsTyped = 0;
+
+int* get_charsTyped() {
+	return &charsTyped;
+}
+
 vec2i get_dir(int key) {
 	vec2i dir = { 0 };
 
@@ -48,23 +54,21 @@ void on_char_typed(void* args) {
 		vec2i cursorPos = cursor->position;
 
 		if (c == '\b') {
-			vec2i end = cursorPos;
-			vec2i start = (vec2i){ 0 };
+			if (vector_equal_2i(cursor->selectTo, cursor->position)) { // if nothing is selected
+				vec2i end = cursorPos;
+				vec3i startData = calculate_text_position(cursor->textArray, cursor->position, (vec2i) { -1, 0 }, cursor->targetX);
+				vec2i start = (vec2i){ startData.x, startData.y };
 
-			if (end.y > 0 || end.x > 0) { // can't delete anything if cursor is at 0, 0
-				start.x = end.x - 1;
-				start.y = end.y;
-
-				if (start.x < 0) { // -x line index, go up a line and put x at the end of that line
-					TEXT_LINE lastLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, end.y - 1);
-					start.y = end.y - 1;
-					start.x = lastLine.numChars - 1; // sub 1 so we're before the last line's '\n'
+				if (!vector_equal_2i(end, start)) { // if there is actually something to be deleted
+					remove_str_at_cursor(cursor, start, end);
 				}
-
-				remove_str_at_cursor(cursor, start, end);
+			}
+			else {
+				delete_cursor_selection(cursor);
 			}
 		}
-		else {
+		else if (c < 127) {
+			charsTyped++;
 			vec2i p = (vec2i){ cursor->position.x, y };
 			insert_str_at_cursor(cursor, p, &c, 1);
 		}
@@ -82,6 +86,38 @@ void on_key_down(void* args) {
 	int shiftDown = is_key_down(VK_SHIFT);
 	if (dir.x != 0 || dir.y != 0) { // if the cursor actually moved
 		move_cursor(&currentTextEditor->textCursor, dir, shiftDown, 0);
+	}
+	else if (key == VK_DELETE) {
+		TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
+
+		if (vector_equal_2i(cursor->position, cursor->selectTo)) { // nothing is selected
+			vec3i nextPosData = calculate_text_position(cursor->textArray, cursor->position, (vec2i) { 1, 0 }, cursor->targetX);
+			vec2i nextPos = (vec2i){ nextPosData.x, nextPosData.y };
+
+			if (!vector_equal_2i(cursor->position, nextPos)) {
+				remove_str_at_cursor(cursor, cursor->position, nextPos);
+			}
+		}
+		else {
+			delete_cursor_selection(cursor);
+		}
+	}
+	else if (key == VK_INSERT) {
+		currentTextEditor->textCursor.insert = !currentTextEditor->textCursor.insert;
+	}
+}
+
+void on_command(int command) {
+	switch (command) {
+	case WM_COPY:
+
+		break;
+	case WM_PASTE:
+
+		break;
+	case WM_CUT:
+
+		break;
 	}
 }
 
@@ -115,6 +151,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 		PT_BINDABLE_EVENT_bind(&eOnCharTyped, on_char_typed);
 		PT_BINDABLE_EVENT_bind(&eOnKeyPress, on_key_down);
 		PT_BINDABLE_EVENT_bind(&eOnSysKeyPress, on_sys_key_down);
+		PT_BINDABLE_EVENT_bind(&eOnCommand, on_command);
 	}
 	
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
@@ -124,9 +161,10 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 
 	editor->textHeight = 20;
 	editor->linePadding = 10;
-	editor->charWidth = 11;
 
 	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
+
+	editor->charWidth = get_text_width(editor->charSet, "M", 1);
 
 	editor->renderFrame = renderFrame;
 	editor->scrollFrame = (PT_SCROLLFRAME*)scrollframeInstance->subInstance;
@@ -145,7 +183,8 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	Instance* cursorFrame = PT_GUI_OBJ_new();
 	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
 	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
-	cursorObj->zIndex = 5;
+	cursorObj->zIndex = 6;
+	cursorObj->backgroundColor = PT_COLOR_fromHSV(0, 0, .9f);
 
 	set_instance_parent(cursorFrame, scrollframeInstance);
 
@@ -153,6 +192,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	mainCursor.position = (vec2i){ 0, 0 };
 	mainCursor.textArray = editor->textLines;
 	mainCursor.cursorFrame = cursorFrame;
+	mainCursor.flashInterval = .5f;
 	editor->textCursor = mainCursor;
 
 	currentTextEditor = editor;
@@ -160,7 +200,10 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	return editor;
 }
 
+
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
+	float t = PT_TIME_get();
+
 	TEXT_CURSOR* textCursor = &editor->textCursor;
 	int cursorY = textCursor->position.y;
 	int cloneLineY = cursorY + textCursor->cloneLineOffset;
@@ -170,10 +213,28 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 	for (int y = startY; y <= endY; y++) {
 		vec2i cursorPos = textCursor->position;
 
+		TEXT_LINE thisLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(editor->textLines, y);
+		int x = min(thisLine.numChars, editor->textCursor.position.x);
+
 		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
 		cursorObj->position = PT_REL_DIM_new(
-			0, (5 + cursorPos.x) * editor->charWidth,
+			0, 5 * editor->charWidth + get_text_width(editor->charSet, thisLine.str, x),
 			0, cursorPos.y * (editor->linePadding + editor->textHeight)
 		); 
+
+		if (textCursor->insert) {
+			cursorObj->size = PT_REL_DIM_new(0, editor->charWidth, 0, editor->textHeight + editor->linePadding);
+		}
+		else {
+			cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
+		}
+
+		float lastTypedTime = textCursor->lastTypedTime;
+		int flashIndex = floorf((t - lastTypedTime) / textCursor->flashInterval);
+		if (flashIndex != textCursor->lastFlashIndex) {
+			textCursor->lastFlashIndex = flashIndex;
+
+			cursorObj->visible = flashIndex % 2 == 0;
+		}
 	}
 }
