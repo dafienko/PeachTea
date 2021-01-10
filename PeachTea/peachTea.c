@@ -100,7 +100,7 @@ void PT_CREATE_MAIN_WND(vec2i size, const char* title) {
 	PT_INIT(screenSize);
 }
 
-void PT_GET_MAIN_HWND() {
+HWND PT_GET_MAIN_HWND() {
 	return hMainWnd;
 }
 
@@ -172,17 +172,26 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PT_BINDABLE_EVENT_fire(&eOnCharTyped, (void*)&c);
 		break;
 	case WM_KEYDOWN:
+		printf("%i\n", is_key_down(VK_LCONTROL));
 		if (is_key_down(VK_LCONTROL)) {
+			int command = -1;
 			switch(wParam) {
 			case 'V':
-				PT_BINDABLE_EVENT_fire(&eOnCommand, PT_PASTE);
+				command = PT_PASTE;
 				break;
 			case 'X':
-				PT_BINDABLE_EVENT_fire(&eOnCommand, PT_CUT);
+				command = PT_CUT;
 				break;
 			case 'C':
-				PT_BINDABLE_EVENT_fire(&eOnCommand, PT_COPY);
+				command = PT_COPY;
 				break;
+			case 'A':
+				command = PT_SELECTALL;
+				break;
+			}
+
+			if (command >= 0) {
+				PT_BINDABLE_EVENT_fire(&eOnCommand, &command);
 			}
 		}
 		else {

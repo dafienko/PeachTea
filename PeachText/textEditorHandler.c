@@ -107,17 +107,81 @@ void on_key_down(void* args) {
 	}
 }
 
-void on_command(int command) {
-	switch (command) {
-	case WM_COPY:
+void copy(TEXT_CURSOR* cursor) {
+	if (OpenClipboard(PT_GET_MAIN_HWND())) {
+		EmptyClipboard();
 
-		break;
-	case WM_PASTE:
+		// get selection str data
+		char* selection;
+		int selectionLength;
+		get_cursor_selection(cursor, &selection, &selectionLength);
 
-		break;
-	case WM_CUT:
+		HGLOBAL hClipboardData;
+		hClipboardData = GlobalAlloc(GMEM_DDESHARE, selectionLength);
 
-		break;
+		char* pchData;
+		pchData = (char*)GlobalLock(hClipboardData);
+
+		memcpy(pchData, selection, selectionLength * sizeof(char));
+		free(selection); // we don't need our copy of selection any more, windows has it now
+
+		GlobalUnlock(hClipboardData);
+
+		SetClipboardData(CF_TEXT, hClipboardData);
+
+		CloseClipboard();
+	}
+}
+
+// https://www.codeproject.com/Articles/2242/Using-the-Clipboard-Part-I-Transferring-Simple-Tex
+void on_command(void* args) {
+	int command = *(int*)args;
+
+	if (currentTextEditor) {
+		TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
+
+		switch (command) {
+		case PT_COPY:
+			;
+			if (!vector_equal_2i(cursor->selectTo, cursor->position)) {
+				copy(cursor);
+			}
+			break;
+		case PT_CUT:
+			if (!vector_equal_2i(cursor->selectTo, cursor->position)) {
+				copy(cursor);
+
+				vec2i start, end;
+				get_cursor_selection_bounds(*cursor, &start, &end);
+				remove_str_at_cursor(cursor, start, end);
+			}
+			break;
+		case PT_PASTE:
+			delete_cursor_selection(cursor);
+
+			if (OpenClipboard(PT_GET_MAIN_HWND()))
+			{
+				HANDLE hClipboardData = GetClipboardData(CF_TEXT);
+
+				char* pchData = (char*)GlobalLock(hClipboardData);
+				int clipboardLen = strlen(pchData);
+
+				insert_str_at_cursor(cursor, cursor->position, pchData, clipboardLen);
+
+				GlobalUnlock(hClipboardData);
+
+				CloseClipboard();
+			}
+			break;
+		case PT_SELECTALL:
+			;
+			TEXT_LINE lastLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, cursor->textArray->numElements - 1);
+			
+			cursor->selectTo = (vec2i){ 0, 0 };
+			cursor->position = (vec2i){ lastLine.numChars, cursor->textArray->numElements - 1 };
+
+			break;
+		}
 	}
 }
 

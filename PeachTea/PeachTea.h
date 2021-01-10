@@ -43,7 +43,7 @@
 int PT_RUN(void(*updateCallback)(float), void(*renderCallback)(void));
 
 void PT_CREATE_MAIN_WND(vec2i size, const char* title);
-void PT_GET_MAIN_HWND();
+HWND PT_GET_MAIN_HWND();
 
 PT_COLOR accentColor;
 
@@ -51,6 +51,7 @@ typedef enum {
 	PT_PASTE,
 	PT_COPY,
 	PT_CUT,
+	PT_SELECTALL
 } PT_COMMAND;
 
 PT_BINDABLE_EVENT eOnCommand;

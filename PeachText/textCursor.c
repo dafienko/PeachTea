@@ -107,7 +107,7 @@ void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 	PT_EXPANDABLE_ARRAY_set(cursor->textArray, start.y, (void*)&startLine);
 
 	// delete lines in between start and end
-	for (int i = start.y + 1; i <= end.y; i++) {
+	for (int i = end.y; i >= start.y + 1; i--) {
 		TEXT_LINE* textLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, i);
 		free(textLine->str);
 		PT_EXPANDABLE_ARRAY_remove(cursor->textArray, i);
@@ -137,6 +137,58 @@ void delete_cursor_selection(TEXT_CURSOR* cursor) {
 		get_cursor_selection_bounds(*cursor, &start, &end);
 		remove_str_at_cursor(cursor, start, end);
 	}
+}
+
+void get_cursor_selection(TEXT_CURSOR* cursor, char** selectionOut, int* selectionLengthOut) {
+	vec2i start, end;
+	char* selection;
+	int selectionLength = 0;
+
+	get_cursor_selection_bounds(*cursor, &start, &end);
+
+	int numLines = (end.y - start.y) + 1; // add 1, if start/end are on the same line, there is still 1 line selected
+
+	char** lines = calloc(numLines, sizeof(char*));
+	int* lengths = calloc(numLines, sizeof(char*));
+
+	// copy all selected lines
+	for (int y = start.y; y <= end.y; y++) {
+		TEXT_LINE* line = PT_EXPANDABLE_ARRAY_get(cursor->textArray, y);
+		
+		int xi = y == start.y ? start.x : 0;
+		int xf = y == end.y ? end.x : line->numChars;
+
+		int numChars = xf - xi;
+
+		char* str = calloc(numChars + 1, sizeof(char)); // add 1 for null terminator
+		memcpy(str, line->str + xi, numChars * sizeof(char));
+
+		selectionLength += numChars;
+
+		*(lengths + (y - start.y)) = numChars;
+		*(lines + (y - start.y)) = str;
+	}
+
+	
+	// concatenate all lines into one single big line
+	int charIndex = 0;
+	selectionLength += 5; // add some extra chars for null terminator
+	selection = calloc(selectionLength, sizeof(char)); 
+	for (int i = 0; i < numLines; i++) {
+		char* line = *(lines + i);
+		int length = *(lengths + i);
+
+		memcpy(selection + charIndex, line, length * sizeof(char));
+		charIndex += length;
+
+		free(line);
+	}
+
+	*selectionOut = selection;
+	*selectionLengthOut = selectionLength;
+
+	free(lines);
+	free(lengths);
 }
 
 void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {

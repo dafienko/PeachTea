@@ -12,6 +12,8 @@
 Instance* screenUI;
 TEXT_EDITOR* textEditor;
 
+PT_IMAGE menuImage, arrowImage;
+
 PT_TEXTLABEL* statusBarLabel;
 char* status;
 
@@ -20,7 +22,7 @@ const int STATUS_BAR_HEIGHT = 20;
 const int SIDE_BAR_WIDTH = 40;
 const int SIDE_BAR_PADDING = 3;
 
-const int SIDE_MENU_WIDTH = 220;
+const int SIDE_MENU_WIDTH = 320;
 
 void onRender() {
 	PT_SCREEN_UI_render(screenUI->subInstance);
@@ -69,14 +71,17 @@ PT_TWEEN* openMenuTween;
 PT_TWEEN* closeMenuTween;
 void on_menu_activated(void* args) {
 	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
+	PT_IMAGELABEL* imageLabel = (PT_IMAGELABEL*)obj->instance->subInstance;
 
 	menuOpen = !menuOpen;
 
 	if (menuOpen) {
 		PT_TWEEN_play(openMenuTween);
+		imageLabel->image = arrowImage;
 	}
 	else {
 		PT_TWEEN_play(closeMenuTween);
+		imageLabel->image = menuImage;
 	}
 }
 
@@ -86,6 +91,9 @@ int main() {
 #ifndef _DEBUG 
 	ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
+
+	menuImage = PT_IMAGE_from_png("assets\\images\\menu.png");
+	arrowImage = PT_IMAGE_from_png("assets\\images\\arrow.png");
 
 	status = calloc(200, sizeof(char));
 
@@ -179,7 +187,7 @@ int main() {
 	// side menu collapse/expand button
 	Instance* menuButtonInstance = PT_IMAGELABEL_new();
 	PT_IMAGELABEL* menuButton = (PT_IMAGELABEL*)menuButtonInstance->subInstance;
-	menuButton->image = PT_IMAGE_from_png("assets\\images\\menu.png");
+	menuButton->image = menuImage;
 
 	PT_GUI_OBJ* menuButtonObj = menuButton->guiObj;
 	menuButtonObj->size = PT_REL_DIM_new(0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2, 0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2);
