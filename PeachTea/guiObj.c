@@ -79,7 +79,7 @@ void onDescendantsChanged(void* args) {
 
 Instance* PT_GUI_OBJ_new() {
 	PT_GUI_OBJ* obj = calloc(1, sizeof(PT_GUI_OBJ));
-
+	obj->processEvents = 1;
 	obj->visible = 1;
 
 	Instance* instance = new_instance();

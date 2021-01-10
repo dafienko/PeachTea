@@ -243,20 +243,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	firstLine.numCharSpace = 1;
 	PT_EXPANDABLE_ARRAY_add(editor->textLines, (void*)&firstLine);
 
-	// init first cursor
-	Instance* cursorFrame = PT_GUI_OBJ_new();
-	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
-	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
-	cursorObj->zIndex = 6;
-	cursorObj->backgroundColor = PT_COLOR_fromHSV(0, 0, .9f);
-
-	set_instance_parent(cursorFrame, scrollframeInstance);
-
-	TEXT_CURSOR mainCursor = { 0 };
-	mainCursor.position = (vec2i){ 0, 0 };
-	mainCursor.textArray = editor->textLines;
-	mainCursor.cursorFrame = cursorFrame;
-	mainCursor.flashInterval = .5f;
+	TEXT_CURSOR mainCursor = TEXT_CURSOR_new(editor);
 	editor->textCursor = mainCursor;
 
 	currentTextEditor = editor;

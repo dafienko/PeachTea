@@ -45,7 +45,7 @@ int pos_in_obj(vec2i pos, PT_GUI_OBJ* obj) {
 }
 
 int obj_wheel_scroll(PT_GUI_OBJ* obj, int d) {
-	if (obj->visible && pos_in_obj(mousePos, obj)) {
+	if (pos_in_obj(mousePos, obj)) {
 		Instance* instance = obj->instance;
 		
 		if (instance->instanceType == IT_SCROLLFRAME) {
@@ -79,29 +79,27 @@ int obj_scroll_down(PT_GUI_OBJ* obj) {
 }
 
 int obj_mouse_moved(PT_GUI_OBJ* obj) {
-	if (obj->visible) {
-		int mouseWasInObj = obj->mouseInFrame;
-		obj->mouseInFrame = pos_in_obj(mousePos, obj);
+	int mouseWasInObj = obj->mouseInFrame;
+	obj->mouseInFrame = pos_in_obj(mousePos, obj);
 
-		if (mouseWasInObj != obj->mouseInFrame) {
-			if (obj->mouseInFrame) {
-				PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
-			}
-			else {
-				PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseLeave, obj);
-			}
+	if (mouseWasInObj != obj->mouseInFrame) {
+		if (obj->mouseInFrame) {
+			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
 		}
+		else {
+			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseLeave, obj);
+		}
+	}
 
-		if (obj->pressed) {
-			PT_BINDABLE_EVENT_fire(&obj->e_obj_dragged, obj);
-		}
+	if (obj->pressed) {
+		PT_BINDABLE_EVENT_fire(&obj->e_obj_dragged, obj);
 	}
 
 	return 0;
 }
 
 int obj_mouse1_down(PT_GUI_OBJ* obj) {
-	if (obj->visible && pos_in_obj(mousePos, obj)) {
+	if (pos_in_obj(mousePos, obj)) {
 		obj->pressed = 1;
 
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_pressed, obj);
@@ -152,10 +150,6 @@ int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*)) {
 		;
 		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)instance->subInstance;
 		obj = scrollFrame->guiObj;
-
-		processed = callback(scrollFrame->vscrollBar);
-		processed = callback(scrollFrame->hscrollBar);
-
 		break;
 	case IT_RENDERFRAME:
 		;
@@ -165,7 +159,9 @@ int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*)) {
 	}
 
 	if (!processed && obj != NULL) {
-		processed = callback(obj);
+		if (obj->visible && obj->processEvents) {
+			processed = callback(obj);
+		}
 	}
 
 	return processed;
@@ -173,6 +169,24 @@ int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*)) {
 
 int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*callback)(PT_GUI_OBJ*)) {
 	int processed = 0;
+
+	Instance* rootInstance = renderTree->rootInstance;
+
+	int isScrollEvent = callback == obj_scroll_down || callback == obj_scroll_up;
+
+	// process scrollframe controls
+	if (!processed && rootInstance->instanceType == IT_SCROLLFRAME) {
+		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)rootInstance->subInstance;
+		processed = callback(scrollFrame->vscrollTrack);
+		processed = callback(scrollFrame->vscrollBar);
+
+		processed = callback(scrollFrame->hscrollTrack);
+		processed = callback(scrollFrame->hscrollBar);
+
+		if (isScrollEvent) {
+			process_callback(rootInstance, callback);
+		}
+	}
 
 	if (!processed) {
 		for (int i = renderTree->numBranches - 1; i >= 0; i--) {
@@ -184,27 +198,19 @@ int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*
 		}
 	}
 
-	// process scrollframe controls
-	//processed = 0;
-	if (!processed && renderTree->rootInstance->instanceType == IT_SCROLLFRAME) {
-		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)renderTree->rootInstance->subInstance;
-		processed = process_callback(scrollFrame->vscrollTrack, callback);
-		processed = process_callback(scrollFrame->vscrollBar, callback);
 
-		processed = process_callback(scrollFrame->hscrollTrack, callback);
-		processed = process_callback(scrollFrame->hscrollBar, callback);
-	}
 	
-	//processed = 0;
-	if (!processed && IS_UI_INSTANCE(renderTree->rootInstance->instanceType)) {
-		Instance* instance = renderTree->rootInstance;
-		processed = process_callback(renderTree->rootInstance, callback);
+	if (!processed && IS_UI_INSTANCE(rootInstance->instanceType)) {
+		if (!(rootInstance->instanceType == IT_SCROLLFRAME && isScrollEvent)) { // if this is a scroll event and the root instance is a scroll frame, the event has already been processed
+			processed = process_callback(rootInstance, callback);
+		}
 	}
 
 	
 
 	return processed;
 }
+
 
 int enumerate_screeenuis(int(*callback)(PT_GUI_OBJ*)) {
 	int processed = 0;

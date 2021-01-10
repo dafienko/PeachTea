@@ -1,6 +1,24 @@
 #include "textCursor.h"
 #include "textEditorHandler.h"
 
+TEXT_CURSOR TEXT_CURSOR_new(TEXT_EDITOR* editor) {
+	Instance* cursorFrame = PT_GUI_OBJ_new();
+	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
+	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
+	cursorObj->zIndex = 6;
+	cursorObj->backgroundColor = PT_COLOR_fromHSV(0, 0, .9f);
+
+	set_instance_parent(cursorFrame, editor->scrollFrame->instance);
+
+	TEXT_CURSOR cursor = { 0 };
+	cursor.position = (vec2i){ 0, 0 };
+	cursor.textArray = editor->textLines;
+	cursor.cursorFrame = cursorFrame;
+	cursor.flashInterval = .5f;
+
+	return cursor;
+}
+
 int is_text_pos_in_range(vec2i p, vec2i start, vec2i end) {
 	int afterRightBound = (p.x >= start.x && p.y == start.y) || p.y > start.y;
 	int beforeLeftBound = (p.x <= end.x && p.y == end.y) || p.y < end.y;

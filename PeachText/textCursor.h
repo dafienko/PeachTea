@@ -18,6 +18,8 @@ typedef struct {
 	int cloneLineOffset, targetX;
 } TEXT_CURSOR;
 
+TEXT_CURSOR TEXT_CURSOR_new(struct TEXT_EDITOR* editor);
+
 void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len);
 void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end);
 

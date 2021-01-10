@@ -17,6 +17,7 @@ typedef struct {
 	PT_REL_DIM position;
 	PT_REL_DIM size;
 	int visible;
+	int processEvents; 
 	int clipDescendants;
 	PT_canvas lastCanvas;
 	PT_ABS_DIM lastAbsoluteDim; // redundant, info can be extracted from lastCanvas
