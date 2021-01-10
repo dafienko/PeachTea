@@ -47,6 +47,8 @@ typedef struct {
 	PT_FRAMETEXTURE effectTexture1;
 	PT_FRAMETEXTURE effectTexture2;
 
+	struct PT_UI_RENDER_TREE* lastRenderTree;
+
 	BOOL enabled;
 } PT_SCREEN_UI;
 

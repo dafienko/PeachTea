@@ -172,7 +172,6 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PT_BINDABLE_EVENT_fire(&eOnCharTyped, (void*)&c);
 		break;
 	case WM_KEYDOWN:
-		printf("%i\n", is_key_down(VK_LCONTROL));
 		if (is_key_down(VK_LCONTROL)) {
 			int command = -1;
 			switch(wParam) {
@@ -237,12 +236,12 @@ int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
 			}
 		}
 
-		float dt = PT_UPDATE();
+		float dt = PT_UPDATE(); 
 		if (updateCallback) {
 			updateCallback(dt);
 		}
 
-		render(renderCallback);
+		render(renderCallback); 
 	}
 
 

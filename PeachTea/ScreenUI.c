@@ -44,7 +44,7 @@ int pos_in_obj(vec2i pos, PT_GUI_OBJ* obj) {
 	return pos.x > left && pos.x < right&& pos.y > top && pos.y < bottom;
 }
 
-void obj_wheel_scroll(PT_GUI_OBJ* obj, int d) {
+int obj_wheel_scroll(PT_GUI_OBJ* obj, int d) {
 	if (obj->visible && pos_in_obj(mousePos, obj)) {
 		Instance* instance = obj->instance;
 		
@@ -63,18 +63,22 @@ void obj_wheel_scroll(PT_GUI_OBJ* obj, int d) {
 
 			scrollframe->canvasPosition.y = clamp(currentY + d, topBound, bottomBound);
 		}
+
+		return 1;
 	}	
+
+	return 0;
 }
 
-void obj_scroll_up(PT_GUI_OBJ* obj) {
-	obj_wheel_scroll(obj, -50);
+int obj_scroll_up(PT_GUI_OBJ* obj) {
+	return obj_wheel_scroll(obj, -50);
 }
 
-void obj_scroll_down(PT_GUI_OBJ* obj) {
-	obj_wheel_scroll(obj, 50);
+int obj_scroll_down(PT_GUI_OBJ* obj) {
+	return obj_wheel_scroll(obj, 50);
 }
 
-void obj_mouse_moved(PT_GUI_OBJ* obj) {
+int obj_mouse_moved(PT_GUI_OBJ* obj) {
 	if (obj->visible) {
 		int mouseWasInObj = obj->mouseInFrame;
 		obj->mouseInFrame = pos_in_obj(mousePos, obj);
@@ -92,17 +96,23 @@ void obj_mouse_moved(PT_GUI_OBJ* obj) {
 			PT_BINDABLE_EVENT_fire(&obj->e_obj_dragged, obj);
 		}
 	}
+
+	return 0;
 }
 
-void obj_mouse1_down(PT_GUI_OBJ* obj) {
+int obj_mouse1_down(PT_GUI_OBJ* obj) {
 	if (obj->visible && pos_in_obj(mousePos, obj)) {
 		obj->pressed = 1;
 
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_pressed, obj);
+
+		return 1;
 	}
+
+	return 0;
 }
 
-void obj_mouse1_up(PT_GUI_OBJ* obj) {
+int obj_mouse1_up(PT_GUI_OBJ* obj) {
 	if (obj->pressed) {
 		obj->pressed = 0;
 
@@ -110,82 +120,128 @@ void obj_mouse1_up(PT_GUI_OBJ* obj) {
 
 		if (pos_in_obj(mousePos, obj)) {
 			PT_BINDABLE_EVENT_fire(&obj->e_obj_activated, obj);
+			return 1;
 		}
 	}
+
+	return 0;
 }
 
-void enumerate_gui_objs(Instance* parent,  void(*callback)(PT_GUI_OBJ*)) {
-	if (parent == NULL) {
-		for (int i = 0; i < numScreenUIs; i++) {
-			PT_SCREEN_UI* ui = *(screenUIs + i);
-			Instance* p = ui->instance;
-			enumerate_gui_objs(p, callback);
+int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*)) {
+	INSTANCE_TYPE it = instance->instanceType;
+
+	PT_GUI_OBJ* obj = NULL;
+
+	int processed = 0;
+
+	switch (it) {
+	case IT_GUI_OBJ:
+		obj = (PT_GUI_OBJ*)instance->subInstance;
+		break;
+	case IT_TEXTLABEL:
+		;
+		PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)instance->subInstance;
+		obj = textlabel->guiObj;
+		break;
+	case IT_IMAGELABEL:
+		;
+		PT_IMAGELABEL* imageLabel = (PT_IMAGELABEL*)instance->subInstance;
+		obj = imageLabel->guiObj;
+		break;
+	case IT_SCROLLFRAME:
+		;
+		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)instance->subInstance;
+		obj = scrollFrame->guiObj;
+
+		processed = callback(scrollFrame->vscrollBar);
+		processed = callback(scrollFrame->hscrollBar);
+
+		break;
+	case IT_RENDERFRAME:
+		;
+		PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)instance->subInstance;
+		obj = renderFrame->guiObj;
+		break;
+	}
+
+	if (!processed && obj != NULL) {
+		processed = callback(obj);
+	}
+
+	return processed;
+}
+
+int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*callback)(PT_GUI_OBJ*)) {
+	int processed = 0;
+
+	if (!processed) {
+		for (int i = renderTree->numBranches - 1; i >= 0; i--) {
+			PT_UI_RENDER_TREE* branch = *(renderTree->branches + i);
+			processed = enumerate_render_tree(branch, ui, callback);
+			if (processed) {
+				return processed; // once an event has been processed once, stop enumerating over instances
+			}
 		}
 	}
-	else {
-		INSTANCE_TYPE it = parent->instanceType;
 
-		PT_GUI_OBJ* obj = NULL;
+	// process scrollframe controls
+	//processed = 0;
+	if (!processed && renderTree->rootInstance->instanceType == IT_SCROLLFRAME) {
+		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)renderTree->rootInstance->subInstance;
+		processed = process_callback(scrollFrame->vscrollTrack, callback);
+		processed = process_callback(scrollFrame->vscrollBar, callback);
 
-		switch (it) {
-		case IT_GUI_OBJ:
-			obj = (PT_GUI_OBJ*)parent->subInstance;
-			break;
-		case IT_TEXTLABEL:
-			;
-			PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)parent->subInstance;
-			obj = textlabel->guiObj;
-			break;
-		case IT_IMAGELABEL:
-			;
-			PT_IMAGELABEL* imageLabel = (PT_IMAGELABEL*)parent->subInstance;
-			obj = imageLabel->guiObj;
-			break;
-		case IT_SCROLLFRAME:
-			;
-			PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)parent->subInstance;
-			obj = scrollFrame->guiObj;
+		processed = process_callback(scrollFrame->hscrollTrack, callback);
+		processed = process_callback(scrollFrame->hscrollBar, callback);
+	}
+	
+	//processed = 0;
+	if (!processed && IS_UI_INSTANCE(renderTree->rootInstance->instanceType)) {
+		Instance* instance = renderTree->rootInstance;
+		processed = process_callback(renderTree->rootInstance, callback);
+	}
 
-			callback(scrollFrame->vscrollBar);
-			callback(scrollFrame->hscrollBar);
+	
 
-			break;
-		case IT_RENDERFRAME:
-			;
-			PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)parent->subInstance;
-			obj = renderFrame->guiObj;
-			break;
-		}
+	return processed;
+}
 
-		if (obj != NULL) {
-			callback(obj);
-		}
+int enumerate_screeenuis(int(*callback)(PT_GUI_OBJ*)) {
+	int processed = 0;
 
-		for (int i = 0; i < parent->numChildren; i++) {
-			Instance* child = *(parent->children + i);
-			enumerate_gui_objs(child, callback);
+	for (int i = 0; i < numScreenUIs; i++) {
+		PT_SCREEN_UI* ui = *(screenUIs + i);
+		Instance* p = ui->instance;
+
+		PT_UI_RENDER_TREE* renderTree = ui->lastRenderTree;
+		if (renderTree) {
+			processed = enumerate_render_tree(renderTree, ui, callback);
+
+			if (processed) {
+				break;
+			}
 		}
 	}
 }
 
 void on_mouse_move(void* args) {
-	enumerate_gui_objs(NULL, obj_mouse_moved);
+	enumerate_screeenuis(obj_mouse_moved);
 }
 
 void on_mouse_up(void* args) {
-	enumerate_gui_objs(NULL, obj_mouse1_up);
+	enumerate_screeenuis(obj_mouse1_up);
 }
 
 void on_mouse_down(void* args) {
-	enumerate_gui_objs(NULL, obj_mouse1_down);
+	enumerate_screeenuis(obj_mouse1_down);
 }
 
 void on_wheel_scroll_up(void* args) {
-	enumerate_gui_objs(NULL, obj_scroll_up);
+	enumerate_screeenuis(obj_scroll_up);
 }
 
 void on_wheel_scroll_down(void* args) {
-	enumerate_gui_objs(NULL, obj_scroll_down);
+	enumerate_screeenuis(obj_scroll_down);
 }
 
 void PT_SCREEN_UI_init() {
@@ -295,12 +351,16 @@ PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	if (ui->lastRenderTree) {
+		PT_UI_RENDER_TREE_destroy(ui->lastRenderTree);
+	}
+
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
 
 	PT_UI_RENDER_TREE_render(tree, ui);
 	PT_FRAMETEXTURE_copy_to_framebuffer(ui->frameTexture, 0);	
 
-	PT_UI_RENDER_TREE_destroy(tree);
+	ui->lastRenderTree = tree;
 
 	return canvas;
 }

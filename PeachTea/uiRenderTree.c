@@ -2,8 +2,6 @@
 #include "sort.h"
 #include "Instance.h"
 #include "guiObj.h"
-#include "imageLabel.h"
-#include "textLabel.h"
 #include "scrollFrame.h"
 
 #include <stdio.h>
