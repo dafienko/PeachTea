@@ -62,10 +62,12 @@ PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
 PT_EXPANDABLE_ARRAY framebuffersBoundToResize;
 
 void ft_on_resize(void* arg) {
-	PT_FRAMETEXTURE** frametextures = (PT_FRAMETEXTURE**)framebuffersBoundToResize.data;
-	for (int i = 0; i < framebuffersBoundToResize.numElements; i++) {
-		PT_FRAMETEXTURE* frameTexture = *(frametextures + i);
-		*frameTexture = PT_FRAMETEXTURE_resize(*frameTexture, screenSize.x, screenSize.y);
+	if (screenSize.x > 0 && screenSize.y > 0) {
+		PT_FRAMETEXTURE** frametextures = (PT_FRAMETEXTURE**)framebuffersBoundToResize.data;
+		for (int i = 0; i < framebuffersBoundToResize.numElements; i++) {
+			PT_FRAMETEXTURE* frameTexture = *(frametextures + i);
+			*frameTexture = PT_FRAMETEXTURE_resize(*frameTexture, screenSize.x, screenSize.y);
+		}
 	}
 }
 

@@ -85,7 +85,11 @@ void on_menu_activated(void* args) {
 	}
 }
 
-int main() {
+int main(int argc, char** args) {
+	for (int i = 0; i < argc; i++) {
+		printf("%i: \"%s\"\n\n", i, *(args + i));
+	}
+
 	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PeachText");
 
 #ifndef _DEBUG 

@@ -6,7 +6,8 @@
 
 typedef struct {
 	char* str;
-	int numChars, numCharSpace;
+	int numChars;
+	int numCharSpace;
 } TEXT_LINE;
 
 typedef struct {

@@ -47,7 +47,7 @@ void format_insert_str(const char* str, int strLen, char*** linesOut, int** leng
 			lineIndex++;
 		}
 
-		if (i == strLen - 1) {// at the last character
+		if (i == strLen - 1 && c != '\n') {// at the last character
 			char* line = calloc(tempLen + 1, sizeof(char));
 
 			if (tempLen > 0) {
@@ -135,6 +135,7 @@ void delete_cursor_selection(TEXT_CURSOR* cursor) {
 	if (!vector_equal_2i(cursor->selectTo, cursor->position)) { // if there is actually something selected...
 		vec2i start, end;
 		get_cursor_selection_bounds(*cursor, &start, &end);
+		cursor->position = start;
 		remove_str_at_cursor(cursor, start, end);
 	}
 }
@@ -234,7 +235,7 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
 
 		// add str text between beforeStr and afterStr
 		if (l > 0) {
-			memcpy(insertLine.str + insertLine.numChars, line, len * sizeof(char));
+			memcpy(insertLine.str + insertLine.numChars, line, l * sizeof(char));
 			insertLine.numChars += l;
 		}
 
@@ -250,7 +251,7 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
 			PT_EXPANDABLE_ARRAY_set(cursor->textArray, pos.y, (void*)&insertLine);
 		}
 		else { // if this isn't the first line, insert this text line into the array
-			if (pos.y + i >= cursor->textArray->elementSpace) {
+			if (pos.y + i >= cursor->textArray->numElements - 1) {
 				PT_EXPANDABLE_ARRAY_add(cursor->textArray, (void*)&insertLine);
 			}
 			else {

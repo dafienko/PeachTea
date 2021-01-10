@@ -13,14 +13,14 @@
 
 HDC hMainDC;
 HGLRC hMainRC;
-HWND hMainWnd = NULL;
+HWND hMainWnd;
 
 void(*renderCallback)(void);
 
 int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void));
 
 void update_main_window_pos() {
-	static RECT rect;
+	RECT rect = { 0 };
 
 	vec2i clientSize = { 0 };
 	GetClientRect(hMainWnd, &rect);
@@ -96,6 +96,7 @@ void PT_CREATE_MAIN_WND(vec2i size, const char* title) {
 	hMainDC = GetDC(hMainWnd);
 	hMainRC = wglCreateContext(hMainDC);
 	wglMakeCurrent(hMainDC, hMainRC);
+	ReleaseDC(hMainWnd, hMainDC);
 
 	PT_INIT(screenSize);
 }
@@ -109,19 +110,15 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch (uMsg) {
 	case WM_SIZE:
 		;
-		if (hWnd == hMainWnd) {
-			vec2i size = (vec2i){ LOWORD(lParam), HIWORD(lParam) };
-			PT_RESIZE(size);
-			renderer_resized();
-			update_main_window_pos();
-			render(renderCallback);
-		}
+		vec2i size = (vec2i){ LOWORD(lParam), HIWORD(lParam) };
+		PT_RESIZE(size);
+		renderer_resized();
+		update_main_window_pos();
+		render(renderCallback);
 
 		return 0;
 	case WM_CLOSE:
-		if (hWnd == hMainWnd) {
-			PostQuitMessage(69);
-		}
+		PostQuitMessage(69);
 		break;
 	case WM_MOVING:
 		if (hWnd == hMainWnd) {
@@ -151,10 +148,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PT_BINDABLE_EVENT_fire(&e_mouse1Up, NULL);
 		break;
 	case WM_SETCURSOR:
-		if (LOWORD(lParam) == HTCLIENT) {
-			//SetCursor
-		}
-		break;
+		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	case WM_MOUSEWHEEL:
 		;
 		int d = GET_WHEEL_DELTA_WPARAM(wParam);
@@ -206,15 +200,17 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYUP:
 		PT_BINDABLE_EVENT_fire(&eOnSysKeyRelease, (void*)&wParam);
 		break;
-	case WM_GETMINMAXINFO:
+	case WM_GETMINMAXINFO: // set minimum size for window
 		;
 		LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
-		lpMMI->ptMinTrackSize.x = 300;
-		lpMMI->ptMinTrackSize.y = 300;
+		lpMMI->ptMinTrackSize.x = 350;
+		lpMMI->ptMinTrackSize.y = 350;
 		break;
+	default:
+		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	}
 
-	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+	return 0;
 }
 
 int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
