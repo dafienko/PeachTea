@@ -91,7 +91,7 @@ HWND createPeachWindow(const HINSTANCE hInstance, vec2i wndSize, const void* wnd
 	if (hWnd == NULL) {
 		int e = GetLastError();
 		
-		fatal_windows_error(e, L"CreateWindow fucked up in %s at line %i", __FILEW__, __LINE__);
+		fatal_windows_error(e, L"CreateWindow returned NULL up in %s at line %i", __FILEW__, __LINE__);
 	}
 
 	HDC hdc = GetDC(hWnd);

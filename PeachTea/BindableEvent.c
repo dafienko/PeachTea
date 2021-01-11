@@ -2,12 +2,15 @@
 #include <stdlib.h>
 
 void PT_BINDABLE_EVENT_init(PT_BINDABLE_EVENT* event) {
+	*event = (PT_BINDABLE_EVENT){ 0 };
+
 	event->callbackSpace = 2;
 	event->callbacks = calloc(event->callbackSpace, sizeof(PT_CALLBACK_FUNCTION_POINTER));
 	event->initialized = 1;
 }
 
 void PT_BINDABLE_EVENT_bind(PT_BINDABLE_EVENT* event, PT_CALLBACK_FUNCTION_POINTER callback) {
+
 	if (!event->initialized) {
 		PT_BINDABLE_EVENT_init(event);
 	}
@@ -22,9 +25,11 @@ void PT_BINDABLE_EVENT_bind(PT_BINDABLE_EVENT* event, PT_CALLBACK_FUNCTION_POINT
 }
 
 void PT_BINDABLE_EVENT_fire(PT_BINDABLE_EVENT* event, void* args) {
-	for (int i = 0; i < event->numCallbacks; i++) {
-		PT_CALLBACK_FUNCTION_POINTER callback = *(event->callbacks + i);
-		callback(args);
+	if (event->initialized == 1) {
+		for (int i = 0; i < event->numCallbacks; i++) {
+			PT_CALLBACK_FUNCTION_POINTER callback = *(event->callbacks + i);
+			callback(args);
+		}
 	}
 }
 

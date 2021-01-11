@@ -138,7 +138,7 @@ void PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_SCREEN_UI* ui) {
 	vec2i framePos = canvas_pos(obj->lastCanvas);
 
 	if (obj->visible) {
-		if (obj->blurred) {
+		if (!PERFORMANCE_MODE && obj->blurred) {
 			PT_FRAMETEXTURE_blur(ui->frameTexture.tex, ui->effectTexture1, (vec2f) { 0, 1 }, obj->blurRadius, 0);
 			PT_FRAMETEXTURE_blur(ui->effectTexture1.tex, ui->effectTexture2, (vec2f) { 1, 0 }, obj->blurRadius, 1);
 			PT_FRAMETEXTURE_bind(ui->frameTexture);
@@ -209,9 +209,9 @@ void PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_SCREEN_UI* ui) {
 
 		// blur property uniforms
 		bLoc = glGetUniformLocation(PTS_guiObj, "blurred");
-		glUniform1i(bLoc, obj->blurred);
+		glUniform1i(bLoc, obj->blurred && !PERFORMANCE_MODE);
 
-		if (obj->blurred) {
+		if (!PERFORMANCE_MODE && obj->blurred) {
 			brLoc = glGetUniformLocation(PTS_guiObj, "blurRadius");
 			baLoc = glGetUniformLocation(PTS_guiObj, "blurAlpha");
 

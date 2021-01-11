@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include "screenSize.h"
 
-vec2i vpSize;
+vec2i vpSize = { 0 };
 int initialized = 0;
 
 char_set cs;

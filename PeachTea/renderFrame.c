@@ -43,21 +43,15 @@ PT_canvas PT_RENDERFRAME_update_size(PT_RENDERFRAME* renderFrame, PT_canvas pare
 	PT_canvas lastCanvas = renderFrame->guiObj->lastCanvas;
 	PT_canvas thisCanvas = PT_GUI_OBJ_update_size(renderFrame->guiObj, parentCanvas);
 
-	PT_FRAMETEXTURE newTexture = { 0 };
-
 	vec2i lastCanvasSize = canvas_size(lastCanvas);
 	vec2i thisCanvasSize = canvas_size(thisCanvas);
 	if (!vector_equal_2i(lastCanvasSize, thisCanvasSize) && renderFrame->renderTexture.tex) {
-		newTexture = PT_FRAMETEXTURE_resize(renderFrame->renderTexture, thisCanvasSize.x, thisCanvasSize.y);
+		renderFrame->renderTexture = PT_FRAMETEXTURE_resize(renderFrame->renderTexture, thisCanvasSize.x, thisCanvasSize.y);
 	}
 	else if (!renderFrame->renderTexture.tex) {
 		if (thisCanvasSize.x > 0 && thisCanvasSize.y > 0) {
-			newTexture = PT_FRAMETEXTURE_new(thisCanvasSize.x, thisCanvasSize.y, 0);
+			renderFrame->renderTexture = PT_FRAMETEXTURE_new(thisCanvasSize.x, thisCanvasSize.y, 0);
 		}
-	}
-	
-	if (newTexture.tex) {
-		renderFrame->renderTexture = newTexture;
 	}
 
 	return thisCanvas;

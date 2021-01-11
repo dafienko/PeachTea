@@ -51,7 +51,7 @@ void PT_INIT(vec2i screenSize) {
 	update_main_window_pos();
 }
 
-float lastTime;
+float lastTime = 0;
 float PT_UPDATE() {
 	float time = PT_TIME_get();
 
@@ -96,7 +96,6 @@ void PT_CREATE_MAIN_WND(vec2i size, const char* title) {
 	hMainDC = GetDC(hMainWnd);
 	hMainRC = wglCreateContext(hMainDC);
 	wglMakeCurrent(hMainDC, hMainRC);
-	//ReleaseDC(hMainWnd, hMainDC);
 
 	PT_INIT(screenSize);
 }
@@ -107,14 +106,15 @@ HWND PT_GET_MAIN_HWND() {
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+
 	switch (uMsg) {
 	case WM_SIZE:
 		;
 		vec2i size = (vec2i){ LOWORD(lParam), HIWORD(lParam) };
-		PT_RESIZE(size);
-		renderer_resized();
-		update_main_window_pos();
-		render(renderCallback);
+		PT_RESIZE(size); // update screenSize;
+		update_main_window_pos(); // update window position
+		renderer_resized(); // update glViewport
+		render(renderCallback); 
 
 		return 0;
 	case WM_CLOSE:
@@ -219,7 +219,9 @@ int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
 
 	renderCallback = renderCB;
 
-	ftime(&lastTime);
+	PT_TIME_get(&lastTime);
+
+	PT_FRAMETEXTURE ft = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y, 0);
 
 	while (1) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -249,6 +251,8 @@ int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
 }
 
 int PT_RUN(void(*updateCallback)(float), void(*renderCallback)(void)) {
+	PT_FRAMETEXTURE_new(screenSize.x, screenSize.y, 0);
+
 	return mainProgramLoop(updateCallback, renderCallback);
 }
 

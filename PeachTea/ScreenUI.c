@@ -11,27 +11,11 @@
 #include "uiRenderTree.h"
 #include "frameTexture.h"
 #include "renderFrame.h"
+#include "expandableArray.h"
 
 #include <stdio.h>
 
-PT_SCREEN_UI** screenUIs;
-int numScreenUIs;
-int screenUIsRoom;
-
-void add_screen_ui(PT_SCREEN_UI* ui) {
-	if (screenUIs == NULL) {
-		screenUIsRoom = 2;
-		screenUIs = calloc(screenUIsRoom, sizeof(PT_SCREEN_UI*));
-	}
-
-	if (numScreenUIs + 1 > screenUIsRoom) {
-		screenUIsRoom *= 2;
-		screenUIs = realloc(screenUIs, screenUIsRoom * sizeof(PT_SCREEN_UI*));
-	}
-
-	*(screenUIs + numScreenUIs) = ui;
-	numScreenUIs++;
-}
+PT_EXPANDABLE_ARRAY screenUIs = { 0 };
 
 int pos_in_obj(vec2i pos, PT_GUI_OBJ* obj) {
 	static int left, right, top, bottom;
@@ -215,8 +199,8 @@ int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*
 int enumerate_screeenuis(int(*callback)(PT_GUI_OBJ*)) {
 	int processed = 0;
 
-	for (int i = 0; i < numScreenUIs; i++) {
-		PT_SCREEN_UI* ui = *(screenUIs + i);
+	for (int i = 0; i < screenUIs.numElements; i++) {
+		PT_SCREEN_UI* ui = *(PT_SCREEN_UI**)PT_EXPANDABLE_ARRAY_get(&screenUIs, i);
 		Instance* p = ui->instance;
 
 		PT_UI_RENDER_TREE* renderTree = ui->lastRenderTree;
@@ -275,7 +259,10 @@ Instance* PT_SCREEN_UI_new() {
 
 	ui->instance = instance;
 
-	add_screen_ui(ui);
+	if (screenUIs.elementSpace == 0) {
+		screenUIs = PT_EXPANDABLE_ARRAY_new(5, sizeof(PT_SCREEN_UI*));
+	}
+	PT_EXPANDABLE_ARRAY_add(&screenUIs, &ui);
 
 	return instance;
 }
@@ -287,7 +274,7 @@ PT_SCREEN_UI* PT_SCREEN_UI_clone(PT_SCREEN_UI* source, Instance* instanceClone) 
 	clone->instance = instanceClone;
 	clone->frameTexture = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y, 0);
 
-	add_screen_ui(clone);
+	PT_EXPANDABLE_ARRAY_add(&screenUIs, &clone);
 
 	return clone;
 }
@@ -296,22 +283,9 @@ void PT_SCREEN_UI_destroy(void* obj) {
 	PT_SCREEN_UI* screenUI = (PT_SCREEN_UI*)obj;
 
 	int removeIndex = -1;
-	for (int i = 0; i < numScreenUIs; i++) {
-		PT_SCREEN_UI* ui = *(screenUIs + i);
-		if (ui == screenUI) {
-			removeIndex = i;
-			break;
-		}
-	}
-
-	if (removeIndex > 0) {
-		*(screenUIs + removeIndex) = NULL;
-		numScreenUIs--;
-
-		if (removeIndex < numScreenUIs) {
-			*(screenUIs + removeIndex) = *(screenUIs + numScreenUIs);
-			*(screenUIs + numScreenUIs) = NULL;
-		}
+	removeIndex = PT_EXPANDABLE_ARRAY_find(&screenUIs, &screenUI);
+	if (removeIndex >= 0) {
+		PT_EXPANDABLE_ARRAY_remove(&screenUIs, removeIndex);
 	}
 
 	free(screenUI);

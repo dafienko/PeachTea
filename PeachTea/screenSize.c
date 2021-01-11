@@ -6,5 +6,8 @@ void PT_RESIZE(vec2i ss) {
 }
 
 void screensize_init(vec2i ss) {
+	screenSize = (vec2i){ 0 };
+	mainWindowPosition = (vec2i){ 0 };
+
 	screenSize = ss;
 }

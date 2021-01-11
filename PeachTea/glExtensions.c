@@ -47,63 +47,72 @@ void* getProc(const char* name) {
 void GLEInit() {
     glCreateProgram = (PFNGLCREATEPROGRAMPROC)getProc("glCreateProgram");
     glCreateShader = (PFNGLCREATESHADERPROC)getProc("glCreateShader");
+
     glShaderSource = (PFNGLSHADERSOURCEPROC)getProc("glShaderSource");
     glCompileShader = (PFNGLCOMPILESHADERPROC)getProc("glCompileShader");
     glAttachShader = (PFNGLATTACHSHADERPROC)getProc("glAttachShader");
     glLinkProgram = (PFNGLLINKPROGRAMPROC)getProc("glLinkProgram");
     glUseProgram = (PFNGLUSEPROGRAMPROC)getProc("glUseProgram");
+
+    glIsProgram = (PFNGLISPROGRAMPROC)getProc("glIsProgram");
+    glIsShader = (PFNGLISSHADERPROC)getProc("glIsShader");
+
     glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)getProc("glGetShaderInfoLog");
     glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)getProc("glGetProgramInfoLog");
-    glDeleteShader = (PFNGLDELETESHADERPROC)getProc("glDetachShader");
-    glDetachShader = (PFNGLDETACHSHADERPROC)getProc("glDetachShader");
-    glIsProgram = (PFNGLISPROGRAMPROC)getProc("glIsProgram");
-    glGenBuffers = (PFNGLGENBUFFERSPROC)getProc("glGenBuffers");
+
+    glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)getProc("glBindFramebuffer");
     glBindBuffer = (PFNGLBINDBUFFERPROC)getProc("glBindBuffer");
+    glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC)getProc("glBindRenderbuffer");
+    glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)getProc("glBindVertexArray");
+    glActiveTexture = (PFNGLACTIVETEXTUREPROC)getProc("glActiveTexture");
+
+    glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)getProc("glGenFramebuffers");
+    glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)getProc("glGenRenderbuffers");
+    glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)getProc("glGenVertexArrays");
+    glGenBuffers = (PFNGLGENBUFFERSPROC)getProc("glGenBuffers");
+
     glBufferData = (PFNGLBUFFERDATAPROC)getProc("glBufferData");
     glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)getProc("glEnableVertexAttribArray");
     glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)getProc("glVertexAttribPointer");
-    glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)getProc("glGenVertexArrays");
-    glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)getProc("glBindVertexArray");
     glGetIntegeri_v = (PFNGLGETINTEGERI_VPROC)getProc("glGetIntegeri_v");
     glGetStringi = (PFNGLGETSTRINGIPROC)getProc("glGetStringi");
     wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)getProc("wglSwapIntervalEXT");
     wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)getProc("wglGetSwapIntervalEXT");
     glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)getProc("glUniformMatrix4fv");
     glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)getProc("glGetUniformLocation");
-    glUniform3f = (PFNGLUNIFORM3FPROC)getProc("glUniform3f");
+
     glUniform1i = (PFNGLUNIFORM1IPROC)getProc("glUniform1i");
     glUniform1f = (PFNGLUNIFORM1FPROC)getProc("glUniform1f");
+    glUniform2f = (PFNGLUNIFORM2FPROC)getProc("glUniform2f");
+    glUniform2i = (PFNGLUNIFORM2IPROC)getProc("glUniform2i");
+    glUniform3i = (PFNGLUNIFORM3IPROC)getProc("glUniform3i");
+    glUniform3f = (PFNGLUNIFORM3FPROC)getProc("glUniform3f");
+
     glGetShaderiv = (PFNGLGETSHADERIVPROC)getProc("glGetShaderiv");
     glGetProgramiv = (PFNGLGETPROGRAMIVPROC)getProc("glGetProgramiv");
-    glIsProgram = (PFNGLISPROGRAMPROC)getProc("glIsProgram");
-    glIsShader = (PFNGLISSHADERPROC)getProc("glIsShader");
-    glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)getProc("glGenRenderbuffers");
-    glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC)getProc("glBindRenderbuffer");
-    glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)getProc("glRenderbufferStorage");
-    glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC)getProc("glBindRenderbuffer");
+
     glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)getProc("glFramebufferTexture2D");
-    glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)getProc("glFramebufferRenderbuffer");
-    glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)getProc("glBindFramebuffer");
-    glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)getProc("glGenFramebuffers");
-    glMapBuffer = (PFNGLMAPBUFFERPROC)getProc("glMapBuffer");
-    glUnmapBuffer = (PFNGLUNMAPBUFFERPROC)getProc("glUnmapBuffer");
-    glActiveTexture = (PFNGLACTIVETEXTUREPROC)getProc("glActiveTexture");
     glTexStorage2D = (PFNGLTEXSTORAGE2DPROC)getProc("glTexStorage2D");
     glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC)getProc("glTexImage2DMultisample");
+    glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)getProc("glRenderbufferStorage");
+    glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)getProc("glRenderbufferStorageMultisample");
+    glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)getProc("glFramebufferRenderbuffer");
+
+    glMapBuffer = (PFNGLMAPBUFFERPROC)getProc("glMapBuffer");
+    glUnmapBuffer = (PFNGLUNMAPBUFFERPROC)getProc("glUnmapBuffer");
     glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC)getProc("glBlitFramebuffer");
     glBlitNamedFramebuffer = (PFNGLBLITNAMEDFRAMEBUFFERPROC)getProc("glBlitNamedFramebuffer");
     glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)getProc("glCheckFramebufferStatus");
     glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)getProc("glGenerateMipmap");
     glDrawRangeElements = (PFNGLDRAWRANGEELEMENTSPROC)getProc("glDrawRangeElements");
-    glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)getProc("glDeleteBuffers");
-    glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)getProc("glDeleteVertexArrays");
-    glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)getProc("glRenderbufferStorageMultisample");
+
     glDeleteProgram = (PFNGLDELETEPROGRAMPROC)getProc("glDeleteProgram");
-    glUniform2f = (PFNGLUNIFORM2FPROC)getProc("glUniform2f");
-    glUniform2i = (PFNGLUNIFORM2IPROC)getProc("glUniform2i");
-    glUniform3i = (PFNGLUNIFORM3IPROC)getProc("glUniform3i");
     glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC)getProc("glDeleteRenderbuffers");
     glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)getProc("glDeleteFramebuffers");
+    glDeleteShader = (PFNGLDELETESHADERPROC)getProc("glDeleteShader");
+    glDetachShader = (PFNGLDETACHSHADERPROC)getProc("glDetachShader");
+    glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)getProc("glDeleteBuffers");
+    glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)getProc("glDeleteVertexArrays");
 
     initialized = 1;
 }

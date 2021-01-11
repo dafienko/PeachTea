@@ -6,15 +6,14 @@
 #include "glUniformUtil.h"
 #include "expandableArray.h"
 
+#include <stdio.h>
+
 PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
 	PT_FRAMETEXTURE frameTexture = { 0 };
 
 	GLuint fbo = 0;
-	CHECK_GL_ERRORS;
 	glGenFramebuffers(1, &fbo);
-	CHECK_GL_ERRORS;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	CHECK_GL_ERRORS;
 
 	GLuint tex = 0;
 	glGenTextures(1, &tex);
@@ -22,17 +21,14 @@ PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, tex);
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, w, h, GL_TRUE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, tex, 0);
-		CHECK_GL_ERRORS;
 	}
 	else {
-		CHECK_GL_ERRORS;
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		CHECK_GL_ERRORS;
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 	}
 
@@ -52,6 +48,8 @@ PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
 	}
 
 
+	printf("created FBO %i with tex %i and rbo %i\n", fbo, tex, rbo);
+
 	frameTexture.multisampled = multisampled;
 	frameTexture.width = w;
 	frameTexture.height = h;
@@ -64,7 +62,7 @@ PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
 	return frameTexture;
 }
 
-PT_EXPANDABLE_ARRAY framebuffersBoundToResize;
+PT_EXPANDABLE_ARRAY framebuffersBoundToResize = { 0 };
 
 void ft_on_resize(void* arg) {
 	if (screenSize.x > 0 && screenSize.y > 0) {
@@ -93,23 +91,21 @@ PT_FRAMETEXTURE PT_FRAMETEXTURE_resize(PT_FRAMETEXTURE frameTexture, int w, int 
 }
 
 void PT_FRAMETEXTURE_destroy(PT_FRAMETEXTURE tex) {
-	CHECK_GL_ERRORS;
 	glBindFramebuffer(GL_FRAMEBUFFER, tex.fbo);
-	CHECK_GL_ERRORS;
 
-	// unbind fbo renderbuffer and texture
+	// unbind renderbuffer and texture from rbo
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-	CHECK_GL_ERRORS;
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
-	CHECK_GL_ERRORS;
+
+	// make sure fbor, rbo, and texture are unbound
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	// delete tex, rbo, and fbo
 	glDeleteRenderbuffers(1, &tex.rbo);
-	CHECK_GL_ERRORS;
 	glDeleteTextures(1, &tex.tex);
-	CHECK_GL_ERRORS;
 	glDeleteFramebuffers(1, &tex.fbo);
-	CHECK_GL_ERRORS;
 }
 
 

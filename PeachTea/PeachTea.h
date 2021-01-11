@@ -40,6 +40,8 @@
 #include "scrollFrame.h"
 #include "renderFrame.h"
 
+#define PERFORMANCE_MODE 1
+
 int PT_RUN(void(*updateCallback)(float), void(*renderCallback)(void));
 
 void PT_CREATE_MAIN_WND(vec2i size, const char* title);

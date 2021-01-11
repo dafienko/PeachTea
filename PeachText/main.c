@@ -70,6 +70,8 @@ PT_REL_DIM MENU_CLOSE_POS;
 PT_TWEEN* openMenuTween;
 PT_TWEEN* closeMenuTween;
 void on_menu_activated(void* args) {
+
+
 	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
 	PT_IMAGELABEL* imageLabel = (PT_IMAGELABEL*)obj->instance->subInstance;
 
@@ -85,15 +87,19 @@ void on_menu_activated(void* args) {
 	}
 }
 
+
 int main(int argc, char** args) {
+
 	for (int i = 0; i < argc; i++) {
 		printf("%i: \"%s\"\n\n", i, *(args + i));
 	}
 
+	
+
 	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PeachText");
 
 #ifndef _DEBUG 
-	ShowWindow(GetConsoleWindow(), SW_HIDE);
+	//ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
 	menuImage = PT_IMAGE_from_png("assets\\images\\menu.png");
@@ -109,6 +115,7 @@ int main(int argc, char** args) {
 	PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
 	ui->sortingType = ZST_SIBLING;
 
+	// main background frame
 	Instance* backgroundInstance = PT_GUI_OBJ_new();
 	backgroundInstance->name = create_heap_str("background");
 	PT_GUI_OBJ* backgroundObj = (PT_GUI_OBJ*)backgroundInstance->subInstance;
@@ -117,6 +124,8 @@ int main(int argc, char** args) {
 	backgroundObj->zIndex = 0;
 
 	set_instance_parent(backgroundInstance, screenUI);
+
+
 
 	// main text scrollframe 
 	Instance* scrollFrameInstance = PT_SCROLLFRAME_new();
@@ -131,13 +140,13 @@ int main(int argc, char** args) {
 	hTrack->backgroundTransparency = vTrack->backgroundTransparency;
 
 	PT_GUI_OBJ* vBar = scrollframe->vscrollBar;
-	vBar->backgroundColor = PT_COLOR_fromHSV(0, 0, .85f);
-	vBar->backgroundTransparency = 0.1f;
+	vBar->backgroundColor = PT_COLOR_fromHSV(0, 0, .75f);
+	vBar->backgroundTransparency = 0.2f;
 	vBar->blurred = 1;
 	vBar->blurAlpha = .87f;
 	vBar->blurRadius = 15;
 	vBar->reactive = 1;
-	vBar->activeBackgroundColor = PT_COLOR_fromHSV(0, 0, 1);
+	vBar->activeBackgroundColor = PT_COLOR_new(1, 1, 1);
 	vBar->activeBackgroundRange = (vec2f){ 10, 80 };
 	PT_GUI_OBJ* hBar = scrollframe->hscrollBar;
 	hBar->backgroundColor = vBar->backgroundColor;
@@ -254,7 +263,7 @@ int main(int argc, char** args) {
 	renderObj->zIndex = 2;
 	renderObj->backgroundTransparency = 1;
 
-	//set_instance_parent(renderInstance, backgroundInstance);
+	set_instance_parent(renderInstance, backgroundInstance);
 
 	textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, "shaders\\core\\blur.fs");
 	/*
@@ -267,6 +276,7 @@ int main(int argc, char** args) {
 	*/
 
 	PT_RUN(onUpdate, onRender);
+	//PT_RUN(NULL, onRender);
 
 	free(status);
 }
