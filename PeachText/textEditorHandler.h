@@ -24,8 +24,12 @@ typedef struct {
 	TEXT_CURSOR textCursor;
 } TEXT_EDITOR;
 
+char get_last_char(TEXT_LINE line);
 
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame);
+TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* renderFrame, const char* filename);
+int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor);
+
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt);
 
 int* get_charsTyped();

@@ -11,9 +11,9 @@
 
 #pragma comment(lib, "dwmapi")
 
-HDC hMainDC;
-HGLRC hMainRC;
-HWND hMainWnd;
+HDC hMainDC = NULL;
+HGLRC hMainRC = NULL;
+HWND hMainWnd = NULL;
 
 void(*renderCallback)(void);
 
@@ -96,7 +96,7 @@ void PT_CREATE_MAIN_WND(vec2i size, const char* title) {
 	hMainDC = GetDC(hMainWnd);
 	hMainRC = wglCreateContext(hMainDC);
 	wglMakeCurrent(hMainDC, hMainRC);
-	ReleaseDC(hMainWnd, hMainDC);
+	//ReleaseDC(hMainWnd, hMainDC);
 
 	PT_INIT(screenSize);
 }

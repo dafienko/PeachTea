@@ -32,7 +32,7 @@ int frames = 0;
 int fps = 0;
 int cpm = 0;
 int lastTimeIndex = 0;
-float fpsUpdateInterval = 5.0f;
+float fpsUpdateInterval = 1.0f;
 void onUpdate(float dt) {
 	float time = PT_TIME_get();
 	frames++;
@@ -151,9 +151,10 @@ int main(int argc, char** args) {
 
 	PT_GUI_OBJ* scrollObj = scrollframe->guiObj;
 	scrollObj->backgroundColor = backgroundObj->backgroundColor;
+	scrollObj->backgroundTransparency = 1;
 	scrollObj->position = PT_REL_DIM_new(0, SIDE_BAR_WIDTH, 0, 0);
 	scrollObj->size = PT_REL_DIM_new(1.0f, -SIDE_BAR_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
-	scrollObj->zIndex = 1;
+	scrollObj->zIndex = 3;
 	scrollObj->clipDescendants = 1;
 
 	set_instance_parent(scrollFrameInstance, backgroundInstance);
@@ -167,7 +168,7 @@ int main(int argc, char** args) {
 	
 	sideBarObj->blurred = 1;
 	sideBarObj->blurAlpha = 0.6f;
-	sideBarObj->blurRadius = 20;
+	sideBarObj->blurRadius = 50;
 
 	sideBarObj->backgroundColor = PT_COLOR_fromRGB(0, 0, 0);
 
@@ -248,13 +249,22 @@ int main(int argc, char** args) {
 	PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)renderInstance->subInstance;
 	PT_GUI_OBJ* renderObj = renderFrame->guiObj;
 	renderObj->position = PT_REL_DIM_new(0, 0, 0, 0);
-	renderObj->size = PT_REL_DIM_new(0, 500, 0, 500);
-	renderObj->zIndex = 5;
+	renderObj->size = PT_REL_DIM_new(1, 0, 1, 0);
+	//renderObj->size = PT_REL_DIM_new(0, 500, 0, 500);
+	renderObj->zIndex = 2;
 	renderObj->backgroundTransparency = 1;
 
-	set_instance_parent(renderInstance, scrollFrameInstance);
+	//set_instance_parent(renderInstance, backgroundInstance);
 
-	textEditor = TEXT_EDITOR_new(scrollFrameInstance, renderFrame);
+	textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, "shaders\\core\\blur.fs");
+	/*
+	if (argc <= 1) {
+		textEditor = TEXT_EDITOR_new(scrollFrameInstance, renderFrame);
+	}
+	else {
+		textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, *(args + 1));
+	}
+	*/
 
 	PT_RUN(onUpdate, onRender);
 

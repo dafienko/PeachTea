@@ -9,11 +9,14 @@
 PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
 	PT_FRAMETEXTURE frameTexture = { 0 };
 
-	GLuint fbo;
+	GLuint fbo = 0;
+	CHECK_GL_ERRORS;
 	glGenFramebuffers(1, &fbo);
+	CHECK_GL_ERRORS;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	CHECK_GL_ERRORS;
 
-	GLuint tex;
+	GLuint tex = 0;
 	glGenTextures(1, &tex);
 	if (multisampled) {
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, tex);
@@ -22,16 +25,18 @@ PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
 		CHECK_GL_ERRORS;
 	}
 	else {
+		CHECK_GL_ERRORS;
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		CHECK_GL_ERRORS;
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 	}
 
-	GLuint rbo;
+	GLuint rbo = 0;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 	if (multisampled) {
@@ -88,15 +93,23 @@ PT_FRAMETEXTURE PT_FRAMETEXTURE_resize(PT_FRAMETEXTURE frameTexture, int w, int 
 }
 
 void PT_FRAMETEXTURE_destroy(PT_FRAMETEXTURE tex) {
+	CHECK_GL_ERRORS;
 	glBindFramebuffer(GL_FRAMEBUFFER, tex.fbo);
+	CHECK_GL_ERRORS;
 
 	// unbind fbo renderbuffer and texture
-	glFramebufferTexture2D(GL_TEXTURE_2D_MULTISAMPLE, GL_COLOR_ATTACHMENT0, GL_RGBA, 0, 0);
-	glFramebufferRenderbuffer(GL_RENDERBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
+	CHECK_GL_ERRORS;
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+	CHECK_GL_ERRORS;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glDeleteRenderbuffers(1, &tex.rbo);
-	glDeleteFramebuffers(1, &tex.fbo);
+	CHECK_GL_ERRORS;
 	glDeleteTextures(1, &tex.tex);
+	CHECK_GL_ERRORS;
+	glDeleteFramebuffers(1, &tex.fbo);
+	CHECK_GL_ERRORS;
 }
 
 
@@ -122,19 +135,10 @@ void PT_FRAMETEXTURE_blur(GLuint src, PT_FRAMETEXTURE dest, vec2f dir, int blurR
 	int s = 1;
 	int r = blurRadius;
 	
-	if (r > 50) {
-		s = 3;
-		r /= 3;
+	if (r > 20) {
+		s = ceilf(blurRadius / 20.0f);
+		r = blurRadius / s;
 	}
-	else if (r > 20) {
-		s = 2;
-		r /= 2;
-	}
-	else if (r > 5) {
-		s = 2;
-		r /= 2;
-	}
-
 
 	PT_FRAMETEXTURE_bind(dest);
 	glUseProgram(PTS_blur);

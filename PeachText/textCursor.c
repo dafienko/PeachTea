@@ -46,6 +46,9 @@ void format_insert_str(const char* str, int strLen, char*** linesOut, int** leng
 	int lineIndex = 0;
 	for (int i = 0; i < strLen; i++) {
 		char c = *(str + i);
+		if (c == '\r') {
+			continue;
+		}
 
 		*(tempStr + tempLen) = c;
 		tempLen++;
@@ -134,6 +137,7 @@ void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 	// move cursor to start of deletion range
 	cursor->position = start;
 	cursor->selectTo = start;
+	cursor->targetX = start.x;
 }
 
 void get_cursor_selection_bounds(TEXT_CURSOR cursor, vec2i* startOut, vec2i* endOut) {
@@ -286,6 +290,8 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
 		pos.y + numLines - 1
 	};
 	cursor->selectTo = cursor->position;
+	cursor->targetX = cursor->position.x;
+	
 
 	free(beforeStr);
 	free(afterStr);

@@ -17,7 +17,7 @@ void* getProc(const char* name) {
         mbstowcs(wName, name, maxLen);
 
         int e = GetLastError();
-        windows_error(e, L"failed to get %s proc address", wName);
+        fatal_windows_error(e, L"failed to get %s proc address", wName);
 
         free(wName);
 

@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "textEditorHandler.h"
 #include "PeachTea.h";
 #include "textCursor.h"
@@ -6,11 +8,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-TEXT_EDITOR* currentTextEditor;
-PT_EXPANDABLE_ARRAY* lines;
+TEXT_EDITOR* currentTextEditor = NULL;
+PT_EXPANDABLE_ARRAY* lines = NULL;
 int keyDownBound = 0;
 
 int charsTyped = 0;
+
+char get_last_char(TEXT_LINE line) {
+	return *(line.str + (line.numChars - 1));
+}
 
 int* get_charsTyped() {
 	return &charsTyped;
@@ -199,14 +205,14 @@ void on_sys_key_down(void* args) {
 	}
 }
 
-char get_last_char(TEXT_LINE line) {
-	return *(line.str + (line.numChars - 1));
-}
-
 void on_render_frame_render(PT_RENDERFRAME* renderFrame) {
 	if (currentTextEditor && currentTextEditor->renderFrame == renderFrame) {
 		render_text_editor(*currentTextEditor);
 	}
+}
+
+int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor) {
+	return (int)(editor->charWidth * 7.0f);
 }
 
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* renderFrame) {
@@ -223,8 +229,8 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_LINE));
 
-	editor->textHeight = 20;
-	editor->linePadding = 10;
+	editor->textHeight = 16;
+	editor->linePadding = editor->textHeight / 2;
 
 	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
 
@@ -251,9 +257,42 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	return editor;
 }
 
+TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* renderFrame, const char* filename) {
+	TEXT_EDITOR* editor = TEXT_EDITOR_new(scrollframe, renderFrame);
+	
+	FILE* file = fopen(filename, "rb+");
+	if (!file) {
+		int len = strlen(filename);
+		wchar_t* wfilename = calloc(len + 1, sizeof(wchar_t));
+		mbstowcs(wfilename, filename, len);
+
+		error(L"Could not find file \"%s\"", wfilename);
+
+		free(wfilename);
+
+		return editor;
+	}
+
+	TEXT_CURSOR* cursor = &editor->textCursor;
+	const int bufferSize = 1000;
+	char* buffer = calloc(bufferSize, sizeof(char));
+	int charsRead = 0;
+	do {
+		charsRead = fread(buffer, sizeof(char), bufferSize, file);
+		if (charsRead > 0) {
+			insert_str_at_cursor(cursor, cursor->position, buffer, charsRead);
+		}
+	} while (charsRead == bufferSize);
+
+	fclose(file);
+
+	return editor;
+}
 
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 	float t = PT_TIME_get();
+
+	int xMargin = TEXT_EDITOR_get_margin(editor);
 
 	TEXT_CURSOR* textCursor = &editor->textCursor;
 	int cursorY = textCursor->position.y;
@@ -269,7 +308,7 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 
 		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
 		cursorObj->position = PT_REL_DIM_new(
-			0, 5 * editor->charWidth + get_text_width(editor->charSet, thisLine.str, x),
+			0, xMargin + get_text_width(editor->charSet, thisLine.str, x),
 			0, cursorPos.y * (editor->linePadding + editor->textHeight)
 		); 
 
