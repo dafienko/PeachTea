@@ -15,5 +15,5 @@ void main() {
 	
 	float xAlpha = ((1.0f * screenPos.x) / screenSize.x) * 2.0f - 1.0f;
 	float yAlpha = ((1.0f * screenPos.y) / screenSize.y) * -2.0f + 1.0f;
-	gl_Position = vec4(xAlpha, yAlpha, depth, 1);
+	gl_Position = vec4(xAlpha, yAlpha, 0, 1);
 }

@@ -8,9 +8,9 @@ typedef struct {
 	char_set* cs;
 } PT_LOADED_FONT;
 
-int fontHandlerInitialized;
+int fontHandlerInitialized = 0;
 
-PT_EXPANDABLE_ARRAY loadedFonts;
+PT_EXPANDABLE_ARRAY loadedFonts = { 0 };
 
 
 void init_fontHandler() {

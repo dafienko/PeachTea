@@ -169,12 +169,14 @@ void on_command(void* args) {
 			{
 				HANDLE hClipboardData = GetClipboardData(CF_TEXT);
 
-				char* pchData = (char*)GlobalLock(hClipboardData);
-				int clipboardLen = strlen(pchData);
+				if (hClipboardData) {
+					char* pchData = (char*)GlobalLock(hClipboardData);
+					int clipboardLen = strlen(pchData);
 
-				insert_str_at_cursor(cursor, cursor->position, pchData, clipboardLen);
+					insert_str_at_cursor(cursor, cursor->position, pchData, clipboardLen);
 
-				GlobalUnlock(hClipboardData);
+					GlobalUnlock(hClipboardData);
+				}
 
 				CloseClipboard();
 			}
@@ -229,7 +231,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_LINE));
 
-	editor->textHeight = 16;
+	editor->textHeight = 18;
 	editor->linePadding = editor->textHeight / 2;
 
 	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);

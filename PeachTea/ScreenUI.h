@@ -66,6 +66,8 @@ PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui);
 PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas);
 void render_gui_instance(Instance* instance, PT_SCREEN_UI* ui);
 
+void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui);
+
 void set_quad_positions(vec2i topLeft, vec2i bottomRight);
 void set_quad_corners(vec2f topLeft, vec2f bottomRight);
 void default_quad_corners();

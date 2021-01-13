@@ -45,11 +45,12 @@ PT_canvas PT_RENDERFRAME_update_size(PT_RENDERFRAME* renderFrame, PT_canvas pare
 
 	vec2i lastCanvasSize = canvas_size(lastCanvas);
 	vec2i thisCanvasSize = canvas_size(thisCanvas);
-	if (!vector_equal_2i(lastCanvasSize, thisCanvasSize) && renderFrame->renderTexture.tex) {
-		renderFrame->renderTexture = PT_FRAMETEXTURE_resize(renderFrame->renderTexture, thisCanvasSize.x, thisCanvasSize.y);
-	}
-	else if (!renderFrame->renderTexture.tex) {
-		if (thisCanvasSize.x > 0 && thisCanvasSize.y > 0) {
+
+	if (thisCanvasSize.x > 0 && thisCanvasSize.y > 0) {
+		if (!vector_equal_2i(lastCanvasSize, thisCanvasSize) && renderFrame->renderTexture.tex) {
+			renderFrame->renderTexture = PT_FRAMETEXTURE_resize(renderFrame->renderTexture, thisCanvasSize.x, thisCanvasSize.y);
+		}
+		else if (!renderFrame->renderTexture.tex) {
 			renderFrame->renderTexture = PT_FRAMETEXTURE_new(thisCanvasSize.x, thisCanvasSize.y, 0);
 		}
 	}

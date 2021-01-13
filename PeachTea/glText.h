@@ -6,11 +6,17 @@
 #include "Colors.h"
 
 typedef struct {
-	GLuint* textures;
+	GLuint texture;
+	
 	vec2i* size;
 	vec2i* bearing;
 	float* advance;
 	int num_chars;
+
+	vec2i charSize;
+	int maxCharHeight;
+
+	int ssFactor;
 } char_set;
 
 void initFT();

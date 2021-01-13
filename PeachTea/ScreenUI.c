@@ -316,6 +316,15 @@ void update_instance_size_recur(Instance* instance, PT_canvas parentCanvas) {
 	}
 }
 
+void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui) {
+	if (ui->lastRenderTree) {
+		PT_UI_RENDER_TREE_destroy(ui->lastRenderTree);
+	}
+
+	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
+	ui->lastRenderTree = tree;
+}
+
 PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 	PT_canvas canvas = { 0 };
 
@@ -332,15 +341,9 @@ PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	if (ui->lastRenderTree) {
-		PT_UI_RENDER_TREE_destroy(ui->lastRenderTree);
+		PT_UI_RENDER_TREE_render(ui->lastRenderTree, ui);
+		PT_FRAMETEXTURE_copy_to_framebuffer(ui->frameTexture, 0);
 	}
-
-	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
-
-	PT_UI_RENDER_TREE_render(tree, ui);
-	PT_FRAMETEXTURE_copy_to_framebuffer(ui->frameTexture, 0);	
-
-	ui->lastRenderTree = tree;
 
 	return canvas;
 }

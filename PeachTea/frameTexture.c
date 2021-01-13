@@ -9,6 +9,10 @@
 #include <stdio.h>
 
 PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
+	if (w <= 0 || h <= 0) {
+		fatal_error(L"you tried to create a frametexture with a width or height of 0");
+	}
+
 	PT_FRAMETEXTURE frameTexture = { 0 };
 
 	GLuint fbo = 0;
@@ -46,9 +50,6 @@ PT_FRAMETEXTURE PT_FRAMETEXTURE_new(int w, int h, int multisampled) {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		fatal_error(L"frametexture creation failed");
 	}
-
-
-	printf("created FBO %i with tex %i and rbo %i\n", fbo, tex, rbo);
 
 	frameTexture.multisampled = multisampled;
 	frameTexture.width = w;
@@ -121,7 +122,7 @@ void PT_FRAMETEXTURE_unbind() {
 
 PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex) {
 	glBindFramebuffer(GL_FRAMEBUFFER, tex.fbo);
-
+	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
 }

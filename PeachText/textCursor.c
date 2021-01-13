@@ -68,7 +68,7 @@ void format_insert_str(const char* str, int strLen, char*** linesOut, int** leng
 			lineIndex++;
 		}
 
-		if (i == strLen - 1 && c != '\n') {// at the last character
+		if (i == strLen - 1) {// at the last character
 			char* line = calloc(tempLen + 1, sizeof(char));
 
 			if (tempLen > 0) {
@@ -273,7 +273,7 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
 			PT_EXPANDABLE_ARRAY_set(cursor->textArray, pos.y, (void*)&insertLine);
 		}
 		else { // if this isn't the first line, insert this text line into the array
-			if (pos.y + i >= cursor->textArray->numElements - 1) {
+			if (pos.y + i >= cursor->textArray->numElements) {
 				PT_EXPANDABLE_ARRAY_add(cursor->textArray, (void*)&insertLine);
 			}
 			else {

@@ -70,8 +70,6 @@ PT_REL_DIM MENU_CLOSE_POS;
 PT_TWEEN* openMenuTween;
 PT_TWEEN* closeMenuTween;
 void on_menu_activated(void* args) {
-
-
 	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
 	PT_IMAGELABEL* imageLabel = (PT_IMAGELABEL*)obj->instance->subInstance;
 
@@ -89,12 +87,9 @@ void on_menu_activated(void* args) {
 
 
 int main(int argc, char** args) {
-
 	for (int i = 0; i < argc; i++) {
 		printf("%i: \"%s\"\n\n", i, *(args + i));
 	}
-
-	
 
 	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PeachText");
 
@@ -180,11 +175,13 @@ int main(int argc, char** args) {
 	sideBarObj->blurRadius = 50;
 
 	sideBarObj->backgroundColor = PT_COLOR_fromRGB(0, 0, 0);
+	//sideBarObj->backgroundColor = accentColor;
 
 	sideBarObj->borderWidth = 0;
 	sideBarObj->reactive = 1;
 	sideBarObj->borderColor = PT_COLOR_fromRGB(40, 40, 40);
 	sideBarObj->activeBorderColor = PT_COLOR_fromRGB(100, 100, 100);
+	//sideBarObj->activeBorderColor = PT_COLOR_fromHSV(0, 0, .95f);
 	sideBarObj->activeBorderRange = (vec2f){ 10, 80 };
 	sideBarObj->zIndex = 10;
 
@@ -274,6 +271,8 @@ int main(int argc, char** args) {
 		textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, *(args + 1));
 	}
 	*/
+
+	PT_SCREEN_UI_update_rendertree(ui);
 
 	PT_RUN(onUpdate, onRender);
 	//PT_RUN(NULL, onRender);

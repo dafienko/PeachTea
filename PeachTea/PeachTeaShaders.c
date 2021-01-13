@@ -27,9 +27,11 @@ void PT_SHADERS_init() {
 	glBindBuffer(GL_ARRAY_BUFFER, *qVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quadPositions), quadPositions, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
-	glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_QUAD_CORNERS), DEFAULT_QUAD_CORNERS, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_QUAD_CORNERS), DEFAULT_QUAD_CORNERS, GL_DYNAMIC_DRAW);
+
 
 	GLuint qvs = create_vertex_shader("shaders\\core\\basicQuad.vs");
+	GLuint tvs = create_vertex_shader("shaders\\core\\textQuad.vs");
 
 	GLuint tqfs = create_fragment_shader("shaders\\core\\textQuad.fs");
 	GLuint ifs = create_fragment_shader("shaders\\core\\imageQuad.fs");
@@ -37,10 +39,12 @@ void PT_SHADERS_init() {
 	GLuint bfs = create_fragment_shader("shaders\\core\\blur.fs");
 	GLuint tfs = create_fragment_shader("shaders\\core\\tex.fs");
 	GLuint rfs = create_fragment_shader("shaders\\core\\rectangle.fs");
+	GLuint tsgfs = create_fragment_shader("shaders\\core\\textSpritemapGenerator.fs");
 
-	GLuint quadShaders[] = { qvs, tqfs };
+	GLuint quadShaders[] = { tvs, tqfs };
 	PTS_text = create_program(quadShaders, 2);
 
+	quadShaders[0] = qvs;
 	quadShaders[1] = ifs;
 	PTS_img = create_program(quadShaders, 2);
 
@@ -55,4 +59,7 @@ void PT_SHADERS_init() {
 
 	quadShaders[1] = rfs;
 	PTS_rect = create_program(quadShaders, 2);
+
+	quadShaders[1] = tsgfs;
+	PTS_textSpritemapGenerator = create_program(quadShaders, 2);
 }
