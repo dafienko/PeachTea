@@ -212,6 +212,35 @@ int get_text_width(char_set* cs, const char* str, int len) {
 	return penX;
 }
 
+int get_char_position(char_set* cs, const char* str, int len, int x) {
+	int penX = 0;
+	int cIndex = 0;
+	int distanceToIndex = -1;
+
+	for (int i = 0; i < len; i++) {
+		char c = *(str + i);
+
+		if (c == '\t') {
+			int nextTabIndex = (int)floor((double)penX / (double)TAB_WIDTH) + 1;
+			penX = nextTabIndex * TAB_WIDTH;
+		}
+		else if (c != '\n') {
+			int advance = *(cs->advance + c);
+			penX += advance >> 6;
+		}
+
+		if (c != '\n') {
+			int d = abs(penX - x);
+			if (distanceToIndex == -1 || d < distanceToIndex) {
+				distanceToIndex = d;
+				cIndex = i + 1;
+			}
+		}
+	}
+
+	return cIndex;
+}
+
 void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

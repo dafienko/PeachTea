@@ -14,6 +14,12 @@ int keyDownBound = 0;
 
 int charsTyped = 0;
 
+#define IS_UPPER_CHAR(c) c >= 65 && c <= 90
+#define IS_LOWER_CHAR(c) c >= 97 && c <= 122
+#define IS_ALPHA_CHAR(c) IS_UPPER_CHAR(c) || IS_LOWER_CHAR(c);
+#define IS_NUMBER_CHAR(c) c >= 48 && c <= 57
+
+
 char get_last_char(TEXT_LINE line) {
 	return *(line.str + (line.numChars - 1));
 }
@@ -217,6 +223,48 @@ int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor) {
 	return (int)(editor->charWidth * 7.0f);
 }
 
+vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
+	vec2i cPos = (vec2i){ 0 };
+
+	if (currentTextEditor) {
+		vec2i canvasOffset = currentTextEditor->scrollFrame->canvasPosition;
+		int xMargin = TEXT_EDITOR_get_margin(currentTextEditor);
+		vec2i absPos = canvas_pos(currentTextEditor->scrollFrame->guiObj->lastCanvas);
+
+		vec2i relMousePos = vector_add_2i(screenPos, canvasOffset);
+		relMousePos.x -= xMargin;
+		relMousePos = vector_sub_2i(relMousePos, absPos);
+		
+		int cy = relMousePos.y / (currentTextEditor->linePadding + currentTextEditor->textHeight);
+		cy = max(0, min(cy, currentTextEditor->textLines->numElements - 1));
+
+		TEXT_LINE thisLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, cy);
+		int numChars = thisLine.numChars;
+		if (get_last_char(thisLine) == '\n') {
+			numChars--;
+		}
+		int cx = get_char_position(currentTextEditor->charSet, thisLine.str, thisLine.numChars, relMousePos.x);
+
+		cPos = (vec2i){ cx, cy };
+	}
+
+	return cPos;
+}
+
+void TEXT_EDITOR_on_click() {
+	if (currentTextEditor) {
+		int altDown = is_key_down(VK_MENU);
+		int shiftDown = is_key_down(VK_LSHIFT);
+
+		if (!(altDown || shiftDown)) {
+			vec2i cursorPos = TEXT_EDITOR_screenPos_to_cursorPos(mousePos);
+			currentTextEditor->textCursor.position = cursorPos;
+			currentTextEditor->textCursor.selectTo = cursorPos;
+			currentTextEditor->textCursor.cloneLineOffset = 0;
+		}
+	}
+}
+
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* renderFrame) {
 	if (!keyDownBound) {
 		keyDownBound = 1;
@@ -224,6 +272,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 		PT_BINDABLE_EVENT_bind(&eOnKeyPress, on_key_down);
 		PT_BINDABLE_EVENT_bind(&eOnSysKeyPress, on_sys_key_down);
 		PT_BINDABLE_EVENT_bind(&eOnCommand, on_command);
+		PT_BINDABLE_EVENT_bind(&e_mouse1Down, TEXT_EDITOR_on_click);
 	}
 	
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
@@ -231,7 +280,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_LINE));
 
-	editor->textHeight = 18;
+	editor->textHeight = 20;
 	editor->linePadding = editor->textHeight / 2;
 
 	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
