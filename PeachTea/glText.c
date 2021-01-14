@@ -220,6 +220,14 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 	for (int i = 0; i < len; i++) {
 		char c = *(str + i);
 
+		if (c != '\n') {
+			int d = abs(penX - x);
+			if (distanceToIndex == -1 || d < distanceToIndex) {
+				distanceToIndex = d;
+				cIndex = i;
+			}
+		}
+
 		if (c == '\t') {
 			int nextTabIndex = (int)floor((double)penX / (double)TAB_WIDTH) + 1;
 			penX = nextTabIndex * TAB_WIDTH;
@@ -237,6 +245,7 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 			}
 		}
 	}
+
 
 	return cIndex;
 }
