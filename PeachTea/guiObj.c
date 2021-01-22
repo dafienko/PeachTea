@@ -6,6 +6,7 @@
 #include "errorUtil.h"
 #include "PeachTeaShaders.h"
 #include "ScreenUI.h"
+#include "uiRenderTree.h"
 
 #include "glUniformUtil.h"
 
@@ -138,10 +139,9 @@ void PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_SCREEN_UI* ui) {
 	vec2i framePos = canvas_pos(obj->lastCanvas);
 
 	if (obj->visible) {
+		PT_UI_RENDER_TREE* tree = ui->lastRenderTree;
 		if (!PERFORMANCE_MODE && obj->blurred) {
-			PT_FRAMETEXTURE_blur(ui->frameTexture.tex, ui->effectTexture1, (vec2f) { 0, 1 }, obj->blurRadius, 0);
-			PT_FRAMETEXTURE_blur(ui->effectTexture1.tex, ui->effectTexture2, (vec2f) { 1, 0 }, obj->blurRadius, 1);
-			PT_FRAMETEXTURE_bind(ui->frameTexture);
+			PT_SCREEN_UI_update_blur_tex(ui, obj);
 		}
 
 		glUseProgram(PTS_guiObj);

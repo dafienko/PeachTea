@@ -46,6 +46,9 @@ typedef struct {
 	PT_FRAMETEXTURE frameTexture;
 	PT_FRAMETEXTURE effectTexture1;
 	PT_FRAMETEXTURE effectTexture2;
+	
+	int lastBlurZindex;
+	Instance* lastRootInstance;
 
 	struct PT_UI_RENDER_TREE* lastRenderTree;
 
@@ -71,5 +74,7 @@ void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui);
 void set_quad_positions(vec2i topLeft, vec2i bottomRight);
 void set_quad_corners(vec2f topLeft, vec2f bottomRight);
 void default_quad_corners();
+
+void PT_SCREEN_UI_update_blur_tex(PT_SCREEN_UI* ui, struct PT_GUI_OBJ* obj);
 
 #endif

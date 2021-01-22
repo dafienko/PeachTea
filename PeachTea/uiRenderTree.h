@@ -11,6 +11,8 @@ typedef struct {
 	struct PT_UI_RENDER_TREE** branches;
 	int numBranches;
 	int branchSpace;
+
+	int lastBlurZIndex;
 } PT_UI_RENDER_TREE;
 
 PT_UI_RENDER_TREE* PT_UI_RENDER_TREE_generate(PT_SCREEN_UI* screenUi);

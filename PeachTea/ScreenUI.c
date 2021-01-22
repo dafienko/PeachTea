@@ -346,8 +346,36 @@ void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui) {
 	}
 
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
-	print_rendertree(tree, 0);
 	ui->lastRenderTree = tree;
+}
+
+void PT_SCREEN_UI_update_blur_tex(PT_SCREEN_UI* ui, PT_GUI_OBJ* obj) {
+	int updateRequired = 1;
+
+	if (ui->sortingType == ZST_GLOBAL) {
+		if (ui->lastBlurZindex == obj->zIndex) {
+			updateRequired = 0;
+		}
+	}
+	else if (ui->sortingType == ZST_SIBLING) {
+		if (ui->lastBlurZindex == obj->zIndex && obj->instance && ui->lastRootInstance == obj->instance->parent) {
+			updateRequired = 0;
+		}
+	}
+
+	if (updateRequired) {
+		PT_FRAMETEXTURE_blur(ui->frameTexture.tex, ui->effectTexture1, (vec2f) { 0, 1 }, obj->blurRadius, 0);
+		PT_FRAMETEXTURE_blur(ui->effectTexture1.tex, ui->effectTexture2, (vec2f) { 1, 0 }, obj->blurRadius, 1);
+		PT_FRAMETEXTURE_bind(ui->frameTexture);
+
+		ui->lastBlurZindex = obj->zIndex;
+		if (obj->instance) {
+			ui->lastRootInstance = obj->instance->parent; 
+		}
+		else {
+			ui->lastRootInstance = NULL;
+		}
+	}
 }
 
 PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
@@ -366,7 +394,10 @@ PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	if (ui->lastRenderTree) {
-		PT_UI_RENDER_TREE_render(ui->lastRenderTree, ui);
+		PT_UI_RENDER_TREE* tree = ui->lastRenderTree;
+		tree->lastBlurZIndex = -1;
+
+		PT_UI_RENDER_TREE_render(tree, ui);
 		PT_FRAMETEXTURE_copy_to_framebuffer(ui->frameTexture, 0);
 	}
 

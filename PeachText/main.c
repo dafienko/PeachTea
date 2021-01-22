@@ -176,7 +176,7 @@ int main(int argc, char** args) {
 	sideBarObj->blurRadius = 50;
 
 	sideBarObj->backgroundColor = PT_COLOR_fromRGB(0, 0, 0);
-	//sideBarObj->backgroundColor = accentColor;
+	sideBarObj->backgroundColor = accentColor;
 
 	sideBarObj->borderWidth = 0;
 	sideBarObj->reactive = 1;
