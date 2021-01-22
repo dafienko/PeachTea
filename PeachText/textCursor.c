@@ -5,10 +5,10 @@ TEXT_CURSOR TEXT_CURSOR_new(TEXT_EDITOR* editor) {
 	Instance* cursorFrame = PT_GUI_OBJ_new();
 	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
 	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
-	cursorObj->zIndex = 6;
+	cursorObj->zIndex = 3;
 	cursorObj->backgroundColor = PT_COLOR_fromHSV(0, 0, .9f);
 
-	set_instance_parent(cursorFrame, editor->scrollFrame->instance);
+	set_instance_parent(cursorFrame, editor->scrollFrame->instance->parent);
 
 	TEXT_CURSOR cursor = { 0 };
 	cursor.position = (vec2i){ 0, 0 };
@@ -138,6 +138,7 @@ void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 	cursor->position = start;
 	cursor->selectTo = start;
 	cursor->targetX = start.x;
+	move_text_pos_in_view(cursor->position);
 }
 
 void get_cursor_selection_bounds(TEXT_CURSOR cursor, vec2i* startOut, vec2i* endOut) {
@@ -291,7 +292,7 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
 	};
 	cursor->selectTo = cursor->position;
 	cursor->targetX = cursor->position.x;
-	
+	move_text_pos_in_view(cursor->position);
 
 	free(beforeStr);
 	free(afterStr);
@@ -413,4 +414,5 @@ void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
 
 	cursor->position = newPos;
 	cursor->targetX = newPosData.z;
+	move_text_pos_in_view(cursor->position);
 }

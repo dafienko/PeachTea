@@ -148,7 +148,8 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PT_BINDABLE_EVENT_fire(&e_mouse1Up, NULL);
 		break;
 	case WM_SETCURSOR:
-		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+		//SetCursor(LoadCursor(NULL, IDC_ARROW));
+		break;
 	case WM_MOUSEWHEEL:
 		;
 		int d = GET_WHEEL_DELTA_WPARAM(wParam);

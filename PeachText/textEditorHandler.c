@@ -68,7 +68,7 @@ void on_char_typed(void* args) {
 		if (c == '\b') {
 			if (vector_equal_2i(cursor->selectTo, cursor->position)) { // if nothing is selected
 				vec2i end = cursorPos;
-				vec3i startData = calculate_text_position(cursor->textArray, cursor->position, (vec2i) { -1, 0 }, cursor->targetX);
+				vec3i startData = calculate_text_position(cursor->textArray, cursor->position, (vec2i) { -1, 0 }, cursor->targetX); 
 				vec2i start = (vec2i){ startData.x, startData.y };
 
 				if (!vector_equal_2i(end, start)) { // if there is actually something to be deleted
@@ -85,6 +85,43 @@ void on_char_typed(void* args) {
 			insert_str_at_cursor(cursor, p, &c, 1);
 		}
 	}	
+}
+
+void move_text_pos_in_view(vec2i textPosition) {
+	if (currentTextEditor) {
+		int lineHeight = currentTextEditor->textHeight + currentTextEditor->linePadding;
+		int focusY = textPosition.y * (lineHeight);
+		
+		TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, textPosition.y);
+		int focusX = get_text_width(currentTextEditor->charSet, line->str, textPosition.x);
+
+		vec2i sfSize = canvas_size(currentTextEditor->scrollFrame->guiObj->lastCanvas);
+		sfSize.x -= TEXT_EDITOR_get_margin(currentTextEditor);
+		vec2i currentCanvasPos = currentTextEditor->scrollFrame->canvasPosition;
+
+
+		vec2i newCanvasPos = currentCanvasPos;
+
+		if (focusY < currentCanvasPos.y) { // if text is above viewport
+			newCanvasPos.y = focusY;
+		}
+		else if (focusY + lineHeight >= currentCanvasPos.y + sfSize.y) { // if text is below viewport
+			newCanvasPos.y = focusY - (sfSize.y - (currentTextEditor->scrollFrame->scrollBarThickness + lineHeight));
+		}
+
+		if (focusX < currentCanvasPos.x) { // if text position is to the left of the viewport
+			newCanvasPos.x = focusX;
+		}
+		else if (focusX + currentTextEditor->charWidth > currentCanvasPos.x + sfSize.x) { // if text is to the right of viewport
+			newCanvasPos.x = focusX - sfSize.x + currentTextEditor->scrollFrame->scrollBarThickness;
+		}
+
+		// clamp to at least 0, 0
+		newCanvasPos.x = max(0, newCanvasPos.x);
+		newCanvasPos.y = max(0, newCanvasPos.y);
+
+		currentTextEditor->scrollFrame->canvasPosition = newCanvasPos;
+	}
 }
 
 void on_key_down(void* args) {
@@ -219,6 +256,7 @@ void on_render_frame_render(PT_RENDERFRAME* renderFrame) {
 	}
 }
 
+
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor) {
 	return (int)(editor->charWidth * 7.0f);
 }
@@ -256,24 +294,74 @@ void TEXT_EDITOR_on_click() {
 		int altDown = is_key_down(VK_MENU);
 		int shiftDown = is_key_down(VK_LSHIFT);
 
+		vec2i cursorPos = TEXT_EDITOR_screenPos_to_cursorPos(mousePos);
+
 		if (!(altDown || shiftDown)) {
-			vec2i cursorPos = TEXT_EDITOR_screenPos_to_cursorPos(mousePos);
 			currentTextEditor->textCursor.position = cursorPos;
 			currentTextEditor->textCursor.selectTo = cursorPos;
+			currentTextEditor->textCursor.cloneLineOffset = 0;
+		}
+		else if (shiftDown && !altDown) {
+			currentTextEditor->textCursor.position = cursorPos;
 			currentTextEditor->textCursor.cloneLineOffset = 0;
 		}
 	}
 }
 
-TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* renderFrame) {
+void TEXT_EDITOR_on_drag() {
+	if (currentTextEditor) {
+		int altDown = is_key_down(VK_MENU);
+		int shiftDown = is_key_down(VK_LSHIFT);
+
+		vec2i cursorPos = TEXT_EDITOR_screenPos_to_cursorPos(mousePos);
+
+		if (!(altDown || shiftDown)) {
+			currentTextEditor->textCursor.position = cursorPos;
+			currentTextEditor->textCursor.cloneLineOffset = 0;
+		}
+	}
+}
+
+int currentCursor = IDC_ARROW;
+void editor_mouse_moved(void* arg) {
+	if (currentTextEditor) {
+		PT_GUI_OBJ* renderFrameObj = currentTextEditor->renderFrame->guiObj;
+		vec2i objPos = canvas_pos(renderFrameObj->lastCanvas);
+		int xMargin = TEXT_EDITOR_get_margin(currentTextEditor);
+		vec2i objSize = canvas_size(renderFrameObj->lastCanvas);
+		objPos.x += xMargin;
+		objSize.x -= xMargin;
+		
+		int oldCursor = currentCursor;
+		if (mousePos.x > objPos.x && mousePos.x < objPos.x + objSize.x && mousePos.y > objPos.y && mousePos.y < objPos.y + objSize.y) {
+			currentCursor = IDC_IBEAM;
+		}
+		else {
+			currentCursor = IDC_ARROW;
+		}
+		
+		if (currentCursor != oldCursor) {
+			SetCursor(LoadCursor(NULL, currentCursor));
+		}
+	}
+}
+
+
+TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame) {
 	if (!keyDownBound) {
 		keyDownBound = 1;
+		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)scrollframeInstance->subInstance;
+
 		PT_BINDABLE_EVENT_bind(&eOnCharTyped, on_char_typed);
 		PT_BINDABLE_EVENT_bind(&eOnKeyPress, on_key_down);
 		PT_BINDABLE_EVENT_bind(&eOnSysKeyPress, on_sys_key_down);
 		PT_BINDABLE_EVENT_bind(&eOnCommand, on_command);
 		PT_BINDABLE_EVENT_bind(&e_mouse1Down, TEXT_EDITOR_on_click);
+		PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_dragged, TEXT_EDITOR_on_drag);
+		PT_BINDABLE_EVENT_bind(&e_mouseMove, editor_mouse_moved);
 	}
+
+
 	
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
 
@@ -288,8 +376,8 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->charWidth = get_text_width(editor->charSet, "M", 1);
 
 	editor->renderFrame = renderFrame;
+	editor->sideRenderFrame = sideRenderFrame;
 	editor->scrollFrame = (PT_SCROLLFRAME*)scrollframeInstance->subInstance;
-
 
 	renderFrame->render = on_render_frame_render;
 
@@ -308,8 +396,8 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	return editor;
 }
 
-TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* renderFrame, const char* filename) {
-	TEXT_EDITOR* editor = TEXT_EDITOR_new(scrollframe, renderFrame);
+TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, const char* filename) {
+	TEXT_EDITOR* editor = TEXT_EDITOR_new(scrollframe, renderFrame, sideRenderFrame);
 	
 	FILE* file = fopen(filename, "rb+");
 	if (!file) {
@@ -337,11 +425,19 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 
 	fclose(file);
 
+	// initial view should be at the top of the file
+	editor->textCursor.position = (vec2i){ 0, 0 };
+	editor->textCursor.selectTo = (vec2i){ 0, 0 };
+	editor->textCursor.targetX = 0;
+	editor->scrollFrame->canvasPosition = (vec2i){ 0, 0 };
+
 	return editor;
 }
 
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 	float t = PT_TIME_get();
+	
+	PT_canvas scrollCanvas = editor->scrollFrame->guiObj->lastCanvas;
 
 	int xMargin = TEXT_EDITOR_get_margin(editor);
 
@@ -359,8 +455,8 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 
 		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
 		cursorObj->position = PT_REL_DIM_new(
-			0, xMargin + get_text_width(editor->charSet, thisLine.str, x),
-			0, cursorPos.y * (editor->linePadding + editor->textHeight)
+			0, scrollCanvas.left + xMargin + get_text_width(editor->charSet, thisLine.str, x),
+			0, scrollCanvas.top + cursorPos.y * (editor->linePadding + editor->textHeight)
 		); 
 
 		if (textCursor->insert) {

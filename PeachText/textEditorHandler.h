@@ -16,6 +16,7 @@ typedef struct {
 
 	PT_SCROLLFRAME* scrollFrame;
 	PT_RENDERFRAME* renderFrame;
+	PT_RENDERFRAME* sideRenderFrame;
 
 	PT_COLOR insertionColor;
 	float insertionFadeTime;
@@ -26,9 +27,11 @@ typedef struct {
 
 char get_last_char(TEXT_LINE line);
 
-TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame);
-TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* renderFrame, const char* filename);
+TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame);
+TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, const char* filename);
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor);
+
+void move_text_pos_in_view(vec2i textPosition);
 
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt);
 

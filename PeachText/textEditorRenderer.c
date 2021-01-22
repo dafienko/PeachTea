@@ -7,6 +7,76 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusionTopLeftBound, vec2i occlusionBottomRightBound) {
+	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
+	vec2i canvasOffset = scrollFrame->canvasPosition;
+	PT_canvas scrollCanvas = scrollFrame->guiObj->lastCanvas;
+	
+	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(&textEditor);
+	int lineThickness = textEditor.textHeight + textEditor.linePadding;
+
+	textEditor.sideRenderFrame->guiObj->size = PT_REL_DIM_new(0, xMargin - 5, 1, 0);
+
+	if (!textEditor.sideRenderFrame->renderTexture.tex) {
+		return; // can't render line numbers if side render frame's texture is null
+	}
+
+	vec2i frameSize = canvas_size(textEditor.sideRenderFrame->guiObj->lastCanvas);
+
+	// render line # side bar
+	PT_FRAMETEXTURE_bind(textEditor.sideRenderFrame->renderTexture);
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glUseProgram(PTS_rect);
+	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), scrollFrame->guiObj->backgroundColor);
+	//uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), PT_COLOR_fromRGB(255, 0, 0));
+	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), 0.4);
+	uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), frameSize);
+	default_quad_corners();
+	set_quad_positions(
+			(vec2i) {
+			0, 0
+		},
+			(vec2i) {
+			xMargin - 5, frameSize.y
+		}
+	);
+	glDrawArrays(GL_QUADS, 0, 4);
+
+	//*
+	// render line numbers
+	int yPos = textEditor.textHeight;
+	char* lineNumStr = calloc(50, sizeof(char));
+	for (int y = 0; y < textEditor.textLines->numElements; y++) {
+		int xPos = xMargin;
+
+		if (yPos > occlusionTopLeftBound.y) {
+			if (yPos - lineThickness > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)
+				break;
+			}
+
+			// render line number
+			memset(lineNumStr, 0, 20 * sizeof(char));
+			sprintf(lineNumStr, "%i", y + 1);
+			int lineNumStrWidth = get_text_width(textEditor.charSet, lineNumStr, strlen(lineNumStr));
+			render_text(
+				frameSize,
+				textEditor.charSet,
+				accentColor, //PT_COLOR_fromRGB(43, 145, 175),
+				0,
+				lineNumStr,
+				strlen(lineNumStr),
+				xMargin - (lineNumStrWidth + 10), yPos - canvasOffset.y
+			);
+		}
+
+		yPos += lineThickness;
+	}
+
+	free(lineNumStr);
+	//*/
+}
+
 void render_text_editor(TEXT_EDITOR textEditor) {
 	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
 	vec2i canvasOffset = scrollFrame->canvasPosition;
@@ -125,51 +195,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		yPos += lineThickness;
 	}
 
-	// render line # side bar
-	glUseProgram(PTS_rect);
-	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), scrollFrame->guiObj->backgroundColor);
-	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), 0.1);
-	uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), screenSize);
-	default_quad_corners();
-	set_quad_positions(
-		(vec2i) {
-			0, 0
-		},
-		(vec2i) {
-			xMargin - 5, screenSize.y
-		}
-	);
-	glDrawArrays(GL_QUADS, 0, 4);
-
-
-	// render line numbers
-	yPos = textEditor.textHeight;
-	char* lineNumStr = calloc(20, sizeof(char));
-	for (int y = 0; y < textEditor.textLines->numElements; y++) {
-		xPos = xMargin;
-
-		if (yPos > occlusionTopLeftBound.y) {
-			if (yPos - lineThickness > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)
-				break;
-			}
-
-			// render line number
-			memset(lineNumStr, 0, 20 * sizeof(char));
-			sprintf(lineNumStr, "%i", y + 1);
-			int lineNumStrWidth = get_text_width(textEditor.charSet, lineNumStr, strlen(lineNumStr));
-			render_text(
-				canvasSize,
-				textEditor.charSet,
-				accentColor, //PT_COLOR_fromRGB(43, 145, 175),
-				0,
-				lineNumStr,
-				strlen(lineNumStr),
-				xMargin - (lineNumStrWidth + 10), yPos - canvasOffset.y
-			);
-		}
-
-		yPos += lineThickness;
-	}
+	render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound);
 
 	// adjust canvas size to maximum line lengths
 	scrollFrame->canvasSize = PT_REL_DIM_new(0.1, maxX, .9, maxY);
@@ -179,6 +205,4 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		max(0, min(scrollFrame->canvasPosition.x, scrollCanvasSize.x - scrollFrameSize.x)),
 		scrollFrame->canvasPosition.y
 	};
-
-	free(lineNumStr);
 }

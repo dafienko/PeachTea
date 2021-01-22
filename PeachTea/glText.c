@@ -191,17 +191,17 @@ char_set create_char_set(const char* filename, const int textSize) {
 	return cs;
 }
 
-const int TAB_WIDTH = 60;
 
 int get_text_width(char_set* cs, const char* str, int len) {
+	int tabWidth = cs->charSize.x * 5;
 	int penX = 0;
 
 	for (int i = 0; i < len; i++) {
 		char c = *(str + i);
 
 		if (c == '\t') {
-			int nextTabIndex = (int)floor((double)penX / (double)TAB_WIDTH) + 1;
-			penX = nextTabIndex * TAB_WIDTH;
+			int nextTabIndex = (int)floor((double)penX / (double)tabWidth) + 1;
+			penX = nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
 			int advance = *(cs->advance + c);
@@ -216,6 +216,7 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 	int penX = 0;
 	int cIndex = 0;
 	int distanceToIndex = -1;
+	int tabWidth = cs->charSize.x * 5;
 
 	for (int i = 0; i < len; i++) {
 		char c = *(str + i);
@@ -229,8 +230,8 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 		}
 
 		if (c == '\t') {
-			int nextTabIndex = (int)floor((double)penX / (double)TAB_WIDTH) + 1;
-			penX = nextTabIndex * TAB_WIDTH;
+			int nextTabIndex = (int)floor((double)penX / (double)tabWidth) + 1;
+			penX = nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
 			int advance = *(cs->advance + c);
@@ -253,6 +254,7 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	int tabWidth = cs->charSize.x * 5;
 
 	int penX = baseline_x;
 	int penY = baseline_y;
@@ -269,8 +271,8 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 		char c = *(str + i);
 
 		if (c == '\t') {
-			int nextTabIndex = (int)floor((double)(penX - baseline_x) / (double)TAB_WIDTH) + 1;
-			penX = baseline_x + nextTabIndex * TAB_WIDTH;
+			int nextTabIndex = (int)floor((double)(penX - baseline_x) / (double)tabWidth) + 1;
+			penX = baseline_x + nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
 			vec2i bearing = *(cs->bearing + c);

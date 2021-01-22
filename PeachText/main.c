@@ -112,7 +112,7 @@ int main(int argc, char** args) {
 
 	// main background frame
 	Instance* backgroundInstance = PT_GUI_OBJ_new();
-	backgroundInstance->name = create_heap_str("background");
+	backgroundInstance->name = create_heap_str("backgroundFrame");
 	PT_GUI_OBJ* backgroundObj = (PT_GUI_OBJ*)backgroundInstance->subInstance;
 	backgroundObj->backgroundColor = PT_COLOR_fromHSV(0, 0, 30.0f/255.0f);
 	backgroundObj->size = PT_REL_DIM_new(1.0f, 0, 1.0f, 0);
@@ -124,7 +124,7 @@ int main(int argc, char** args) {
 
 	// main text scrollframe 
 	Instance* scrollFrameInstance = PT_SCROLLFRAME_new();
-	scrollFrameInstance->name = create_heap_str("green frame");
+	scrollFrameInstance->name = create_heap_str("scrollframe");
 	PT_SCROLLFRAME* scrollframe = (PT_SCROLLFRAME*)scrollFrameInstance->subInstance;
 	scrollframe->canvasSize = PT_REL_DIM_new(0.0f, 0, 0.0f, 1000);
 	scrollframe->scrollBarThickness = 12;
@@ -135,14 +135,14 @@ int main(int argc, char** args) {
 	hTrack->backgroundTransparency = vTrack->backgroundTransparency;
 
 	PT_GUI_OBJ* vBar = scrollframe->vscrollBar;
-	vBar->backgroundColor = PT_COLOR_fromHSV(0, 0, .75f);
-	vBar->backgroundTransparency = 0.2f;
+	vBar->backgroundColor = PT_COLOR_fromHSV(0, 0, .8f);
+	vBar->backgroundTransparency = 0.15f;
 	vBar->blurred = 1;
-	vBar->blurAlpha = .87f;
+	vBar->blurAlpha = .5f;
 	vBar->blurRadius = 15;
 	vBar->reactive = 1;
 	vBar->activeBackgroundColor = PT_COLOR_new(1, 1, 1);
-	vBar->activeBackgroundRange = (vec2f){ 10, 80 };
+	vBar->activeBackgroundRange = (vec2f){ 10, 200 };
 	PT_GUI_OBJ* hBar = scrollframe->hscrollBar;
 	hBar->backgroundColor = vBar->backgroundColor;
 	hBar->backgroundTransparency = vBar->backgroundTransparency;
@@ -158,13 +158,14 @@ int main(int argc, char** args) {
 	scrollObj->backgroundTransparency = 1;
 	scrollObj->position = PT_REL_DIM_new(0, SIDE_BAR_WIDTH, 0, 0);
 	scrollObj->size = PT_REL_DIM_new(1.0f, -SIDE_BAR_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
-	scrollObj->zIndex = 3;
+	scrollObj->zIndex = 5;
 	scrollObj->clipDescendants = 1;
 
 	set_instance_parent(scrollFrameInstance, backgroundInstance);
 
 	// side menu 
 	Instance* sideBarInstance = PT_GUI_OBJ_new();
+	sideBarInstance->name = create_heap_str("side bar");
 	PT_GUI_OBJ* sideBarObj = (PT_GUI_OBJ*)sideBarInstance->subInstance;
 	sideBarObj->size = PT_REL_DIM_new(0, SIDE_MENU_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
 	sideBarObj->anchorPosition = (vec2f){1.0f, 0.0f };
@@ -197,6 +198,7 @@ int main(int argc, char** args) {
 
 	// side menu collapse/expand button
 	Instance* menuButtonInstance = PT_IMAGELABEL_new();
+	menuButtonInstance->name = create_heap_str("menu button");
 	PT_IMAGELABEL* menuButton = (PT_IMAGELABEL*)menuButtonInstance->subInstance;
 	menuButton->image = menuImage;
 
@@ -220,7 +222,7 @@ int main(int argc, char** args) {
 
 	// bottom status bar
 	Instance* statusBarInstance = PT_TEXTLABEL_new();
-
+	statusBarInstance->name = create_heap_str("status bar");
 	statusBarLabel = (PT_TEXTLABEL*)statusBarInstance->subInstance;
 	statusBarLabel->horizontalAlignment = PT_H_ALIGNMENT_RIGHT;
 	statusBarLabel->verticalAlignment = PT_V_ALIGNMENT_CENTER;
@@ -250,8 +252,9 @@ int main(int argc, char** args) {
 
 	set_instance_parent(statusBarInstance, backgroundInstance);
 
-	// text editor render instance
+	// text editor renderframe
 	Instance* renderInstance = PT_RENDERFRAME_new();
+	renderInstance->name = create_heap_str("render frame");
 	PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)renderInstance->subInstance;
 	PT_GUI_OBJ* renderObj = renderFrame->guiObj;
 	renderObj->position = PT_REL_DIM_new(0, 0, 0, 0);
@@ -262,7 +265,20 @@ int main(int argc, char** args) {
 
 	set_instance_parent(renderInstance, backgroundInstance);
 
-	textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, "shaders\\core\\blur.fs");
+	// text editor line number renderframe 
+	Instance* sideRenderInstance = PT_RENDERFRAME_new();
+	sideRenderInstance->name = create_heap_str("side render frame");
+	PT_RENDERFRAME* sideRenderFrame = (PT_RENDERFRAME*)sideRenderInstance->subInstance;
+	PT_GUI_OBJ* sideRenderObj = sideRenderFrame->guiObj;
+	sideRenderObj->position = PT_REL_DIM_new(0, 0, 0, 0);
+	sideRenderObj->size = PT_REL_DIM_new(0, 100, 1, 0);
+	sideRenderObj->zIndex = 4;
+	sideRenderObj->backgroundColor = PT_COLOR_fromRGB(0, 0, 255);
+	sideRenderObj->backgroundTransparency = 1;
+
+	set_instance_parent(sideRenderInstance, backgroundInstance);
+
+	textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, sideRenderFrame, "shaders\\core\\blur.fs");
 	/*
 	if (argc <= 1) {
 		textEditor = TEXT_EDITOR_new(scrollFrameInstance, renderFrame);

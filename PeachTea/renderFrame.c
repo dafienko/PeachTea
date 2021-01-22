@@ -82,9 +82,11 @@ void PT_RENDERFRAME_render(PT_RENDERFRAME* renderFrame, PT_SCREEN_UI* ui) {
 		PT_FRAMETEXTURE_bind(ui->frameTexture);
 		PT_GUI_OBJ_render(renderFrame->guiObj, ui);
 
+		//printf("%s\n", renderFrame->instance->name);
 		if (renderFrame->renderTexture.tex) {
 			// copy user-rendered texture to window
 			glUseProgram(PTS_tex);
+			
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, renderFrame->renderTexture.tex);

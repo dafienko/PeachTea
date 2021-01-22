@@ -28,11 +28,11 @@ int pos_in_obj(vec2i pos, PT_GUI_OBJ* obj) {
 	return pos.x > left && pos.x < right&& pos.y > top && pos.y < bottom;
 }
 
-int obj_wheel_scroll(PT_GUI_OBJ* obj, int d) {
-	if (pos_in_obj(mousePos, obj)) {
+int obj_wheel_scroll(PT_GUI_OBJ* obj, int d, int processed) {
+	if (!processed && pos_in_obj(mousePos, obj)) {
 		Instance* instance = obj->instance;
 		
-		if (instance->instanceType == IT_SCROLLFRAME) {
+		if (instance && instance->instanceType == IT_SCROLLFRAME) {
 			PT_SCROLLFRAME* scrollframe = (PT_SCROLLFRAME*)instance->subInstance;
 			int topBound = 0;
 
@@ -54,21 +54,26 @@ int obj_wheel_scroll(PT_GUI_OBJ* obj, int d) {
 	return 0;
 }
 
-int obj_scroll_up(PT_GUI_OBJ* obj) {
-	return obj_wheel_scroll(obj, -50);
+int obj_scroll_up(PT_GUI_OBJ* obj, int processed) {
+	return obj_wheel_scroll(obj, -50, processed);
 }
 
-int obj_scroll_down(PT_GUI_OBJ* obj) {
-	return obj_wheel_scroll(obj, 50);
+int obj_scroll_down(PT_GUI_OBJ* obj, int processed) {
+	return obj_wheel_scroll(obj, 50, processed);
 }
 
-int obj_mouse_moved(PT_GUI_OBJ* obj) {
+int obj_mouse_moved(PT_GUI_OBJ* obj, int processed) {
 	int mouseWasInObj = obj->mouseInFrame;
 	obj->mouseInFrame = pos_in_obj(mousePos, obj);
 
+	int thisProcessed = 0;
+
 	if (mouseWasInObj != obj->mouseInFrame) {
 		if (obj->mouseInFrame) {
-			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
+			if (!processed) {
+				thisProcessed = 1;
+				PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
+			}
 		}
 		else {
 			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseLeave, obj);
@@ -79,11 +84,11 @@ int obj_mouse_moved(PT_GUI_OBJ* obj) {
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_dragged, obj);
 	}
 
-	return 0;
+	return thisProcessed | processed;
 }
 
-int obj_mouse1_down(PT_GUI_OBJ* obj) {
-	if (pos_in_obj(mousePos, obj)) {
+int obj_mouse1_down(PT_GUI_OBJ* obj, int processed) {
+	if (pos_in_obj(mousePos, obj) && !processed) {
 		obj->pressed = 1;
 
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_pressed, obj);
@@ -94,7 +99,7 @@ int obj_mouse1_down(PT_GUI_OBJ* obj) {
 	return 0;
 }
 
-int obj_mouse1_up(PT_GUI_OBJ* obj) {
+int obj_mouse1_up(PT_GUI_OBJ* obj, int processed) {
 	if (obj->pressed) {
 		obj->pressed = 0;
 
@@ -109,12 +114,19 @@ int obj_mouse1_up(PT_GUI_OBJ* obj) {
 	return 0;
 }
 
-int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*)) {
+
+/*
+@param processed:
+	input events are processed such that ui elements at the top of the screen run the callback first. This 
+	allows click events to only be processed once at the top-most button, rather than firing every single 
+	button that bounds the cursor. Callbacks that process events that should only be processed once (such
+	as a mouse click) should return 1 if they handle the event, and only process the event if the processed
+	argument was 0. 
+*/
+int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*, int), int processed) {
 	INSTANCE_TYPE it = instance->instanceType;
 
 	PT_GUI_OBJ* obj = NULL;
-
-	int processed = 0;
 
 	switch (it) {
 	case IT_GUI_OBJ:
@@ -142,52 +154,46 @@ int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*)) {
 		break;
 	}
 
-	if (!processed && obj != NULL) {
+	if (obj != NULL) {
 		if (obj->visible && obj->processEvents) {
-			processed = callback(obj);
+			processed |= callback(obj, processed);
 		}
 	}
 
 	return processed;
 }
 
-int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*callback)(PT_GUI_OBJ*)) {
-	int processed = 0;
-
+int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*callback)(PT_GUI_OBJ*, int), int processed) {
 	Instance* rootInstance = renderTree->rootInstance;
 
 	int isScrollEvent = callback == obj_scroll_down || callback == obj_scroll_up;
 
 	// process scrollframe controls
-	if (!processed && rootInstance->instanceType == IT_SCROLLFRAME) {
+	if (rootInstance->instanceType == IT_SCROLLFRAME) {
 		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)rootInstance->subInstance;
-		processed = callback(scrollFrame->vscrollTrack);
-		processed = callback(scrollFrame->vscrollBar);
 
-		processed = callback(scrollFrame->hscrollTrack);
-		processed = callback(scrollFrame->hscrollBar);
+		processed |= callback(scrollFrame->vscrollBar, processed);
+		processed |= callback(scrollFrame->hscrollBar, processed);
+
+		processed |= callback(scrollFrame->vscrollTrack, processed);		  
+		processed |= callback(scrollFrame->hscrollTrack, processed);
 
 		if (isScrollEvent) {
-			process_callback(rootInstance, callback);
+		//	processed |= process_callback(rootInstance, callback, processed);
 		}
 	}
 
-	if (!processed) {
-		for (int i = renderTree->numBranches - 1; i >= 0; i--) {
-			PT_UI_RENDER_TREE* branch = *(renderTree->branches + i);
-			processed = enumerate_render_tree(branch, ui, callback);
-			if (processed) {
-				return processed; // once an event has been processed once, stop enumerating over instances
-			}
-		}
+	for (int i = renderTree->numBranches - 1; i >= 0; i--) {
+		PT_UI_RENDER_TREE* branch = *(renderTree->branches + i);
+		processed |= enumerate_render_tree(branch, ui, callback, processed);
 	}
-
-
 	
-	if (!processed && IS_UI_INSTANCE(rootInstance->instanceType)) {
-		if (!(rootInstance->instanceType == IT_SCROLLFRAME && isScrollEvent)) { // if this is a scroll event and the root instance is a scroll frame, the event has already been processed
-			processed = process_callback(rootInstance, callback);
-		}
+
+
+	if (IS_UI_INSTANCE(rootInstance->instanceType)) {
+		//if (!(rootInstance->instanceType == IT_SCROLLFRAME && isScrollEvent)) { // if this is a scroll event and the root instance is a scroll frame, the event has already been processed
+			processed |= process_callback(rootInstance, callback, processed);
+		//}
 	}
 
 	
@@ -196,7 +202,7 @@ int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*
 }
 
 
-int enumerate_screeenuis(int(*callback)(PT_GUI_OBJ*)) {
+int enumerate_screeenuis(int(*callback)(PT_GUI_OBJ*, int)) {
 	int processed = 0;
 
 	for (int i = 0; i < screenUIs.numElements; i++) {
@@ -205,13 +211,11 @@ int enumerate_screeenuis(int(*callback)(PT_GUI_OBJ*)) {
 
 		PT_UI_RENDER_TREE* renderTree = ui->lastRenderTree;
 		if (renderTree) {
-			processed = enumerate_render_tree(renderTree, ui, callback);
-
-			if (processed) {
-				break;
-			}
+			processed |= enumerate_render_tree(renderTree, ui, callback, processed);
 		}
 	}
+
+	return processed;
 }
 
 void on_mouse_move(void* args) {
@@ -316,12 +320,33 @@ void update_instance_size_recur(Instance* instance, PT_canvas parentCanvas) {
 	}
 }
 
+void print_rendertree(PT_UI_RENDER_TREE* tree, int tabs) {
+	char* str = calloc(500, sizeof(char));
+	int strIndex = 0;
+
+	for (int i = 0; i < tabs; i++) {
+		*(str + strIndex) = '\t';
+		strIndex++;
+	}
+
+	memcpy(str + strIndex, tree->rootInstance->name, strlen(tree->rootInstance->name));
+	printf("%s\n", str);
+
+	free(str);
+
+	for (int i = 0; i < tree->numBranches; i++) {
+		PT_UI_RENDER_TREE* branch = *(tree->branches + i);
+		print_rendertree(branch, tabs + 1);
+	}
+}
+
 void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui) {
 	if (ui->lastRenderTree) {
 		PT_UI_RENDER_TREE_destroy(ui->lastRenderTree);
 	}
 
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
+	print_rendertree(tree, 0);
 	ui->lastRenderTree = tree;
 }
 
