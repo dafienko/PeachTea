@@ -160,6 +160,7 @@ int main(int argc, char** args) {
 	scrollObj->size = PT_REL_DIM_new(1.0f, -SIDE_BAR_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
 	scrollObj->zIndex = 5;
 	scrollObj->clipDescendants = 1;
+	scrollObj->processEvents = 0;
 
 	set_instance_parent(scrollFrameInstance, backgroundInstance);
 
@@ -176,7 +177,7 @@ int main(int argc, char** args) {
 	sideBarObj->blurRadius = 50;
 
 	sideBarObj->backgroundColor = PT_COLOR_fromRGB(0, 0, 0);
-	sideBarObj->backgroundColor = accentColor;
+	//sideBarObj->backgroundColor = accentColor;
 
 	sideBarObj->borderWidth = 0;
 	sideBarObj->reactive = 1;

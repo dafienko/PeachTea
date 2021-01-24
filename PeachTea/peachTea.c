@@ -19,6 +19,11 @@ void(*renderCallback)(void);
 
 int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void));
 
+int PT_window_cursor = IDC_ARROW;
+void PT_set_window_cursor(int idc) {
+	PT_window_cursor = idc;
+}
+
 void update_main_window_pos() {
 	RECT rect = { 0 };
 
@@ -148,7 +153,15 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PT_BINDABLE_EVENT_fire(&e_mouse1Up, NULL);
 		break;
 	case WM_SETCURSOR:
-		//SetCursor(LoadCursor(NULL, IDC_ARROW));
+		;
+		int ncHitVal = LOWORD(lParam);
+		if (ncHitVal == HTCLIENT) {
+			//printf("%i\n", PT_window_cursor);
+			SetCursor(LoadCursor(NULL, PT_window_cursor));
+		}
+		else {
+			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+		}
 		break;
 	case WM_MOUSEWHEEL:
 		;

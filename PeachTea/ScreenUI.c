@@ -154,8 +154,14 @@ int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*, int), int p
 		break;
 	}
 
+	if (!obj->processEvents) {
+		if (!(it == IT_SCROLLFRAME && (callback == obj_scroll_up || callback == obj_scroll_down))) {
+			return processed;
+		}
+	}
+
 	if (obj != NULL) {
-		if (obj->visible && obj->processEvents) {
+		if (obj->visible) {
 			processed |= callback(obj, processed);
 		}
 	}
@@ -175,11 +181,8 @@ int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*
 		processed |= callback(scrollFrame->vscrollBar, processed);
 		processed |= callback(scrollFrame->hscrollBar, processed);
 
-		processed |= callback(scrollFrame->vscrollTrack, processed);		  
-		processed |= callback(scrollFrame->hscrollTrack, processed);
-
-		if (isScrollEvent) {
-		//	processed |= process_callback(rootInstance, callback, processed);
+		if (!processed && isScrollEvent) {
+			processed |= process_callback(rootInstance, callback, processed);
 		}
 	}
 
@@ -191,9 +194,9 @@ int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*
 
 
 	if (IS_UI_INSTANCE(rootInstance->instanceType)) {
-		//if (!(rootInstance->instanceType == IT_SCROLLFRAME && isScrollEvent)) { // if this is a scroll event and the root instance is a scroll frame, the event has already been processed
+		if (!(rootInstance->instanceType == IT_SCROLLFRAME && isScrollEvent)) { // if this is a scroll event and the root instance is a scroll frame, the event has already been processed
 			processed |= process_callback(rootInstance, callback, processed);
-		//}
+		}
 	}
 
 	
