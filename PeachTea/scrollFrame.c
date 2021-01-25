@@ -2,6 +2,7 @@
 #include "ScreenDimension.h"
 #include "mouse.h"
 #include "glExtensions.h"
+#include "tweenUtil.h"
 
 #include <stdlib.h>
 #include <string.h> // idk why the hell memcpy is in string
@@ -67,6 +68,7 @@ void onSrollDrag(void* args) {
 	targetCanvasPos.y = max(0, min(scrollCanvasSize.y - frameSize.y, targetCanvasPos.y));
 
 	scrollFrame->canvasPosition = targetCanvasPos;
+	scrollFrame->targetCanvasPosition = scrollFrame->canvasPosition;
 }
 
 Instance* PT_SCROLLFRAME_new() {
@@ -141,6 +143,13 @@ PT_SCROLLFRAME* PT_SCROLLFRAME_clone(PT_SCROLLFRAME* source, Instance* instanceC
 
 PT_canvas PT_SCROLLFRAME_update_size(PT_SCROLLFRAME* scrollFrame, PT_canvas parentCanvas) {
 	PT_canvas childCanvas = PT_GUI_OBJ_update_size(scrollFrame->guiObj, parentCanvas);
+	
+	// smoothly interpolate canvas position to target canvas position
+	vec2f startf = (vec2f){ scrollFrame->canvasPosition.x, scrollFrame->canvasPosition.y };
+	vec2f endf = (vec2f){ scrollFrame->targetCanvasPosition.x, scrollFrame->targetCanvasPosition.y };
+	vec2f tf = PT_TWEEN_vec2f(startf, endf, .56f, PT_LINEAR, PT_IN);
+	//scrollFrame->canvasPosition = (vec2i){ tf.x, tf.y };
+	scrollFrame->canvasPosition = scrollFrame->targetCanvasPosition;
 
 	// if vscrollbar isn't visible, don't shorten hscrollbar and vice versa
 	if (scrollFrame->vscrollTrack->visible) {

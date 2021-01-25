@@ -13,7 +13,7 @@
 #include "glUniformUtil.h"
 #include "PeachTeaShaders.h"
 
-const int TEXT_BUFFER_SIZE = 100;
+const int TEXT_BUFFER_SIZE = 300;
 int renderIndex = 0;
 
 GLuint* vao = NULL;
@@ -38,7 +38,7 @@ void initFT() {
 FT_Face face = { 0 };
 char_set create_char_set(const char* filename, const int textSize) {
 	char_set cs = { 0 };
-	cs.ssFactor = 4;
+	cs.ssFactor = 2; // super-sample factor
 	cs.advance = calloc(128, sizeof(float));
 	cs.size = calloc(128, sizeof(vec2i));
 	cs.bearing = calloc(128, sizeof(vec2i));
@@ -57,24 +57,16 @@ char_set create_char_set(const char* filename, const int textSize) {
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
+	int dpi = 100;
 	e = FT_Set_Char_Size(
 		face,
 		0,
 		textSize * 64 * cs.ssFactor,
-		screenSize.x,
-		screenSize.y
+		dpi,
+		dpi
 	);
 	if (e) {
 		fatal_error(L"Failed to set char size");
-	}
-
-	e = FT_Set_Pixel_Sizes(
-		face, 
-		0, 
-		textSize * cs.ssFactor
-	);
-	if (e) {
-		fatal_error(L"Failed to set pixel size");
 	}
 
 	// load individual glyph textures into opengl
@@ -116,9 +108,8 @@ char_set create_char_set(const char* filename, const int textSize) {
 		*(cs.size + i) = (vec2i){face->glyph->bitmap.width / cs.ssFactor, face->glyph->bitmap.rows / cs.ssFactor };
 		*(cs.bearing + i) = (vec2i){ face->glyph->bitmap_left / cs.ssFactor, face->glyph->bitmap_top / cs.ssFactor };
 
-		if ((char)i == 'M') {
-			cs.charSize = *(cs.size + i);
-		}
+		vec2i thisSize = *(cs.size + i);
+		cs.charSize = (vec2i){ max(cs.charSize.x, thisSize.x), max(cs.charSize.y, thisSize.y) };
 
 		maxCharHeight = max(maxCharHeight, face->glyph->bitmap.rows / cs.ssFactor);
  	}
@@ -147,8 +138,8 @@ char_set create_char_set(const char* filename, const int textSize) {
 	);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, spritesheet, 0);
 
 	// render all the individual glyph textures to one big spritesheet
@@ -162,8 +153,8 @@ char_set create_char_set(const char* filename, const int textSize) {
 		int y = i / 12;
 
 		vec2i thisCharSize = *(cs.size + i);
-		vec2i topLeft = (vec2i){ x * cs.charSize.x * cs.ssFactor, y * maxCharHeight * cs.ssFactor };
-		vec2i bottomRight = (vec2i){ topLeft.x + thisCharSize.x * cs.ssFactor, topLeft.y + maxCharHeight * cs.ssFactor };
+		vec2i topLeft = (vec2i){ x * cs.charSize.x * cs.ssFactor, y * cs.charSize.y * cs.ssFactor };
+		vec2i bottomRight = (vec2i){ topLeft.x + thisCharSize.x * cs.ssFactor, topLeft.y + thisCharSize.y * cs.ssFactor };
 		
 		uniform_vec2i(glGetUniformLocation(PTS_textSpritemapGenerator, "screenSize"), spriteSheetSize);
 
@@ -265,6 +256,7 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 
 	vec2i charSize = cs->charSize;
 
+	// spritesheet is 12x12 chars wide
 	float spritesheetWidth = 12.0f * cs->charSize.x * cs->ssFactor;
 	float spritesheetHeight = 12.0f * cs->maxCharHeight * cs->ssFactor;
 	for (int i = 0; i < len; i++) {
@@ -293,9 +285,15 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 				(cs->charSize.x * x * cs->ssFactor) / spritesheetWidth,
 				1 - (y * cs->maxCharHeight * cs->ssFactor) / spritesheetHeight
 			};
+			/*
 			bottomRight = (vec2f){
 				(cs->charSize.x * (x + 1) * cs->ssFactor) / spritesheetWidth,
 				1 - ((y + 1) * cs->maxCharHeight * cs->ssFactor) / spritesheetHeight
+			};
+			*/
+			bottomRight = (vec2f){
+				topLeft.x + (thisCharSize.x * cs->ssFactor) / spritesheetWidth,
+				topLeft.y - (thisCharSize.y * cs->ssFactor) / spritesheetHeight
 			};
 
 			*(posBuffer + renderIndex * 4 + 0) = (vec2f){ bottomRight.x, topLeft.y };

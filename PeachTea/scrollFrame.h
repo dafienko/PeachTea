@@ -11,7 +11,8 @@ typedef struct {
 	int visible;
 
 	PT_REL_DIM canvasSize;
-	vec2i canvasPosition;
+	vec2i canvasPosition; // where the canvas is right now
+	vec2i targetCanvasPosition; // position canvas wants to glide smoothly to
 	int scrollBarThickness;
 
 	float xScrollAlpha, yScrollAlpha;

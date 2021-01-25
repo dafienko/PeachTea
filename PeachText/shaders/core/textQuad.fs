@@ -31,6 +31,9 @@ void main() {
 		
 		//FragColor = vec4(texture(spritesheet, glyphSamplePos).xyz, 1);
 		FragColor = vec4(color, texColor * (1 - transparency));
+		//if (texColor == 0) {
+		//	FragColor = vec4(1, 0, 0, 1);
+		//}
 		//FragColor = vec4(0, 0, 1, 1);
 	} else {
 		//FragColor = vec4(0, 1, 0, 1);

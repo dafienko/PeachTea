@@ -24,6 +24,11 @@ void PT_set_window_cursor(int idc) {
 	PT_window_cursor = idc;
 }
 
+int mousewheelDelta = 0;
+int get_mousewheel_delta() {
+	return mousewheelDelta;
+}
+
 void update_main_window_pos() {
 	RECT rect = { 0 };
 
@@ -165,12 +170,14 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_MOUSEWHEEL:
 		;
-		int d = GET_WHEEL_DELTA_WPARAM(wParam);
+		int d = -GET_WHEEL_DELTA_WPARAM(wParam);
+		mousewheelDelta = d;
+
 		if (d > 0) {
-			PT_BINDABLE_EVENT_fire(&e_wheelUp, NULL);
+			PT_BINDABLE_EVENT_fire(&e_wheelUp, &d);
 		}
 		else {
-			PT_BINDABLE_EVENT_fire(&e_wheelDown, NULL);
+			PT_BINDABLE_EVENT_fire(&e_wheelDown, &d);
 		}
 
 		break;

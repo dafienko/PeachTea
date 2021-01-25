@@ -198,6 +198,8 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound);
 
 	// adjust canvas size to maximum line lengths
+	maxX = max(maxX, occlusionBottomRightBound.x - occlusionTopLeftBound.x);
+	maxY = max(maxY, occlusionBottomRightBound.y - occlusionTopLeftBound.y);
 	scrollFrame->canvasSize = PT_REL_DIM_new(0.1, maxX, .9, maxY);
 	scrollCanvasSize = calculate_screen_dimension(scrollFrame->canvasSize, scrollFrameSize);
 

@@ -120,7 +120,7 @@ void move_text_pos_in_view(vec2i textPosition) {
 		newCanvasPos.x = max(0, newCanvasPos.x);
 		newCanvasPos.y = max(0, newCanvasPos.y);
 
-		currentTextEditor->scrollFrame->canvasPosition = newCanvasPos;
+		currentTextEditor->scrollFrame->targetCanvasPosition = newCanvasPos;
 	}
 }
 
@@ -258,7 +258,7 @@ void on_render_frame_render(PT_RENDERFRAME* renderFrame) {
 
 
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor) {
-	return (int)(editor->charWidth * 7.0f);
+	return (int)(editor->charWidth * 5.0f);
 }
 
 vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
@@ -359,8 +359,8 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_LINE));
 
-	editor->textHeight = 20;
-	editor->linePadding = editor->textHeight / 2;
+	editor->textHeight = 16;
+	editor->linePadding = editor->textHeight * .6;
 
 	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
 
@@ -421,6 +421,7 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 	editor->textCursor.selectTo = (vec2i){ 0, 0 };
 	editor->textCursor.targetX = 0;
 	editor->scrollFrame->canvasPosition = (vec2i){ 0, 0 };
+	editor->scrollFrame->targetCanvasPosition = (vec2i){ 0, 0 };
 
 	return editor;
 }

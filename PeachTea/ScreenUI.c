@@ -43,9 +43,9 @@ int obj_wheel_scroll(PT_GUI_OBJ* obj, int d, int processed) {
 			
 			int bottomBound = max(0, scrollFrameCanvasSize.y - size.y);
 
-			int currentY = scrollframe->canvasPosition.y;
+			int currentY = scrollframe->targetCanvasPosition.y;
 
-			scrollframe->canvasPosition.y = clamp(currentY + d, topBound, bottomBound);
+			scrollframe->targetCanvasPosition.y = clamp(currentY + d * .5f, topBound, bottomBound);
 		}
 
 		return 1;
@@ -55,11 +55,11 @@ int obj_wheel_scroll(PT_GUI_OBJ* obj, int d, int processed) {
 }
 
 int obj_scroll_up(PT_GUI_OBJ* obj, int processed) {
-	return obj_wheel_scroll(obj, -50, processed);
+	return obj_wheel_scroll(obj, get_mousewheel_delta(), processed);
 }
 
 int obj_scroll_down(PT_GUI_OBJ* obj, int processed) {
-	return obj_wheel_scroll(obj, 50, processed);
+	return obj_wheel_scroll(obj, get_mousewheel_delta(), processed);
 }
 
 int obj_mouse_moved(PT_GUI_OBJ* obj, int processed) {
