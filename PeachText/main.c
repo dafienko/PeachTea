@@ -160,7 +160,7 @@ int main(int argc, char** args) {
 	scrollObj->size = PT_REL_DIM_new(1.0f, -SIDE_BAR_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
 	scrollObj->zIndex = 5;
 	scrollObj->clipDescendants = 1;
-	scrollObj->processEvents = 0;
+	//scrollObj->processEvents = 0;
 
 	set_instance_parent(scrollFrameInstance, backgroundInstance);
 

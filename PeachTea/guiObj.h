@@ -49,6 +49,7 @@ typedef struct {
 	PT_BINDABLE_EVENT e_obj_activated; // fired if the mouse is pressed and released with the mouse in the obj 
 	int mouseInFrame;
 	int pressed;
+	vec2i pressedAt;
 } PT_GUI_OBJ;
 
 int get_instance_zindex(Instance* instance);

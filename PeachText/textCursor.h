@@ -20,7 +20,9 @@ typedef struct {
 
 TEXT_CURSOR TEXT_CURSOR_new(struct TEXT_EDITOR* editor);
 
-void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len);
+void TEXT_CURSOR_select_word(TEXT_CURSOR* cursor);
+
+void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len);
 void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end);
 
 int is_text_pos_in_range(vec2i p, vec2i start, vec2i end);

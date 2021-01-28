@@ -160,6 +160,8 @@ void delete_cursor_selection(TEXT_CURSOR* cursor) {
 		get_cursor_selection_bounds(*cursor, &start, &end);
 		cursor->position = start;
 		remove_str_at_cursor(cursor, start, end);
+		cursor->selectTo = start;
+		cursor->cloneLineOffset = 0;
 	}
 }
 
@@ -215,11 +217,12 @@ void get_cursor_selection(TEXT_CURSOR* cursor, char** selectionOut, int* selecti
 	free(lengths);
 }
 
-void insert_str_at_cursor(TEXT_CURSOR* cursor, vec2i pos, char* str, int len) {
+void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 	float time = PT_TIME_get();
 	cursor->lastTypedTime = time;
 
 	delete_cursor_selection(cursor);
+	vec2i pos = cursor->position;
 
 	TEXT_LINE* currentLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, pos.y);
 
@@ -415,4 +418,31 @@ void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
 	cursor->position = newPos;
 	cursor->targetX = newPosData.z;
 	move_text_pos_in_view(cursor->position);
+}
+
+int is_word_char(char c) {
+	int isNumber = c >= 48 && c <= 57;
+	int isLowerAlpha = c >= 65 && c <= 90;
+	int isUpperAlpha = c >= 97 && c <= 122;
+
+	return isNumber || isLowerAlpha || isUpperAlpha;
+}
+
+void TEXT_CURSOR_select_word(TEXT_CURSOR* cursor) {
+	vec2i cPos = cursor->position;
+	TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, cPos.y);
+	
+	int leftBound = cPos.x;
+	int rightBound = leftBound;
+
+	while (is_word_char(*(line.str + leftBound)) && leftBound > 0 && is_word_char(*(line.str + leftBound - 1))) {
+		leftBound--;
+	}
+
+	while (is_word_char(*(line.str + rightBound)) && rightBound < line.numChars) {
+		rightBound++;
+	}
+
+	cursor->selectTo = (vec2i){ leftBound, cPos.y };
+	cursor->position = (vec2i){ rightBound, cPos.y };
 }

@@ -82,7 +82,7 @@ void on_char_typed(void* args) {
 		else if (c < 127) {
 			charsTyped++;
 			vec2i p = (vec2i){ cursor->position.x, y };
-			insert_str_at_cursor(cursor, p, &c, 1);
+			insert_str_at_cursor(cursor, &c, 1);
 		}
 	}	
 }
@@ -216,7 +216,7 @@ void on_command(void* args) {
 					char* pchData = (char*)GlobalLock(hClipboardData);
 					int clipboardLen = strlen(pchData);
 
-					insert_str_at_cursor(cursor, cursor->position, pchData, clipboardLen);
+					insert_str_at_cursor(cursor, pchData, clipboardLen);
 
 					GlobalUnlock(hClipboardData);
 				}
@@ -295,16 +295,26 @@ void TEXT_EDITOR_on_click() {
 		int shiftDown = is_key_down(VK_LSHIFT);
 
 		vec2i cursorPos = TEXT_EDITOR_screenPos_to_cursorPos(mousePos);
+		TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
+		vec2i currentPos = cursor->position;
+		vec2i selectPos = cursor->selectTo;
 
-		if (!(altDown || shiftDown)) {
-			currentTextEditor->textCursor.position = cursorPos;
-			currentTextEditor->textCursor.selectTo = cursorPos;
-			currentTextEditor->textCursor.cloneLineOffset = 0;
-		}
-		else if (shiftDown && !altDown) {
-			currentTextEditor->textCursor.position = cursorPos;
-			currentTextEditor->textCursor.cloneLineOffset = 0;
-		}
+		//if (!vector_equal_2i(currentPos, cursorPos) && !vector_equal_2i(selectPos, cursorPos)) {
+			if (!(altDown || shiftDown)) {
+				if (vector_equal_2i(cursorPos, cursor->position) && vector_equal_2i(cursor->position, cursor->selectTo)) {
+					TEXT_CURSOR_select_word(cursor);
+				}
+				else {
+					cursor->position = cursorPos;
+					cursor->selectTo = cursorPos;
+					cursor->cloneLineOffset = 0;
+				}
+			}
+			else if (shiftDown && !altDown) {
+				currentTextEditor->textCursor.position = cursorPos;
+				currentTextEditor->textCursor.cloneLineOffset = 0;
+			}
+		//}
 	}
 }
 
@@ -319,7 +329,16 @@ void TEXT_EDITOR_on_drag() {
 			currentTextEditor->textCursor.position = cursorPos;
 			currentTextEditor->textCursor.cloneLineOffset = 0;
 		}
+		
 	}
+}
+
+void TEXT_EDITOR_mouse_enter() {
+	PT_set_window_cursor(IDC_IBEAM);
+}
+
+void TEXT_EDITOR_mouse_leave() {
+	PT_set_window_cursor(IDC_ARROW);
 }
 
 void TEXT_EDITOR_mouse_move() {
@@ -340,19 +359,20 @@ void TEXT_EDITOR_mouse_move() {
 }
 
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame) {
+	PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)scrollframeInstance->subInstance;
 	if (!keyDownBound) {
 		keyDownBound = 1;
-		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)scrollframeInstance->subInstance;
 
 		PT_BINDABLE_EVENT_bind(&eOnCharTyped, on_char_typed);
 		PT_BINDABLE_EVENT_bind(&eOnKeyPress, on_key_down);
 		PT_BINDABLE_EVENT_bind(&eOnSysKeyPress, on_sys_key_down);
 		PT_BINDABLE_EVENT_bind(&eOnCommand, on_command);
-		PT_BINDABLE_EVENT_bind(&e_mouseMove, TEXT_EDITOR_mouse_move);
 	}
 	
-	PT_BINDABLE_EVENT_bind(&renderFrame->guiObj->e_obj_pressed, TEXT_EDITOR_on_click);
-	PT_BINDABLE_EVENT_bind(&renderFrame->guiObj->e_obj_dragged, TEXT_EDITOR_on_drag);
+	PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_mouseEnter, TEXT_EDITOR_mouse_enter);
+	PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_mouseLeave, TEXT_EDITOR_mouse_leave);
+	PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_pressed, TEXT_EDITOR_on_click);
+	PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_dragged, TEXT_EDITOR_on_drag);
 
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
 
@@ -410,7 +430,7 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 	do {
 		charsRead = fread(buffer, sizeof(char), bufferSize, file);
 		if (charsRead > 0) {
-			insert_str_at_cursor(cursor, cursor->position, buffer, charsRead);
+			insert_str_at_cursor(cursor, buffer, charsRead);
 		}
 	} while (charsRead == bufferSize);
 

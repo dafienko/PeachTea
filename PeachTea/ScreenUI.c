@@ -64,24 +64,24 @@ int obj_scroll_down(PT_GUI_OBJ* obj, int processed) {
 
 int obj_mouse_moved(PT_GUI_OBJ* obj, int processed) {
 	int mouseWasInObj = obj->mouseInFrame;
-	obj->mouseInFrame = pos_in_obj(mousePos, obj);
+	obj->mouseInFrame = pos_in_obj(mousePos, obj) && !processed;
 
-	int thisProcessed = 0;
+	int thisProcessed = obj->mouseInFrame;
+
+	if (obj->pressed && !processed) {
+		vec2i delta = vector_sub_2i(mousePos, obj->pressedAt);
+		if (delta.x * delta.x + delta.y * delta.y >= 3 * 3) { // mouse should move at least three pixels before being dragged
+			PT_BINDABLE_EVENT_fire(&obj->e_obj_dragged, obj);
+		}
+	}
 
 	if (mouseWasInObj != obj->mouseInFrame) {
 		if (obj->mouseInFrame) {
-			if (!processed) {
-				thisProcessed = 1;
-				PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
-			}
+			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseEnter, obj);
 		}
 		else {
 			PT_BINDABLE_EVENT_fire(&obj->e_obj_mouseLeave, obj);
 		}
-	}
-
-	if (obj->pressed) {
-		PT_BINDABLE_EVENT_fire(&obj->e_obj_dragged, obj);
 	}
 
 	return thisProcessed | processed;
@@ -90,6 +90,8 @@ int obj_mouse_moved(PT_GUI_OBJ* obj, int processed) {
 int obj_mouse1_down(PT_GUI_OBJ* obj, int processed) {
 	if (pos_in_obj(mousePos, obj) && !processed) {
 		obj->pressed = 1;
+
+		obj->pressedAt = mousePos;
 
 		PT_BINDABLE_EVENT_fire(&obj->e_obj_pressed, obj);
 
@@ -349,6 +351,7 @@ void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui) {
 	}
 
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
+	print_rendertree(tree, 0);
 	ui->lastRenderTree = tree;
 }
 
