@@ -13,7 +13,7 @@
 #include "glUniformUtil.h"
 #include "PeachTeaShaders.h"
 
-const int TEXT_BUFFER_SIZE = 300;
+const int TEXT_BUFFER_SIZE = 1;
 int renderIndex = 0;
 
 GLuint* vao = NULL;
@@ -27,12 +27,22 @@ void initFT() {
 		fatal_error(L"Failed to initialize freetype");
 	}
 
-	GLuint* vao = calloc(1, sizeof(GLuint));
-	GLuint* vbos = calloc(4, sizeof(GLuint));
+	vao = calloc(1, sizeof(GLuint));
+	vbos = calloc(4, sizeof(GLuint));
 	glGenVertexArrays(1, vao);
 	glBindVertexArray(*vao);
 
 	glGenBuffers(3, vbos);
+
+	glBindBuffer(GL_ARRAY_BUFFER, *(vbos + 0));
+	glBufferData(GL_ARRAY_BUFFER, 4 * TEXT_BUFFER_SIZE * sizeof(vec2f), NULL, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+	glBindBuffer(GL_ARRAY_BUFFER, *(vbos + 1));
+	glBufferData(GL_ARRAY_BUFFER, 4 * TEXT_BUFFER_SIZE * (int)sizeof(vec2f), NULL, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
 FT_Face face = { 0 };
@@ -104,7 +114,7 @@ char_set create_char_set(const char* filename, const int textSize) {
 
 		*(glyphTextures + i) = glyphTex;
 
-		*(cs.advance + i) = face->glyph->advance.x / cs.ssFactor; // advance is in 64ths of a pixel
+		*(cs.advance + i) = (float)face->glyph->advance.x / cs.ssFactor; // advance is in 64ths of a pixel
 		*(cs.size + i) = (vec2i){face->glyph->bitmap.width / cs.ssFactor, face->glyph->bitmap.rows / cs.ssFactor };
 		*(cs.bearing + i) = (vec2i){ face->glyph->bitmap_left / cs.ssFactor, face->glyph->bitmap_top / cs.ssFactor };
 
@@ -183,24 +193,69 @@ char_set create_char_set(const char* filename, const int textSize) {
 }
 
 
-int get_text_width(char_set* cs, const char* str, int len) {
+vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
 	int tabWidth = cs->charSize.x * 5;
+	int maxX = 0;
+	int penY = 0;
 	int penX = 0;
 
 	for (int i = 0; i < len; i++) {
 		char c = *(str + i);
 
 		if (c == '\t') {
-			int nextTabIndex = (int)floor((double)penX / (double)tabWidth) + 1;
+			int nextTabIndex = penX / tabWidth + 1;
 			penX = nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
 			int advance = *(cs->advance + c);
 			penX += advance >> 6;
 		}
+		else {
+			int advance = *(cs->advance + c);
+			advance >>= 6;
+
+			if (wrapX && penX + advance > wrapX) {
+				penX = 0;
+				//penY += cs->charSize.y;
+				penY += 1;
+			}
+		}
+
+		maxX = max(penX, maxX);
 	}
 
-	return penX;
+	return (vec2i){maxX, penY};
+}
+
+vec2i get_text_offset(char_set* cs, const char* str, int len, int wrapX) {
+	int tabWidth = cs->charSize.x * 5;
+	int penY = 0;
+	int penX = 0;
+
+	for (int i = 0; i < len; i++) {
+		char c = *(str + i);
+
+		if (c == '\t') {
+			int nextTabIndex = penX / tabWidth + 1;
+			penX = nextTabIndex * tabWidth;
+		}
+		else if (c != '\n') {
+			int advance = *(cs->advance + c);
+			penX += advance >> 6;
+		}
+		else {
+			int advance = *(cs->advance + c);
+			advance >>= 6;
+
+			if (wrapX && penX + advance > wrapX) {
+				penX = 0;
+				//penY += cs->charSize.y;
+				penY += 1;
+			}
+		}
+	}
+
+	return (vec2i) { penX, penY };
 }
 
 int get_char_position(char_set* cs, const char* str, int len, int x) {
@@ -221,7 +276,7 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 		}
 
 		if (c == '\t') {
-			int nextTabIndex = (int)floor((double)penX / (double)tabWidth) + 1;
+			int nextTabIndex = penX / tabWidth + 1;
 			penX = nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
@@ -242,11 +297,12 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 	return cIndex;
 }
 
-void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y) {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	int tabWidth = cs->charSize.x * 5;
+void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y, int wrapX, int lineWidth) {
+	if (!lineWidth) {
+		lineWidth = cs->charSize.y;
+	}
 
+	int tabWidth = cs->charSize.x * 5;
 	int penX = baseline_x;
 	int penY = baseline_y;
 
@@ -263,10 +319,19 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 		char c = *(str + i);
 
 		if (c == '\t') {
-			int nextTabIndex = (int)floor((double)(penX - baseline_x) / (double)tabWidth) + 1;
+			int nextTabIndex = (penX - baseline_x) / (tabWidth) + 1;
 			penX = baseline_x + nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
+			int advance = *(cs->advance + c);
+			advance >>= 6;
+
+			if (wrapX && penX + advance > wrapX) {
+				penX = baseline_x;
+				penY += lineWidth;
+			}
+
+
 			vec2i bearing = *(cs->bearing + c);
 			vec2i thisCharSize = *(cs->size + c);
 
@@ -285,12 +350,6 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 				(cs->charSize.x * x * cs->ssFactor) / spritesheetWidth,
 				1 - (y * cs->maxCharHeight * cs->ssFactor) / spritesheetHeight
 			};
-			/*
-			bottomRight = (vec2f){
-				(cs->charSize.x * (x + 1) * cs->ssFactor) / spritesheetWidth,
-				1 - ((y + 1) * cs->maxCharHeight * cs->ssFactor) / spritesheetHeight
-			};
-			*/
 			bottomRight = (vec2f){
 				topLeft.x + (thisCharSize.x * cs->ssFactor) / spritesheetWidth,
 				topLeft.y - (thisCharSize.y * cs->ssFactor) / spritesheetHeight
@@ -301,28 +360,16 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 			*(posBuffer + renderIndex * 4 + 2) = (vec2f){ topLeft.x, bottomRight.y };
 			*(posBuffer + renderIndex * 4 + 3) = (vec2f){ bottomRight.x, bottomRight.y };
 
-
-			int advance = *(cs->advance + c);
-			penX += advance >> 6;
+			penX += advance;
 
 			renderIndex++;
 		}
 	}
 
+
 	glUseProgram(PTS_text);
-
-	glBindBuffer(GL_ARRAY_BUFFER, *qVBO);
-	glBufferData(GL_ARRAY_BUFFER, renderIndex * 4 * sizeof(vec2f), vertexBuffer, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-
-	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
-	glBufferData(GL_ARRAY_BUFFER, renderIndex * 4 * sizeof(vec2f), posBuffer, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, cs->texture);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	int ssLoc = glGetUniformLocation(PTS_text, "screenSize");
 	int cLoc = glGetUniformLocation(PTS_text, "color");
@@ -334,7 +381,34 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 	glUniform1f(tLoc, textTransparency);
 	uniform_vec2i(csLoc, charSize);
 
-	glDrawArrays(GL_QUADS, 0, 4 * renderIndex);
+	glBindVertexArray(*vao);
+
+	for (int i = 0; ; i++) {
+		int chunkRenderIndexStart = TEXT_BUFFER_SIZE * i;
+		if (chunkRenderIndexStart > renderIndex) {
+			break;
+		}
+
+		int chunkRenderIndexEnd = min(TEXT_BUFFER_SIZE * (i + 1) - 1, renderIndex); // inclusive bound
+		int chunkSize = (chunkRenderIndexEnd - chunkRenderIndexStart) + 1; // add one, from 1-0=1 but from 0-1 is two 2 indices
+
+		glBindBuffer(GL_ARRAY_BUFFER, *(vbos + 0));
+		glBufferSubData(GL_ARRAY_BUFFER, 0, chunkSize * 4 * sizeof(vec2f), vertexBuffer + chunkRenderIndexStart * 4);
+		//glBufferData(GL_ARRAY_BUFFER, chunkSize * 4 * sizeof(vec2f), vertexBuffer + chunkRenderIndexStart * 4, GL_DYNAMIC_DRAW);
+		//glEnableVertexAttribArray(0);
+		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+		glBindBuffer(GL_ARRAY_BUFFER, *(vbos + 1));
+		glBufferSubData(GL_ARRAY_BUFFER, 0, chunkSize * 4 * sizeof(vec2f), posBuffer + chunkRenderIndexStart * 4 );
+		//glBufferData(GL_ARRAY_BUFFER, chunkSize * 4 * sizeof(vec2f), posBuffer + chunkRenderIndexStart * 4, GL_DYNAMIC_DRAW);
+		//glEnableVertexAttribArray(1);
+		//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, cs->texture);
+
+		glDrawArrays(GL_QUADS, 0, 4 * chunkSize);
+	}
 
 	free(vertexBuffer);
 	free(posBuffer);
@@ -356,4 +430,48 @@ void free_char_set(char_set* cs) {
 	free(cs->size);
 }
 
+int get_text_position_from_rel_position(char_set* cs, char* str, int len, vec2i relPos, int lineThickness, int wrapX) {
+	int penX = 0;
+	int penY = 0;
+	int cIndex = 0;
+	int distanceToIndex = -1;
+	int tabWidth = cs->charSize.x * 5;
 
+	for (int i = 0; i <= len; i++) {
+		if (relPos.y >= penY && relPos.y < penY + lineThickness) {
+			int dist = abs(relPos.x - penX);
+			if (distanceToIndex == -1 || dist < distanceToIndex) {
+				cIndex = i;
+				distanceToIndex = dist;
+			}
+		}
+		else if (relPos.y < penY) {
+			break;
+		}
+
+		if (i < len) {
+			char c = *(str + i);
+
+			if (c == '\t') {
+				int nextTabIndex = penX / tabWidth + 1;
+				penX = nextTabIndex * tabWidth;
+			}
+			else if (c != '\n') {
+				int advance = *(cs->advance + c);
+				penX += advance >> 6;
+			}
+			else {
+				int advance = *(cs->advance + c);
+				advance >>= 6;
+
+				if (wrapX && penX + advance > wrapX) {
+					penX = 0;
+					penY += lineThickness;
+					//penY += 1;
+				}
+			}
+		}
+	}
+
+	return cIndex;
+}

@@ -89,11 +89,12 @@ void on_char_typed(void* args) {
 
 void move_text_pos_in_view(vec2i textPosition) {
 	if (currentTextEditor) {
+		int wrapX = currentTextEditor->wrapText && TEXT_EDITOR_get_wrapX(currentTextEditor);
 		int lineHeight = currentTextEditor->textHeight + currentTextEditor->linePadding;
 		int focusY = textPosition.y * (lineHeight);
 		
 		TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, textPosition.y);
-		int focusX = get_text_width(currentTextEditor->charSet, line->str, textPosition.x);
+		int focusX = get_text_offset(currentTextEditor->charSet, line->str, textPosition.x, wrapX).x;
 
 		vec2i sfSize = canvas_size(currentTextEditor->scrollFrame->guiObj->lastCanvas);
 		sfSize.x -= TEXT_EDITOR_get_margin(currentTextEditor);
@@ -256,9 +257,13 @@ void on_render_frame_render(PT_RENDERFRAME* renderFrame) {
 	}
 }
 
+int TEXT_EDITOR_get_wrapX(TEXT_EDITOR* editor) {
+	PT_GUI_OBJ* obj = editor->scrollFrame->guiObj;
+	return canvas_size(obj->lastCanvas).x - editor->scrollFrame->scrollBarThickness;
+}
 
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor) {
-	return (int)(editor->charWidth * 5.0f);
+	return editor->charWidth * 5;
 }
 
 vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
@@ -273,6 +278,38 @@ vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
 		relMousePos.x -= xMargin;
 		relMousePos = vector_sub_2i(relMousePos, absPos);
 		
+		int lineThickness = currentTextEditor->textHeight + currentTextEditor->linePadding;
+		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor);
+
+		int cx = 0;
+		int cy = 0;
+		int penX = 0;
+		int penY = 0;
+		for (int i = 0; i < currentTextEditor->textLines->numElements; i++) {
+			TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
+			vec2i lineOrigin = (vec2i){ penX, penY };
+
+			vec2i textBounds = get_text_rect(currentTextEditor->charSet, line->str, line->numChars, wrapX);
+			int boundsHeight = (textBounds.y + 1) * lineThickness;
+			
+			if (relMousePos.y >= penY && relMousePos.y < penY + boundsHeight) {
+				cy = i;
+				cx = get_text_position_from_rel_position(
+					currentTextEditor->charSet, 
+					line->str, line->numChars, 
+					vector_sub_2i(relMousePos, lineOrigin),
+					lineThickness, wrapX
+				);
+			}
+
+			penY += boundsHeight;
+
+			if (relMousePos.y < penY) {
+				break;
+			}
+		}
+
+		/*
 		int cy = relMousePos.y / (currentTextEditor->linePadding + currentTextEditor->textHeight);
 		cy = max(0, min(cy, currentTextEditor->textLines->numElements - 1));
 
@@ -282,6 +319,7 @@ vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
 			numChars--;
 		}
 		int cx = get_char_position(currentTextEditor->charSet, thisLine.str, thisLine.numChars, relMousePos.x);
+		*/
 
 		cPos = (vec2i){ cx, cy };
 	}
@@ -299,22 +337,22 @@ void TEXT_EDITOR_on_click() {
 		vec2i currentPos = cursor->position;
 		vec2i selectPos = cursor->selectTo;
 
-		//if (!vector_equal_2i(currentPos, cursorPos) && !vector_equal_2i(selectPos, cursorPos)) {
-			if (!(altDown || shiftDown)) {
-				if (vector_equal_2i(cursorPos, cursor->position) && vector_equal_2i(cursor->position, cursor->selectTo)) {
-					TEXT_CURSOR_select_word(cursor);
-				}
-				else {
-					cursor->position = cursorPos;
-					cursor->selectTo = cursorPos;
-					cursor->cloneLineOffset = 0;
-				}
+		if (!(altDown || shiftDown)) {
+			if (vector_equal_2i(cursorPos, cursor->position) && vector_equal_2i(cursor->position, cursor->selectTo)) {
+				TEXT_CURSOR_select_word(cursor);
 			}
-			else if (shiftDown && !altDown) {
-				currentTextEditor->textCursor.position = cursorPos;
-				currentTextEditor->textCursor.cloneLineOffset = 0;
+			else {
+				cursor->position = cursorPos;
+				cursor->selectTo = cursorPos;
+				cursor->cloneLineOffset = 0;
 			}
-		//}
+		}
+		else if (shiftDown && !altDown) {
+			currentTextEditor->textCursor.position = cursorPos;
+			currentTextEditor->textCursor.cloneLineOffset = 0;
+		}
+
+		move_text_pos_in_view(currentTextEditor->textCursor.position);
 	}
 }
 
@@ -380,11 +418,11 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_LINE));
 
 	editor->textHeight = 16;
-	editor->linePadding = editor->textHeight * .6;
+	editor->linePadding = editor->textHeight * .9;
 
 	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
 
-	editor->charWidth = get_text_width(editor->charSet, "M", 1);
+	editor->charWidth = get_text_rect(editor->charSet, "M", 1, 0).x;
 
 	editor->renderFrame = renderFrame;
 	editor->sideRenderFrame = sideRenderFrame;
@@ -401,6 +439,9 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 
 	TEXT_CURSOR mainCursor = TEXT_CURSOR_new(editor);
 	editor->textCursor = mainCursor;
+
+
+	editor->wrapText = 1;
 
 	currentTextEditor = editor;
 
@@ -468,7 +509,7 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 
 		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
 		cursorObj->position = PT_REL_DIM_new(
-			0, scrollCanvas.left + -scrollCanvasPos.x + xMargin + get_text_width(editor->charSet, thisLine.str, x),
+			0, scrollCanvas.left + -scrollCanvasPos.x + xMargin + get_text_rect(editor->charSet, thisLine.str, x, 0).x,
 			0, scrollCanvas.top + -scrollCanvasPos.y + cursorPos.y * (editor->linePadding + editor->textHeight)
 		); 
 

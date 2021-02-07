@@ -392,13 +392,14 @@ PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 
 	update_instance_size_recur(ui->instance, canvas);
 
-
+	
 	PT_FRAMETEXTURE_clear(ui->frameTexture);
 	PT_FRAMETEXTURE_bind(ui->frameTexture);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	
 	if (ui->lastRenderTree) {
 		PT_UI_RENDER_TREE* tree = ui->lastRenderTree;
 		tree->lastBlurZIndex = -1;
@@ -406,6 +407,7 @@ PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 		PT_UI_RENDER_TREE_render(tree, ui);
 		PT_FRAMETEXTURE_copy_to_framebuffer(ui->frameTexture, 0);
 	}
+	
 
 	return canvas;
 }

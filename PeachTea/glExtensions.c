@@ -30,13 +30,13 @@ void* getProc(const char* name) {
         HMODULE module = LoadLibraryA("opengl32.dll");
         if (module == NULL) {
             int e = GetLastError();
-            fatal_windows_error(e, "Failed to load opengl32.dll in %s at line %i", __FILEW__, __LINE__);
+            fatal_windows_error(e, L"Failed to load opengl32.dll in %s at line %i", __FILEW__, __LINE__);
             return NULL;
         }
         p = GetProcAddress(module, name);
         if (p == NULL) {
             int e = GetLastError();
-            fatal_windows_error(e, "Failed to load opengl32.dll in %s at line %i", __FILEW__, __LINE__);
+            fatal_windows_error(e, L"Failed to load opengl32.dll in %s at line %i", __FILEW__, __LINE__);
             return NULL;
         }
     }
@@ -72,6 +72,7 @@ void GLEInit() {
     glGenBuffers = (PFNGLGENBUFFERSPROC)getProc("glGenBuffers");
 
     glBufferData = (PFNGLBUFFERDATAPROC)getProc("glBufferData");
+    glBufferSubData = (PFNGLBUFFERSUBDATAPROC)getProc("glBufferSubData");
     glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)getProc("glEnableVertexAttribArray");
     glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)getProc("glVertexAttribPointer");
     glGetIntegeri_v = (PFNGLGETINTEGERI_VPROC)getProc("glGetIntegeri_v");

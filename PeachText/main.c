@@ -36,7 +36,7 @@ float fpsUpdateInterval = 1.0f;
 void onUpdate(float dt) {
 	float time = PT_TIME_get();
 	frames++;
-	int tIndex = floorf(time / fpsUpdateInterval);
+	int tIndex = time / fpsUpdateInterval;
 	if (tIndex > lastTimeIndex) {
 		fps = frames / fpsUpdateInterval;
 		frames = 0;
@@ -280,14 +280,14 @@ int main(int argc, char** args) {
 	set_instance_parent(sideRenderInstance, backgroundInstance);
 
 	textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, sideRenderFrame, "shaders\\core\\blur.fs");
-	/*
-	if (argc <= 1) {
-		textEditor = TEXT_EDITOR_new(scrollFrameInstance, renderFrame);
-	}
-	else {
-		textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, *(args + 1));
-	}
-	*/
+	///*
+	//if (argc <= 1) {
+		//textEditor = TEXT_EDITOR_new(scrollFrameInstance, renderFrame, sideRenderFrame);
+	//}
+	//else {
+		//textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, *(args + 1));
+	//}
+	//*/
 
 	PT_SCREEN_UI_update_rendertree(ui);
 

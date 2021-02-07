@@ -2,13 +2,6 @@
 #include "glExtensions.h"
 #include "assetLoader.h"
 
-float DEFAULT_QUAD_CORNERS[] = {
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f
-};
-
 void PT_SHADERS_init() {
 	qVAO = calloc(1, sizeof(GLuint));
 	qVBO = calloc(2, sizeof(GLuint));
@@ -24,10 +17,28 @@ void PT_SHADERS_init() {
 		10, 0
 	};
 
+	DEFAULT_QUAD_CORNERS[0] = 0.0f;
+	DEFAULT_QUAD_CORNERS[1] = 0.0f;
+
+	DEFAULT_QUAD_CORNERS[2] = 0.0f;
+	DEFAULT_QUAD_CORNERS[3] = 1.0f;
+	
+	DEFAULT_QUAD_CORNERS[4] = 1.0f;
+	DEFAULT_QUAD_CORNERS[5] = 1.0f;
+	
+	DEFAULT_QUAD_CORNERS[6] = 1.0f;
+	DEFAULT_QUAD_CORNERS[7] = 0.0f;
+	
+
 	glBindBuffer(GL_ARRAY_BUFFER, *qVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quadPositions), quadPositions, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, NULL);
+
 	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
 	glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_QUAD_CORNERS), DEFAULT_QUAD_CORNERS, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
 
 	GLuint qvs = create_vertex_shader("shaders\\core\\basicQuad.vs");

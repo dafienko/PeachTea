@@ -24,8 +24,12 @@ void initFT();
 char_set create_char_set(const char* font, const int fontSize);
 void free_char_set(char_set* cs);
 
-void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y);
-int get_text_width(char_set* cs, const char* str, int len);
+void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y, int wrapX, int lineWidth);
+vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX);
+vec2i get_text_offset(char_set* cs, const char* str, int len, int wrapX);
+
 int get_char_position(char_set* cs, const char* str, int len, int x);
+int get_text_position_from_rel_position(char_set* cs, char* str, int len, vec2i relPos, int lineThickness, int wrapX);
+
 
 #endif

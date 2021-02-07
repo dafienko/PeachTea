@@ -85,7 +85,7 @@ PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_SCREEN_UI* ui) {
 			char* line = *(lines + i);
 			int len = strlen(line);
 
-			int textWidth = get_text_width(cs, line, len);
+			int textWidth = get_text_rect(cs, line, len, 0).x;
 
 			int baselineX = childPos.x;
 			switch (textlabel->horizontalAlignment) {
@@ -117,7 +117,8 @@ PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_SCREEN_UI* ui) {
 				textlabel->textTransparency,
 				line,
 				strlen(line),
-				baselineX, baselineY + (i + 1) * (textlabel->textSize + linePadding) - linePadding
+				baselineX, baselineY + (i + 1) * (textlabel->textSize + linePadding) - linePadding,
+				0, 0
 			);
 		}
 

@@ -10,7 +10,7 @@
 #include "renderFrame.h"
 
 PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas) {
-	PT_canvas canvas;
+	PT_canvas canvas = { 0 };
 
 	switch (instance->instanceType) {
 	case IT_GUI_OBJ:
@@ -106,44 +106,63 @@ void render_gui_instance(Instance* instance, PT_SCREEN_UI* ui) {
 	}
 }
 
+
+int quadPositions[8] = { 0 };
+
 void set_quad_positions(vec2i topLeft, vec2i bottomRight) {
 	glBindVertexArray(*qVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, *qVBO);
-	int quadPositions[] = {
-		topLeft.x, topLeft.y,
-		topLeft.x, bottomRight.y,
-		bottomRight.x, bottomRight.y,
-		bottomRight.x, topLeft.y
-	};
+	
+	quadPositions[0] = topLeft.x;
+	quadPositions[1] = topLeft.y;
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadPositions), quadPositions, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, NULL);
+	quadPositions[2] = topLeft.x;
+	quadPositions[3] = bottomRight.y;
+
+	quadPositions[4] = bottomRight.x;
+	quadPositions[5] = bottomRight.y;
+
+	quadPositions[6] = bottomRight.x;
+	quadPositions[7] = topLeft.y;
+
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int) * 8, quadPositions);
+	//glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, NULL);
 }
+
+
+float quadCorners[8] = { 0 };
 
 void set_quad_corners(vec2f topLeft, vec2f bottomRight) {
 	glBindVertexArray(*qVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
 
-	float quadCorners[] = {
-		topLeft.x, topLeft.y,
-		topLeft.x, bottomRight.y,
-		bottomRight.x, bottomRight.y,
-		bottomRight.x, topLeft.y,
-	};
+	
+	quadCorners[0] = topLeft.x;
+	quadCorners[1] = topLeft.y;
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadCorners), quadCorners, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	quadCorners[2] = topLeft.x;
+	quadCorners[3] = bottomRight.y;
+
+	quadCorners[4] = bottomRight.x;
+	quadCorners[5] = bottomRight.y;
+
+	quadCorners[6] = bottomRight.x;
+	quadCorners[7] = topLeft.y;
+	
+
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 8, quadCorners);
+	//glEnableVertexAttribArray(1);
+	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
 void default_quad_corners() {
 	glBindVertexArray(*qVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
-	glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_QUAD_CORNERS), DEFAULT_QUAD_CORNERS, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 8, DEFAULT_QUAD_CORNERS);
+	//glEnableVertexAttribArray(1);
+	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }

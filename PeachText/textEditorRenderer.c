@@ -7,7 +7,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusionTopLeftBound, vec2i occlusionBottomRightBound) {
+typedef struct {
+	int l;
+	int lineStartBaselineY;
+} lineNumber;
+
+
+void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusionTopLeftBound, vec2i occlusionBottomRightBound, PT_EXPANDABLE_ARRAY* lineNumbers) {
 	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
 	vec2i canvasOffset = scrollFrame->canvasPosition;
 	PT_canvas scrollCanvas = scrollFrame->guiObj->lastCanvas;
@@ -27,12 +33,15 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 	PT_FRAMETEXTURE_bind(textEditor.sideRenderFrame->renderTexture);
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
+
 	glUseProgram(PTS_rect);
 	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), scrollFrame->guiObj->backgroundColor);
 	//uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), PT_COLOR_fromRGB(255, 0, 0));
-	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), 0.4);
+	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), 0.4f);
 	uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), frameSize);
+	
 	default_quad_corners();
+	
 	set_quad_positions(
 			(vec2i) {
 			0, 0
@@ -42,37 +51,30 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 		}
 	);
 	glDrawArrays(GL_QUADS, 0, 4);
+	
 
+	char* lineNumStr = calloc(30, sizeof(char));
 	//*
 	// render line numbers
-	int yPos = textEditor.textHeight;
-	char* lineNumStr = calloc(50, sizeof(char));
-	for (int y = 0; y < textEditor.textLines->numElements; y++) {
-		int xPos = xMargin;
+	for (int i = 0; i < lineNumbers->numElements; i++) {
+		lineNumber lnum = *(lineNumber*)PT_EXPANDABLE_ARRAY_get(lineNumbers, i);
 
-		if (yPos > occlusionTopLeftBound.y) {
-			if (yPos - lineThickness > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)
-				break;
-			}
+		memset(lineNumStr, 0, 30 * sizeof(char));
+		sprintf(lineNumStr, "%i", lnum.l + 1);
 
-			// render line number
-			memset(lineNumStr, 0, 20 * sizeof(char));
-			sprintf(lineNumStr, "%i", y + 1);
-			int lineNumStrWidth = get_text_width(textEditor.charSet, lineNumStr, strlen(lineNumStr));
-			render_text(
-				frameSize,
-				textEditor.charSet,
-				accentColor, //PT_COLOR_fromRGB(43, 145, 175),
-				0,
-				lineNumStr,
-				strlen(lineNumStr),
-				xMargin - (lineNumStrWidth + 10), yPos - canvasOffset.y
-			);
-		}
-
-		yPos += lineThickness;
+		// render line number
+		int lineNumStrWidth = get_text_rect(textEditor.charSet, lineNumStr, strlen(lineNumStr), 0).x;
+		render_text(
+			frameSize,
+			textEditor.charSet,
+			accentColor, //PT_COLOR_fromRGB(43, 145, 175),
+			0,
+			lineNumStr,
+			strlen(lineNumStr),
+			xMargin - (lineNumStrWidth + 10), lnum.lineStartBaselineY - canvasOffset.y,
+			0, lineThickness
+		);
 	}
-
 	free(lineNumStr);
 	//*/
 }
@@ -98,10 +100,13 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		scrollFrame->canvasPosition.y + screenSize.y
 	};
 
+
 	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(&textEditor);
 	int lineThickness = textEditor.textHeight + textEditor.linePadding;
 
-	// render selection bounding box
+	int baselineX = xMargin - canvasOffset.x;
+
+	// render selection bounding boxg
 	TEXT_CURSOR cursor = textEditor.textCursor;
 	if (!vector_equal_2i(cursor.position, cursor.selectTo)) { // if there is some selected text;
 		glUseProgram(PTS_rect);
@@ -115,7 +120,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			get_cursor_selection_bounds(cursor, &start, &end);
 
 			for (int y = start.y; y <= end.y; y++) {
-				int yPos = y * lineThickness;
+				int yPos = y * lineThickness; // +textEditor.linePadding / 2;
 				if (yPos + lineThickness > occlusionTopLeftBound.y) {
 					TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
 					int xi = 0;
@@ -129,8 +134,8 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 						xf = end.x;
 					}
 
-					int xiPos = xMargin + get_text_width(textEditor.charSet, line.str, xi);
-					int xfPos = xMargin + get_text_width(textEditor.charSet, line.str, xf);
+					int xiPos = xMargin + get_text_rect(textEditor.charSet, line.str, xi, 0).x;
+					int xfPos = xMargin + get_text_rect(textEditor.charSet, line.str, xf, 0).x;
 					if (xf == 1 && y < end.y) {
 						xfPos += textEditor.charWidth / 2; // signify selection of newline
 					}
@@ -158,8 +163,11 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 
 	// render text
+	PT_EXPANDABLE_ARRAY lineNumbers = PT_EXPANDABLE_ARRAY_new(1, sizeof(lineNumber));
+	
+	int wrapX = TEXT_EDITOR_get_wrapX(&textEditor) ;
 	int xPos = xMargin;
-	int yPos = textEditor.textHeight;
+	int yPos = textEditor.textHeight + textEditor.linePadding / 2;;
 	int maxX = xMargin;
 	int maxY = textEditor.textLines->numElements * (textEditor.linePadding + textEditor.textHeight);
 	for (int y = 0; y < textEditor.textLines->numElements; y++) {
@@ -169,6 +177,11 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			if (yPos - lineThickness > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)
 				break;
 			}
+			lineNumber lnum = { 0 };
+			lnum.l = y;
+			lnum.lineStartBaselineY = yPos;
+			PT_EXPANDABLE_ARRAY_add(&lineNumbers, &lnum);
+
 			TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
 
 			if (textEditor.textLines->numElements > 5) {
@@ -183,10 +196,13 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 					0,
 					line.str,
 					line.numChars,
-					xPos - canvasOffset.x, yPos - canvasOffset.y
+					baselineX, yPos - canvasOffset.y,
+					screenSize.x - scrollFrame->scrollBarThickness, lineThickness
 				);
 
-				xPos += get_text_width(textEditor.charSet, line.str, line.numChars);
+				vec2i rect = get_text_rect(textEditor.charSet, line.str, line.numChars, wrapX);
+				xPos += rect.x;
+				yPos += rect.y * lineThickness;
 			}
 
 			maxX = max(xPos, maxX);
@@ -195,7 +211,9 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		yPos += lineThickness;
 	}
 
-	render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound);
+	render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, &lineNumbers);
+
+	PT_EXPANDABLE_ARRAY_destroy(&lineNumbers);
 
 	// adjust canvas size to maximum line lengths
 	maxX = max(maxX, occlusionBottomRightBound.x - occlusionTopLeftBound.x);
