@@ -12,53 +12,6 @@ typedef struct {
 	int lineStartBaselineY;
 } lineNumber;
 
-
-void test_render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusionTopLeftBound, vec2i occlusionBottomRightBound, PT_EXPANDABLE_ARRAY* lineNumbers) {
-	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
-	vec2i canvasOffset = scrollFrame->canvasPosition;
-	PT_canvas scrollCanvas = scrollFrame->guiObj->lastCanvas;
-
-	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(&textEditor);
-	int lineThickness = textEditor.textHeight + textEditor.linePadding;
-
-	textEditor.sideRenderFrame->guiObj->size = PT_REL_DIM_new(0, xMargin - 5, 1, 0);
-
-	if (!textEditor.sideRenderFrame->renderTexture.tex) {
-		return; // can't render line numbers if side render frame's texture is null
-	}
-
-	vec2i frameSize = canvas_size(textEditor.sideRenderFrame->guiObj->lastCanvas);
-
-
-	PT_FRAMETEXTURE_bind(textEditor.sideRenderFrame->renderTexture);
-	PT_FRAMETEXTURE_clear(textEditor.sideRenderFrame->renderTexture);
-
-
-	
-	char* lineNumStr = calloc(30, sizeof(char));
-	//*
-	// render line numbers
-	for (int i = 0; i < 10; i++) {
-		memset(lineNumStr, 0, 30 * sizeof(char));
-		sprintf(lineNumStr, "%i", i + 1);
-
-		// render line number
-		int numDigits = (int)strlen(lineNumStr);
-		int lineNumStrWidth = get_text_rect(textEditor.charSet, lineNumStr, numDigits, 0).x;
-		render_text(
-			frameSize,
-			textEditor.charSet,
-			accentColor, //PT_COLOR_fromRGB(43, 145, 175),
-			0,
-			lineNumStr,
-			numDigits,
-			xMargin - (lineNumStrWidth + 10), i * lineThickness - canvasOffset.y,
-			0, lineThickness
-		);
-	}
-	free(lineNumStr);
-}
-
 void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusionTopLeftBound, vec2i occlusionBottomRightBound, PT_EXPANDABLE_ARRAY* lineNumbers) {
 	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
 	vec2i canvasOffset = scrollFrame->canvasPosition;
@@ -147,15 +100,13 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		scrollFrame->canvasPosition.y + screenSize.y
 	};
 
-	//test_render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, NULL);
-
 	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(&textEditor);
 	int lineThickness = textEditor.textHeight + textEditor.linePadding;
 
 	int baselineX = xMargin - canvasOffset.x;
 
 
-	// render selection bounding boxg
+	// render selection bounding box
 	///*
 	TEXT_CURSOR cursor = textEditor.textCursor;
 	if (!vector_equal_2i(cursor.position, cursor.selectTo)) { // if there is some selected text;
@@ -170,7 +121,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			get_cursor_selection_bounds(cursor, &start, &end);
 
 			for (int y = start.y; y <= end.y; y++) {
-				int yPos = y * lineThickness; // +textEditor.linePadding / 2;
+				int yPos = y * lineThickness;
 				if (yPos + lineThickness > occlusionTopLeftBound.y) {
 					TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
 					int xi = 0;
@@ -245,7 +196,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 					line.str,
 					line.numChars,
 					baselineX, yPos - canvasOffset.y,
-					screenSize.x - scrollFrame->scrollBarThickness, lineThickness
+					wrapX, lineThickness
 				);
 				//*/
 

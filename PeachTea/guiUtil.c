@@ -129,8 +129,6 @@ void set_quad_positions(vec2i topLeft, vec2i bottomRight) {
 	quadPositions[7] = topLeft.y;
 
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int) * 8, quadPositions);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, NULL);
 }
 
 
@@ -156,8 +154,6 @@ void set_quad_corners(vec2f topLeft, vec2f bottomRight) {
 	
 
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 8, quadCorners);
-	//glEnableVertexAttribArray(1);
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
 float DEFAULT_QUAD_CORNERS[8] = {
@@ -172,6 +168,4 @@ void default_quad_corners() {
 
 	glBindBuffer(GL_ARRAY_BUFFER, *(qVBO + 1));
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 8, DEFAULT_QUAD_CORNERS);
-	//glEnableVertexAttribArray(1);
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }

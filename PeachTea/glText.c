@@ -13,7 +13,7 @@
 #include "glUniformUtil.h"
 #include "PeachTeaShaders.h"
 
-const int TEXT_BUFFER_SIZE = 1000;
+const int TEXT_BUFFER_SIZE = 300;
 
 GLuint* textvao = NULL;
 GLuint* textvbos = NULL;
@@ -387,12 +387,12 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 	glBindTexture(GL_TEXTURE_2D, cs->texture);
 
 	for (int i = 0; 1; i++) {
-		int chunkRenderIndexStart = TEXT_BUFFER_SIZE * i; 
+		int chunkRenderIndexStart = TEXT_BUFFER_SIZE * i; // 0, 10, 20, 30, ...
 		if (chunkRenderIndexStart >= renderIndex) { 
 			break;
 		}
 
-		int chunkRenderIndexEnd = min(TEXT_BUFFER_SIZE * (i + 1) - 1, renderIndex); // inclusive bound   1
+		int chunkRenderIndexEnd = min(TEXT_BUFFER_SIZE * (i + 1) - 1, renderIndex - 1); // inclusive bound   9, 19, 29, 39, ...
 		int chunkSize = (chunkRenderIndexEnd - chunkRenderIndexStart) + 1; // add one, from 1-0=1 but from 0 to 1 is two indices
 
 		glBindBuffer(GL_ARRAY_BUFFER, *(textvbos + 0));

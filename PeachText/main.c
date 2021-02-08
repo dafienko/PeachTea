@@ -29,35 +29,6 @@ void onRender() {
 	
 	int lineThickness = 29;
 	char_set* cs = get_char_set(PT_FONT_CONSOLA, 24);
-	
-	/*
-	render_text(
-		screenSize,
-		cs,
-		PT_COLOR_fromHSV(0, 0, 1),
-		0,
-		"bruh",
-		4,
-		200, lineThickness,
-		0, lineThickness
-	);
-	//*/
-
-	/*
-	for (int i = 0; i < 10; i++) {
-		// render line number
-		render_text(
-			screenSize,
-			cs,
-			PT_COLOR_fromRGB(0, 255, 0),
-			0,
-			"bruh",
-			2,
-			200, (i+1) * lineThickness,
-			0, lineThickness
-		);
-	}
-	//*/
 }
 
 int frames = 0;
