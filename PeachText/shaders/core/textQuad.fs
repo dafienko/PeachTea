@@ -8,7 +8,7 @@ uniform ivec2 clipX;
 uniform ivec2 clipY;
 
 uniform float transparency;
-uniform vec3 color;
+uniform vec3 textColor;
 
 layout (binding=0) uniform sampler2D spritesheet;
 
@@ -30,7 +30,7 @@ void main() {
 		float texColor = texture(spritesheet, glyphSamplePos).r;
 		
 		//FragColor = vec4(texture(spritesheet, glyphSamplePos).xyz, 1);
-		FragColor = vec4(color, texColor * (1 - transparency));
+		FragColor = vec4(textColor, texColor * (1 - transparency));
 		//if (texColor == 0) {
 		//	FragColor = vec4(1, 0, 0, 1);
 		//}

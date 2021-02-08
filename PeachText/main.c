@@ -26,6 +26,38 @@ const int SIDE_MENU_WIDTH = 320;
 
 void onRender() {
 	PT_SCREEN_UI_render(screenUI->subInstance);
+	
+	int lineThickness = 29;
+	char_set* cs = get_char_set(PT_FONT_CONSOLA, 24);
+	
+	/*
+	render_text(
+		screenSize,
+		cs,
+		PT_COLOR_fromHSV(0, 0, 1),
+		0,
+		"bruh",
+		4,
+		200, lineThickness,
+		0, lineThickness
+	);
+	//*/
+
+	/*
+	for (int i = 0; i < 10; i++) {
+		// render line number
+		render_text(
+			screenSize,
+			cs,
+			PT_COLOR_fromRGB(0, 255, 0),
+			0,
+			"bruh",
+			2,
+			200, (i+1) * lineThickness,
+			0, lineThickness
+		);
+	}
+	//*/
 }
 
 int frames = 0;
@@ -48,6 +80,7 @@ void onUpdate(float dt) {
 		lastTimeIndex = tIndex;
 	}
 
+	//*
 	TEXT_EDITOR_update(textEditor, dt);
 
 	vec2i cursorPosition = textEditor->textCursor.position;
@@ -62,6 +95,7 @@ void onUpdate(float dt) {
 		cursorPosition.y + 1, s,
 		cursorPosition.x + 1, s
 	);
+	//*/
 }
 
 int menuOpen = 0;
@@ -85,7 +119,7 @@ void on_menu_activated(void* args) {
 	}
 }
 
-
+																									
 int main(int argc, char** args) {
 	for (int i = 0; i < argc; i++) {
 		printf("%i: \"%s\"\n\n", i, *(args + i));
@@ -105,6 +139,7 @@ int main(int argc, char** args) {
 	MENU_OPEN_POS = PT_REL_DIM_new(0, SIDE_MENU_WIDTH, 0, 0);
 	MENU_CLOSE_POS = PT_REL_DIM_new(0, SIDE_BAR_WIDTH, 0, 0);
 
+	//*
 	screenUI = PT_SCREEN_UI_new();
 	screenUI->name = create_heap_str("screenUI");
 	PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
@@ -280,6 +315,8 @@ int main(int argc, char** args) {
 	set_instance_parent(sideRenderInstance, backgroundInstance);
 
 	textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, sideRenderFrame, "shaders\\core\\blur.fs");
+	//*/
+
 	///*
 	//if (argc <= 1) {
 		//textEditor = TEXT_EDITOR_new(scrollFrameInstance, renderFrame, sideRenderFrame);

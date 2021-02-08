@@ -97,7 +97,7 @@ void PT_CREATE_MAIN_WND(vec2i size, const char* title) {
 	hMainWnd = createPeachWindow(NULL, size, (void*)WndProc, wtitle);
 	free(wtitle);
 
-	RECT rect;
+	RECT rect = { 0 };
 	GetClientRect(hMainWnd, &rect);
 	screenSize = (vec2i){ rect.right - rect.left, rect.bottom - rect.top };
 
@@ -240,9 +240,7 @@ int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
 
 	renderCallback = renderCB;
 
-	PT_TIME_get(&lastTime);
-
-	PT_FRAMETEXTURE ft = PT_FRAMETEXTURE_new(screenSize.x, screenSize.y, 0);
+	lastTime = PT_TIME_get();
 
 	while (1) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -272,8 +270,6 @@ int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
 }
 
 int PT_RUN(void(*updateCallback)(float), void(*renderCallback)(void)) {
-	PT_FRAMETEXTURE_new(screenSize.x, screenSize.y, 0);
-
 	return mainProgramLoop(updateCallback, renderCallback);
 }
 

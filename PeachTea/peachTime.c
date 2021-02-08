@@ -1,7 +1,7 @@
 #include "peachTime.h"
 #include <sys/timeb.h>
 
-struct timeb START;
+struct timeb START = { 0 };
 
 void PT_TIME_start() { // call once at start of program
 	ftime(&START);

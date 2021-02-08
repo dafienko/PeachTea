@@ -441,7 +441,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->textCursor = mainCursor;
 
 
-	editor->wrapText = 1;
+	editor->wrapText = 0;
 
 	currentTextEditor = editor;
 

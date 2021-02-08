@@ -13,11 +13,10 @@
 #include "glUniformUtil.h"
 #include "PeachTeaShaders.h"
 
-const int TEXT_BUFFER_SIZE = 1;
-int renderIndex = 0;
+const int TEXT_BUFFER_SIZE = 1000;
 
-GLuint* vao = NULL;
-GLuint* vbos = NULL;
+GLuint* textvao = NULL;
+GLuint* textvbos = NULL;
 
 FT_Library ftLib = NULL;
 
@@ -27,19 +26,19 @@ void initFT() {
 		fatal_error(L"Failed to initialize freetype");
 	}
 
-	vao = calloc(1, sizeof(GLuint));
-	vbos = calloc(4, sizeof(GLuint));
-	glGenVertexArrays(1, vao);
-	glBindVertexArray(*vao);
+	textvao = calloc(1, sizeof(GLuint));
+	textvbos = calloc(4, sizeof(GLuint));
+	glGenVertexArrays(1, textvao);
+	glBindVertexArray(*textvao);
 
-	glGenBuffers(3, vbos);
+	glGenBuffers(3, textvbos);
 
-	glBindBuffer(GL_ARRAY_BUFFER, *(vbos + 0));
+	glBindBuffer(GL_ARRAY_BUFFER, *(textvbos + 0));
 	glBufferData(GL_ARRAY_BUFFER, (4 * TEXT_BUFFER_SIZE * (int)sizeof(vec2f)), NULL, GL_DYNAMIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-
-	glBindBuffer(GL_ARRAY_BUFFER, *(vbos + 1));
+	
+	glBindBuffer(GL_ARRAY_BUFFER, *(textvbos + 1));
 	glBufferData(GL_ARRAY_BUFFER, 4 * TEXT_BUFFER_SIZE * (int)sizeof(vec2f), NULL, GL_DYNAMIC_DRAW);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
@@ -194,10 +193,6 @@ char_set create_char_set(const char* filename, const int textSize) {
 
 
 vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
-	if (1) {
-		//return (vec2i) { 0, 1 };
-	}
-	
 	int tabWidth = cs->charSize.x * 5;
 	int maxX = 0;
 	int penY = 0;
@@ -220,7 +215,6 @@ vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
 
 			if (wrapX && (penX + advance > wrapX)) {
 				penX = 0;
-				//penY += cs->charSize.y;
 				penY += 1;
 			}
 		}
@@ -232,10 +226,6 @@ vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
 }
 
 vec2i get_text_offset(char_set* cs, const char* str, int len, int wrapX) {
-	if (1) {
-		//return (vec2i) { 0 };
-	}
-
 	int tabWidth = cs->charSize.x * 5;
 	int penY = 0;
 	int penX = 0;
@@ -384,40 +374,32 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	int ssLoc = glGetUniformLocation(PTS_text, "screenSize");
-	int cLoc = glGetUniformLocation(PTS_text, "color");
+	int cLoc = glGetUniformLocation(PTS_text, "textColor");
 	int tLoc = glGetUniformLocation(PTS_text, "transparency");
-	int csLoc = glGetUniformLocation(PTS_text, "charSize");
 
 	glUniform2i(ssLoc, viewportSize.x, viewportSize.y);
 	uniform_PT_COLOR(cLoc, textColor);
 	glUniform1f(tLoc, textTransparency);
-	uniform_vec2i(csLoc, charSize);
 
-	glBindVertexArray(*vao);
+	glBindVertexArray(*textvao);
 
-	for (int i = 0; ; i++) {
-		int chunkRenderIndexStart = TEXT_BUFFER_SIZE * i;
-		if (chunkRenderIndexStart > renderIndex) {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, cs->texture);
+
+	for (int i = 0; 1; i++) {
+		int chunkRenderIndexStart = TEXT_BUFFER_SIZE * i; 
+		if (chunkRenderIndexStart >= renderIndex) { 
 			break;
 		}
 
-		int chunkRenderIndexEnd = min(TEXT_BUFFER_SIZE * (i + 1) - 1, renderIndex); // inclusive bound
-		int chunkSize = (chunkRenderIndexEnd - chunkRenderIndexStart) + 1; // add one, from 1-0=1 but from 0-1 is two 2 indices
+		int chunkRenderIndexEnd = min(TEXT_BUFFER_SIZE * (i + 1) - 1, renderIndex); // inclusive bound   1
+		int chunkSize = (chunkRenderIndexEnd - chunkRenderIndexStart) + 1; // add one, from 1-0=1 but from 0 to 1 is two indices
 
-		glBindBuffer(GL_ARRAY_BUFFER, *(vbos + 0));
+		glBindBuffer(GL_ARRAY_BUFFER, *(textvbos + 0));
 		glBufferSubData(GL_ARRAY_BUFFER, 0, chunkSize * 4 * sizeof(vec2f), vertexBuffer + chunkRenderIndexStart * 4);
-		//glBufferData(GL_ARRAY_BUFFER, chunkSize * 4 * sizeof(vec2f), vertexBuffer + chunkRenderIndexStart * 4, GL_DYNAMIC_DRAW);
-		//glEnableVertexAttribArray(0);
-		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
-		glBindBuffer(GL_ARRAY_BUFFER, *(vbos + 1));
+		glBindBuffer(GL_ARRAY_BUFFER, *(textvbos + 1));
 		glBufferSubData(GL_ARRAY_BUFFER, 0, chunkSize * 4 * sizeof(vec2f), posBuffer + chunkRenderIndexStart * 4 );
-		//glBufferData(GL_ARRAY_BUFFER, chunkSize * 4 * sizeof(vec2f), posBuffer + chunkRenderIndexStart * 4, GL_DYNAMIC_DRAW);
-		//glEnableVertexAttribArray(1);
-		//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, cs->texture);
 
 		glDrawArrays(GL_QUADS, 0, 4 * chunkSize);
 	}
@@ -427,11 +409,11 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 }
 
 void PT_text_cleanup() {
-	glDeleteVertexArrays(1, vao);
-	glDeleteBuffers(3, vbos);
+	glDeleteVertexArrays(1, textvao);
+	glDeleteBuffers(3, textvbos);
 
-	free(vao);
-	free(vbos);
+	free(textvao);
+	free(textvbos);
 }
 
 void free_char_set(char_set* cs) {

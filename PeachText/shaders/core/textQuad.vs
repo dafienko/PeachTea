@@ -5,6 +5,13 @@ layout (location=1) in vec2 texPos; // (0, 0) | (1, 0) | (0, 1) | (1, 1)
 
 uniform ivec2 screenSize;
 
+uniform int useClipBounds;
+uniform ivec2 clipX;
+uniform ivec2 clipY;
+
+uniform float transparency;
+uniform vec3 textColor;
+
 out vec2 posPx;
 out vec2 glyphSamplePos;
 

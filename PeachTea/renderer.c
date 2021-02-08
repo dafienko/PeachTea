@@ -27,6 +27,8 @@ void render(void(*renderCallback)(void)) {
 		glDisable(GL_CULL_FACE);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		glViewport(0, 0, screenSize.x, screenSize.y);
+
 		renderCallback();
 
 		glFinish();

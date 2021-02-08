@@ -6,7 +6,7 @@
 #include <string.h>
 #include <math.h>
 
-PT_EXPANDABLE_ARRAY activeTweens;
+PT_EXPANDABLE_ARRAY activeTweens = { 0 };
 
 void PT_TWEEN_init() {
 	activeTweens = PT_EXPANDABLE_ARRAY_new(10, sizeof(PT_TWEEN*));
