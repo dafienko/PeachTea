@@ -25,7 +25,7 @@ int pos_in_obj(vec2i pos, PT_GUI_OBJ* obj) {
 	top = obj->lastAbsoluteDim.position.y;
 	bottom = top + obj->lastAbsoluteDim.size.y;
 
-	return pos.x > left && pos.x < right&& pos.y > top && pos.y < bottom;
+	return pos.x > left && pos.x < right && pos.y > top && pos.y < bottom;
 }
 
 int obj_wheel_scroll(PT_GUI_OBJ* obj, int d, int processed) {
@@ -351,7 +351,7 @@ void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui) {
 	}
 
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
-	print_rendertree(tree, 0);
+	//print_rendertree(tree, 0);
 	ui->lastRenderTree = tree;
 }
 

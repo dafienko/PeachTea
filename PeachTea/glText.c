@@ -19,7 +19,7 @@ int renderIndex = 0;
 GLuint* vao = NULL;
 GLuint* vbos = NULL;
 
-FT_Library ftLib;
+FT_Library ftLib = NULL;
 
 void initFT() {
 	FT_Error e = FT_Init_FreeType(&ftLib);
@@ -35,7 +35,7 @@ void initFT() {
 	glGenBuffers(3, vbos);
 
 	glBindBuffer(GL_ARRAY_BUFFER, *(vbos + 0));
-	glBufferData(GL_ARRAY_BUFFER, 4 * TEXT_BUFFER_SIZE * sizeof(vec2f), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, (4 * TEXT_BUFFER_SIZE * (int)sizeof(vec2f)), NULL, GL_DYNAMIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
@@ -194,6 +194,10 @@ char_set create_char_set(const char* filename, const int textSize) {
 
 
 vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
+	if (1) {
+		//return (vec2i) { 0, 1 };
+	}
+	
 	int tabWidth = cs->charSize.x * 5;
 	int maxX = 0;
 	int penY = 0;
@@ -207,14 +211,14 @@ vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
 			penX = nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
-			int advance = *(cs->advance + c);
+			int advance = (int)*(cs->advance + c);
 			penX += advance >> 6;
 		}
 		else {
-			int advance = *(cs->advance + c);
-			advance >>= 6;
+			int advance = (int)*(cs->advance + c);
+			advance = advance >> 6;
 
-			if (wrapX && penX + advance > wrapX) {
+			if (wrapX && (penX + advance > wrapX)) {
 				penX = 0;
 				//penY += cs->charSize.y;
 				penY += 1;
@@ -228,6 +232,10 @@ vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
 }
 
 vec2i get_text_offset(char_set* cs, const char* str, int len, int wrapX) {
+	if (1) {
+		//return (vec2i) { 0 };
+	}
+
 	int tabWidth = cs->charSize.x * 5;
 	int penY = 0;
 	int penX = 0;
@@ -240,14 +248,14 @@ vec2i get_text_offset(char_set* cs, const char* str, int len, int wrapX) {
 			penX = nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
-			int advance = *(cs->advance + c);
+			int advance = (int)*(cs->advance + c);
 			penX += advance >> 6;
 		}
 		else {
-			int advance = *(cs->advance + c);
-			advance >>= 6;
+			int advance = (int)*(cs->advance + c);
+			advance = advance >> 6;
 
-			if (wrapX && penX + advance > wrapX) {
+			if (wrapX && (penX + advance > wrapX)) {
 				penX = 0;
 				//penY += cs->charSize.y;
 				penY += 1;
@@ -259,6 +267,10 @@ vec2i get_text_offset(char_set* cs, const char* str, int len, int wrapX) {
 }
 
 int get_char_position(char_set* cs, const char* str, int len, int x) {
+	if (1) {
+		//return 0;
+	}
+
 	int penX = 0;
 	int cIndex = 0;
 	int distanceToIndex = -1;
@@ -280,7 +292,7 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 			penX = nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
-			int advance = *(cs->advance + c);
+			int advance = (int)*(cs->advance + c);
 			penX += advance >> 6;
 		}
 
@@ -323,10 +335,10 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 			penX = baseline_x + nextTabIndex * tabWidth;
 		}
 		else if (c != '\n') {
-			int advance = *(cs->advance + c);
-			advance >>= 6;
+			int advance = (int)*(cs->advance + c);
+			advance = advance >> 6;
 
-			if (wrapX && penX + advance > wrapX) {
+			if (wrapX && (penX + advance > wrapX)) {
 				penX = baseline_x;
 				penY += lineWidth;
 			}
@@ -335,8 +347,8 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 			vec2i bearing = *(cs->bearing + c);
 			vec2i thisCharSize = *(cs->size + c);
 
-			vec2f topLeft = (vec2f){ penX + bearing.x, penY - bearing.y };
-			vec2f bottomRight = vector_add_2f(topLeft, (vec2f){thisCharSize.x + 1, thisCharSize.y});
+			vec2f topLeft = (vec2f){ (float)(penX + bearing.x), (float)(penY - bearing.y) };
+			vec2f bottomRight = vector_add_2f(topLeft, (vec2f) { (float)(thisCharSize.x + 1), (float)thisCharSize.y });
 			
 			*(vertexBuffer + renderIndex * 4 + 0) = (vec2f){ bottomRight.x, topLeft.y };
 			*(vertexBuffer + renderIndex * 4 + 1) = (vec2f){ topLeft.x, topLeft.y };
@@ -431,6 +443,10 @@ void free_char_set(char_set* cs) {
 }
 
 int get_text_position_from_rel_position(char_set* cs, char* str, int len, vec2i relPos, int lineThickness, int wrapX) {
+	if (1) {
+		//return 0;
+	}
+
 	int penX = 0;
 	int penY = 0;
 	int cIndex = 0;
@@ -457,14 +473,15 @@ int get_text_position_from_rel_position(char_set* cs, char* str, int len, vec2i 
 				penX = nextTabIndex * tabWidth;
 			}
 			else if (c != '\n') {
-				int advance = *(cs->advance + c);
-				penX += advance >> 6;
+				int advance = (int)*(cs->advance + c);
+				advance = advance >> 6;
+				penX += advance;
 			}
 			else {
-				int advance = *(cs->advance + c);
-				advance >>= 6;
+				int advance = (int)*(cs->advance + c);
+				advance = advance >> 6;
 
-				if (wrapX && penX + advance > wrapX) {
+				if (wrapX && (penX + advance > wrapX)) {
 					penX = 0;
 					penY += lineThickness;
 					//penY += 1;

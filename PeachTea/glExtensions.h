@@ -75,8 +75,6 @@ PFNGLDETACHSHADERPROC glDetachShader;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
 
-int initialized;
-
 void GLEInit();
 
 #endif

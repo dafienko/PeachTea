@@ -17,11 +17,11 @@ void PT_FRAMETEXTURE_destroy(PT_FRAMETEXTURE tex);
 
 void PT_FRAMETEXTURE_bind(PT_FRAMETEXTURE tex);
 void PT_FRAMETEXTURE_unbind();
-PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex);
+void PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex);
 
 void PT_FRAMETEXTURE_blur(GLuint src, PT_FRAMETEXTURE dest, vec2f dir, int blurRadius, int textureFlipped);
 void PT_FRAMETEXTURE_copy_to_framebuffer(PT_FRAMETEXTURE frameTexture, GLuint framebuffer);
 
-PT_FRAMETEXTURE_bind_to_screensize(PT_FRAMETEXTURE* frameTexture);
+void PT_FRAMETEXTURE_bind_to_screensize(PT_FRAMETEXTURE* frameTexture);
 
 #endif

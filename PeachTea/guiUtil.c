@@ -9,6 +9,8 @@
 #include "PeachTeaShaders.h"
 #include "renderFrame.h"
 
+
+
 PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas) {
 	PT_canvas canvas = { 0 };
 
@@ -157,6 +159,13 @@ void set_quad_corners(vec2f topLeft, vec2f bottomRight) {
 	//glEnableVertexAttribArray(1);
 	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
+
+float DEFAULT_QUAD_CORNERS[8] = {
+	0, 0,
+	0, 1,
+	1, 1,
+	1, 0
+};
 
 void default_quad_corners() {
 	glBindVertexArray(*qVAO);

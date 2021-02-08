@@ -86,15 +86,14 @@ void PT_RENDERFRAME_render(PT_RENDERFRAME* renderFrame, PT_SCREEN_UI* ui) {
 		if (renderFrame->renderTexture.tex) {
 			// copy user-rendered texture to window
 			glUseProgram(PTS_tex);
-			
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, renderFrame->renderTexture.tex);
 
 			set_quad_positions(pos, vector_add_2i(pos, size));
 			set_quad_corners(
-				(vec2f){0, 1}, 
-				(vec2f) { 1, 0 }
+				(vec2f){0.0f, 1.0f},
+				(vec2f) { 1.0f, 0.0f}
 			);
 
 			glDrawArrays(GL_QUADS, 0, 4);

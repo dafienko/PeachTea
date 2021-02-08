@@ -5,7 +5,6 @@
 unsigned int* qVAO;
 unsigned int* qVBO;
 
-float DEFAULT_QUAD_CORNERS[8];
 unsigned int PTS_text, PTS_guiObj, PTS_img, PTS_blur, PTS_tex, PTS_rect, PTS_textSpritemapGenerator;
 
 void PT_SHADERS_init(); // init core shaders

@@ -9,13 +9,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-Instance* screenUI;
-TEXT_EDITOR* textEditor;
+Instance* screenUI = NULL;
+TEXT_EDITOR* textEditor = NULL;
 
 PT_IMAGE menuImage, arrowImage;
 
-PT_TEXTLABEL* statusBarLabel;
-char* status;
+PT_TEXTLABEL* statusBarLabel = NULL;
+char* status = NULL;
 
 const int STATUS_BAR_HEIGHT = 20;
 

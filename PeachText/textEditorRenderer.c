@@ -13,6 +13,52 @@ typedef struct {
 } lineNumber;
 
 
+void test_render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusionTopLeftBound, vec2i occlusionBottomRightBound, PT_EXPANDABLE_ARRAY* lineNumbers) {
+	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
+	vec2i canvasOffset = scrollFrame->canvasPosition;
+	PT_canvas scrollCanvas = scrollFrame->guiObj->lastCanvas;
+
+	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(&textEditor);
+	int lineThickness = textEditor.textHeight + textEditor.linePadding;
+
+	textEditor.sideRenderFrame->guiObj->size = PT_REL_DIM_new(0, xMargin - 5, 1, 0);
+
+	if (!textEditor.sideRenderFrame->renderTexture.tex) {
+		return; // can't render line numbers if side render frame's texture is null
+	}
+
+	vec2i frameSize = canvas_size(textEditor.sideRenderFrame->guiObj->lastCanvas);
+
+
+	PT_FRAMETEXTURE_bind(textEditor.sideRenderFrame->renderTexture);
+	PT_FRAMETEXTURE_clear(textEditor.sideRenderFrame->renderTexture);
+
+
+	
+	char* lineNumStr = calloc(30, sizeof(char));
+	//*
+	// render line numbers
+	for (int i = 0; i < 10; i++) {
+		memset(lineNumStr, 0, 30 * sizeof(char));
+		sprintf(lineNumStr, "%i", i + 1);
+
+		// render line number
+		int numDigits = (int)strlen(lineNumStr);
+		int lineNumStrWidth = get_text_rect(textEditor.charSet, lineNumStr, numDigits, 0).x;
+		render_text(
+			frameSize,
+			textEditor.charSet,
+			accentColor, //PT_COLOR_fromRGB(43, 145, 175),
+			0,
+			lineNumStr,
+			numDigits,
+			xMargin - (lineNumStrWidth + 10), i * lineThickness - canvasOffset.y,
+			0, lineThickness
+		);
+	}
+	free(lineNumStr);
+}
+
 void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusionTopLeftBound, vec2i occlusionBottomRightBound, PT_EXPANDABLE_ARRAY* lineNumbers) {
 	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
 	vec2i canvasOffset = scrollFrame->canvasPosition;
@@ -34,6 +80,7 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	///*
 	glUseProgram(PTS_rect);
 	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), scrollFrame->guiObj->backgroundColor);
 	//uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), PT_COLOR_fromRGB(255, 0, 0));
@@ -43,15 +90,15 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 	default_quad_corners();
 	
 	set_quad_positions(
-			(vec2i) {
+		(vec2i) {
 			0, 0
 		},
-			(vec2i) {
+		(vec2i) {
 			xMargin - 5, frameSize.y
 		}
 	);
 	glDrawArrays(GL_QUADS, 0, 4);
-	
+	//*/
 
 	char* lineNumStr = calloc(30, sizeof(char));
 	//*
@@ -63,14 +110,15 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 		sprintf(lineNumStr, "%i", lnum.l + 1);
 
 		// render line number
-		int lineNumStrWidth = get_text_rect(textEditor.charSet, lineNumStr, strlen(lineNumStr), 0).x;
+		int numDigits = (int)strlen(lineNumStr);
+		int lineNumStrWidth = get_text_rect(textEditor.charSet, lineNumStr, numDigits, 0).x;
 		render_text(
 			frameSize,
 			textEditor.charSet,
 			accentColor, //PT_COLOR_fromRGB(43, 145, 175),
 			0,
 			lineNumStr,
-			strlen(lineNumStr),
+			numDigits,
 			xMargin - (lineNumStrWidth + 10), lnum.lineStartBaselineY - canvasOffset.y,
 			0, lineThickness
 		);
@@ -100,6 +148,11 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		scrollFrame->canvasPosition.y + screenSize.y
 	};
 
+	test_render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, NULL);
+
+	if (1) {
+		return;
+	}
 
 	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(&textEditor);
 	int lineThickness = textEditor.textHeight + textEditor.linePadding;
@@ -107,6 +160,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	int baselineX = xMargin - canvasOffset.x;
 
 	// render selection bounding boxg
+	/*
 	TEXT_CURSOR cursor = textEditor.textCursor;
 	if (!vector_equal_2i(cursor.position, cursor.selectTo)) { // if there is some selected text;
 		glUseProgram(PTS_rect);
@@ -160,7 +214,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			}
 		}
 	}
-
+	*/
 
 	// render text
 	PT_EXPANDABLE_ARRAY lineNumbers = PT_EXPANDABLE_ARRAY_new(1, sizeof(lineNumber));
@@ -174,7 +228,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		xPos = xMargin;
 
 		if (yPos > occlusionTopLeftBound.y) {
-			if (yPos - lineThickness > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)
+			if (yPos - lineThickness > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)	
 				break;
 			}
 			lineNumber lnum = { 0 };
@@ -182,23 +236,22 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			lnum.lineStartBaselineY = yPos;
 			PT_EXPANDABLE_ARRAY_add(&lineNumbers, &lnum);
 
+		
 			TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
 
-			if (textEditor.textLines->numElements > 5) {
-				int x = 0;
-			}
-
 			if (line.numChars > 0) {
+				/*
 				render_text(
 					canvasSize,
 					textEditor.charSet,
-					PT_COLOR_fromHSV(0, 0, .8),
+					PT_COLOR_fromHSV(0, 0, .8f),
 					0,
 					line.str,
 					line.numChars,
 					baselineX, yPos - canvasOffset.y,
 					screenSize.x - scrollFrame->scrollBarThickness, lineThickness
 				);
+				//*/
 
 				vec2i rect = get_text_rect(textEditor.charSet, line.str, line.numChars, wrapX);
 				xPos += rect.x;
@@ -211,14 +264,14 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		yPos += lineThickness;
 	}
 
-	render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, &lineNumbers);
+	//test_render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, &lineNumbers);
 
 	PT_EXPANDABLE_ARRAY_destroy(&lineNumbers);
 
 	// adjust canvas size to maximum line lengths
 	maxX = max(maxX, occlusionBottomRightBound.x - occlusionTopLeftBound.x);
 	maxY = max(maxY, occlusionBottomRightBound.y - occlusionTopLeftBound.y);
-	scrollFrame->canvasSize = PT_REL_DIM_new(0.1, maxX, .9, maxY);
+	scrollFrame->canvasSize = PT_REL_DIM_new(0.1f, maxX, .9f, maxY);
 	scrollCanvasSize = calculate_screen_dimension(scrollFrame->canvasSize, scrollFrameSize);
 
 	scrollFrame->canvasPosition = (vec2i) { // make sure canvas position doesn't over-extend canvas size after canvas is resized

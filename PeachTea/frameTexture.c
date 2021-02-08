@@ -75,7 +75,7 @@ void ft_on_resize(void* arg) {
 	}
 }
 
-PT_FRAMETEXTURE_bind_to_screensize(PT_FRAMETEXTURE* frameTexture) {
+void PT_FRAMETEXTURE_bind_to_screensize(PT_FRAMETEXTURE* frameTexture) {
 	if (framebuffersBoundToResize.data == NULL) { // init framebuffersBoundToResize
 		framebuffersBoundToResize = PT_EXPANDABLE_ARRAY_new(5, sizeof(PT_FRAMETEXTURE*));
 
@@ -120,7 +120,7 @@ void PT_FRAMETEXTURE_unbind() {
 	glViewport(0, 0, screenSize.x, screenSize.y);
 }
 
-PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex) {
+void PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex) {
 	glBindFramebuffer(GL_FRAMEBUFFER, tex.fbo);
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);

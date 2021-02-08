@@ -114,6 +114,4 @@ void GLEInit() {
     glDetachShader = (PFNGLDETACHSHADERPROC)getProc("glDetachShader");
     glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)getProc("glDeleteBuffers");
     glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)getProc("glDeleteVertexArrays");
-
-    initialized = 1;
 }

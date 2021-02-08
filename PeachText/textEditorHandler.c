@@ -401,16 +401,16 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	if (!keyDownBound) {
 		keyDownBound = 1;
 
-		PT_BINDABLE_EVENT_bind(&eOnCharTyped, on_char_typed);
-		PT_BINDABLE_EVENT_bind(&eOnKeyPress, on_key_down);
-		PT_BINDABLE_EVENT_bind(&eOnSysKeyPress, on_sys_key_down);
-		PT_BINDABLE_EVENT_bind(&eOnCommand, on_command);
+		//PT_BINDABLE_EVENT_bind(&eOnCharTyped, on_char_typed);
+		//PT_BINDABLE_EVENT_bind(&eOnKeyPress, on_key_down);
+		//PT_BINDABLE_EVENT_bind(&eOnSysKeyPress, on_sys_key_down);
+		//PT_BINDABLE_EVENT_bind(&eOnCommand, on_command);
 	}
 	
-	PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_mouseEnter, TEXT_EDITOR_mouse_enter);
-	PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_mouseLeave, TEXT_EDITOR_mouse_leave);
-	PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_pressed, TEXT_EDITOR_on_click);
-	PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_dragged, TEXT_EDITOR_on_drag);
+	//PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_mouseEnter, TEXT_EDITOR_mouse_enter);
+	//PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_mouseLeave, TEXT_EDITOR_mouse_leave);
+	//PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_pressed, TEXT_EDITOR_on_click);
+	//PT_BINDABLE_EVENT_bind(&scrollFrame->guiObj->e_obj_dragged, TEXT_EDITOR_on_drag);
 
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
 
