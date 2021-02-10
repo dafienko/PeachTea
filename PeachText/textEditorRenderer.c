@@ -107,7 +107,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 
 	// render selection bounding box
-	///*
+	/*
 	TEXT_CURSOR cursor = textEditor.textCursor;
 	if (!vector_equal_2i(cursor.position, cursor.selectTo)) { // if there is some selected text;
 		glUseProgram(PTS_rect);
@@ -117,8 +117,6 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .2f);
 
 		if (cursor.cloneLineOffset == 0) {
-			vec2i start, end;
-			get_cursor_selection_bounds(cursor, &start, &end);
 
 			for (int y = start.y; y <= end.y; y++) {
 				int yPos = y * lineThickness;
@@ -146,6 +144,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 						break;
 					}
 
+					
 					default_quad_corners();
 					set_quad_positions(
 						(vec2i) {
@@ -157,6 +156,8 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 					);
 
 					glDrawArrays(GL_QUADS, 0, 4);
+					
+
 				}
 			}
 		}
@@ -167,24 +168,48 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	PT_EXPANDABLE_ARRAY lineNumbers = PT_EXPANDABLE_ARRAY_new(1, sizeof(lineNumber));
 	
 	int wrapX = TEXT_EDITOR_get_wrapX(&textEditor) ;
-	int xPos = xMargin;
 	int yPos = textEditor.textHeight + textEditor.linePadding / 2;;
 	int maxX = xMargin;
 	int maxY = textEditor.textLines->numElements * (textEditor.linePadding + textEditor.textHeight);
-	for (int y = 0; y < textEditor.textLines->numElements; y++) {
-		xPos = xMargin;
 
-		if (yPos > occlusionTopLeftBound.y) {
-			if (yPos - lineThickness > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)	
+	vec2i sStart, sEnd;
+	get_cursor_selection_bounds(textEditor.textCursor, &sStart, &sEnd);
+	PT_EXPANDABLE_ARRAY selectionRects = PT_EXPANDABLE_ARRAY_new(50, sizeof(vec2i));
+
+	for (int y = 0; y < textEditor.textLines->numElements; y++) {
+		TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
+		vec2i rect = get_text_rect(textEditor.charSet, line.str, line.numChars, wrapX - baselineX);
+		
+		// if this line is even visible
+		if (yPos + (1 + rect.y) * lineThickness > occlusionTopLeftBound.y) {
+			if (yPos > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)	
 				break;
 			}
+			
 			lineNumber lnum = { 0 };
 			lnum.l = y;
 			lnum.lineStartBaselineY = yPos;
 			PT_EXPANDABLE_ARRAY_add(&lineNumbers, &lnum);
 
-		
-			TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
+			// render cursor position
+			TEXT_CURSOR cursor = textEditor.textCursor;
+			if (y == cursor.position.y) {
+				int relWrapX = 0;
+				if (wrapX) {
+					relWrapX = wrapX - baselineX;
+				}
+
+				vec2i offset = get_text_offset(textEditor.charSet, line.str, cursor.position.x, relWrapX);
+				PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursor.cursorFrame->subInstance;
+				cursorObj->position = PT_REL_DIM_new(
+					0, baselineX + offset.x,
+					0, (yPos-lineThickness) + offset.y * lineThickness + textEditor.linePadding / 2 - canvasOffset.y
+				);
+			}
+
+			if (y >= sStart.y && y <= sEnd.y) { // a part of this line is selected
+
+			}
 
 			if (line.numChars > 0) {
 				///*
@@ -199,20 +224,15 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 					wrapX, lineThickness
 				);
 				//*/
-
-				vec2i rect = get_text_rect(textEditor.charSet, line.str, line.numChars, wrapX);
-				xPos += rect.x;
-				yPos += rect.y * lineThickness;
 			}
-
-			maxX = max(xPos, maxX);
 		}
 
-		yPos += lineThickness;
+		yPos += (rect.y+1) * lineThickness;
 	}
 
 	render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, &lineNumbers);
 
+	PT_EXPANDABLE_ARRAY_destroy(&selectionRects);
 	PT_EXPANDABLE_ARRAY_destroy(&lineNumbers);
 
 	// adjust canvas size to maximum line lengths

@@ -259,7 +259,7 @@ void on_render_frame_render(PT_RENDERFRAME* renderFrame) {
 
 int TEXT_EDITOR_get_wrapX(TEXT_EDITOR* editor) {
 	PT_GUI_OBJ* obj = editor->scrollFrame->guiObj;
-	return (canvas_size(obj->lastCanvas).x - editor->scrollFrame->scrollBarThickness) && editor->wrapText;
+	return editor->wrapText ? (obj->lastCanvas.right - editor->scrollFrame->scrollBarThickness) : 0;
 }
 
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor) {
@@ -274,12 +274,18 @@ vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
 		int xMargin = TEXT_EDITOR_get_margin(currentTextEditor);
 		vec2i absPos = canvas_pos(currentTextEditor->scrollFrame->guiObj->lastCanvas);
 
+		int xOffset = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + TEXT_EDITOR_get_margin(currentTextEditor);
+		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor);
+
+		if (wrapX) {
+			wrapX = wrapX - xOffset;
+		}
+
 		vec2i relMousePos = vector_add_2i(screenPos, canvasOffset);
 		relMousePos.x -= xMargin;
 		relMousePos = vector_sub_2i(relMousePos, absPos);
 		
 		int lineThickness = currentTextEditor->textHeight + currentTextEditor->linePadding;
-		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor);
 
 		int cx = 0;
 		int cy = 0;
@@ -287,7 +293,7 @@ vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
 		int penY = 0;
 		for (int i = 0; i < currentTextEditor->textLines->numElements; i++) {
 			TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
-			vec2i lineOrigin = (vec2i){ penX, penY };
+			vec2i lineOrigin = (vec2i){ penX, penY};
 
 			vec2i textBounds = get_text_rect(currentTextEditor->charSet, line->str, line->numChars, wrapX);
 			int boundsHeight = (textBounds.y + 1) * lineThickness;
@@ -436,7 +442,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->textCursor = mainCursor;
 
 
-	editor->wrapText = 0;
+	editor->wrapText = 1;
 
 	currentTextEditor = editor;
 
@@ -485,11 +491,6 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 	float t = PT_TIME_get();
 	
-	PT_canvas scrollCanvas = editor->scrollFrame->guiObj->lastCanvas;
-	vec2i scrollCanvasPos = editor->scrollFrame->canvasPosition;
-
-	int xMargin = TEXT_EDITOR_get_margin(editor);
-
 	TEXT_CURSOR* textCursor = &editor->textCursor;
 	int cursorY = textCursor->position.y;
 	int cloneLineY = cursorY + textCursor->cloneLineOffset;
@@ -503,10 +504,6 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 		int x = min(thisLine.numChars, editor->textCursor.position.x);
 
 		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
-		cursorObj->position = PT_REL_DIM_new(
-			0, scrollCanvas.left + -scrollCanvasPos.x + xMargin + get_text_rect(editor->charSet, thisLine.str, x, 0).x,
-			0, scrollCanvas.top + -scrollCanvasPos.y + cursorPos.y * (editor->linePadding + editor->textHeight)
-		); 
 
 		if (textCursor->insert) {
 			cursorObj->size = PT_REL_DIM_new(0, editor->charWidth, 0, editor->textHeight + editor->linePadding);

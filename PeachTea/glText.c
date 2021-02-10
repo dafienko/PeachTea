@@ -207,16 +207,18 @@ vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
 		}
 		else if (c != '\n') {
 			int advance = (int)*(cs->advance + c);
-			penX += advance >> 6;
-		}
-		else {
-			int advance = (int)*(cs->advance + c);
-			advance = advance >> 6;
+			advance >>= 6;
 
 			if (wrapX && (penX + advance > wrapX)) {
 				penX = 0;
 				penY += 1;
 			}
+
+			penX += advance;
+		}
+		else {
+			int advance = (int)*(cs->advance + c);
+			advance = advance >> 6;
 		}
 
 		maxX = max(penX, maxX);
@@ -239,17 +241,18 @@ vec2i get_text_offset(char_set* cs, const char* str, int len, int wrapX) {
 		}
 		else if (c != '\n') {
 			int advance = (int)*(cs->advance + c);
-			penX += advance >> 6;
-		}
-		else {
-			int advance = (int)*(cs->advance + c);
-			advance = advance >> 6;
-
+			advance >>= 6;
+			
 			if (wrapX && (penX + advance > wrapX)) {
 				penX = 0;
-				//penY += cs->charSize.y;
 				penY += 1;
 			}
+
+			penX += advance																																											;
+		}
+		else {
+			penX = 0;
+			penY++;
 		}
 	}
 
@@ -457,17 +460,17 @@ int get_text_position_from_rel_position(char_set* cs, char* str, int len, vec2i 
 			else if (c != '\n') {
 				int advance = (int)*(cs->advance + c);
 				advance = advance >> 6;
-				penX += advance;
-			}
-			else {
-				int advance = (int)*(cs->advance + c);
-				advance = advance >> 6;
 
 				if (wrapX && (penX + advance > wrapX)) {
 					penX = 0;
 					penY += lineThickness;
-					//penY += 1;
 				}
+
+				penX += advance;
+			}
+			else {
+				penX = 0;
+				penY += lineThickness;
 			}
 		}
 	}
