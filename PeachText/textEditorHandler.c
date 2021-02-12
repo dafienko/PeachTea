@@ -19,6 +19,9 @@ int charsTyped = 0;
 #define IS_ALPHA_CHAR(c) IS_UPPER_CHAR(c) || IS_LOWER_CHAR(c);
 #define IS_NUMBER_CHAR(c) c >= 48 && c <= 57
 
+TEXT_EDITOR* get_current_text_editor() {
+	return currentTextEditor;
+}
 
 char get_last_char(TEXT_LINE line) {
 	return *(line.str + (line.numChars - 1));
@@ -89,37 +92,44 @@ void on_char_typed(void* args) {
 
 void move_text_pos_in_view(vec2i textPosition) {
 	if (currentTextEditor) {
-		int wrapX = currentTextEditor->wrapText && TEXT_EDITOR_get_wrapX(currentTextEditor);
-		int lineHeight = currentTextEditor->textHeight + currentTextEditor->linePadding;
-		int focusY = textPosition.y * (lineHeight);
-		
-		TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, textPosition.y);
-		int focusX = get_text_offset(currentTextEditor->charSet, line->str, textPosition.x, wrapX).x;
+		vec2i newCanvasPos = currentTextEditor->scrollFrame->canvasPosition;
 
-		vec2i sfSize = canvas_size(currentTextEditor->scrollFrame->guiObj->lastCanvas);
-		sfSize.x -= TEXT_EDITOR_get_margin(currentTextEditor);
-		vec2i currentCanvasPos = currentTextEditor->scrollFrame->canvasPosition;
+		vec2i canvasSize = canvas_size(currentTextEditor->scrollFrame->guiObj->lastCanvas);
+		canvasSize.x -= currentTextEditor->scrollFrame->scrollBarThickness;
+		canvasSize.y -= currentTextEditor->scrollFrame->scrollBarThickness;
 
+		int penY = currentTextEditor->linePadding / 2;
+		int penX = 0;
+		int margin = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + TEXT_EDITOR_get_margin(currentTextEditor);
+		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor) - margin;
+		int lineThickness = currentTextEditor->linePadding + currentTextEditor->textHeight;
+		for (int i = 0; i < textPosition.y; i++) {
+			TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
 
-		vec2i newCanvasPos = currentCanvasPos;
+			vec2i offset = get_text_offset(currentTextEditor->charSet, line.str, line.numChars, wrapX);
 
-		if (focusY < currentCanvasPos.y) { // if text is above viewport
-			newCanvasPos.y = focusY;
-		}
-		else if (focusY + lineHeight >= currentCanvasPos.y + sfSize.y) { // if text is below viewport
-			newCanvasPos.y = focusY - (sfSize.y - (currentTextEditor->scrollFrame->scrollBarThickness + lineHeight));
-		}
+			penY += lineThickness * offset.y;
 
-		if (focusX < currentCanvasPos.x) { // if text position is to the left of the viewport
-			newCanvasPos.x = focusX;
-		}
-		else if (focusX + currentTextEditor->charWidth > currentCanvasPos.x + sfSize.x) { // if text is to the right of viewport
-			newCanvasPos.x = focusX - sfSize.x + currentTextEditor->scrollFrame->scrollBarThickness;
+			if (i == textPosition.y) {
+				penX = offset.x;
+			}
 		}
 
 		// clamp to at least 0, 0
-		newCanvasPos.x = max(0, newCanvasPos.x);
-		newCanvasPos.y = max(0, newCanvasPos.y);
+		vec2i canvasPos = currentTextEditor->scrollFrame->canvasPosition;
+		if (penX < canvasPos.x) {
+			newCanvasPos.x = penX;
+		}
+		else if (penX > canvasPos.x + canvasSize.x) {
+			newCanvasPos.x = penX - canvasSize.x;
+		}
+
+		if (penY < canvasPos.y) {
+			newCanvasPos.y = penY;
+		}
+		else if (penY + lineThickness > canvasPos.y + canvasSize.y) {
+			newCanvasPos.y = (penY + lineThickness) - canvasSize.y ;
+		}
 
 		currentTextEditor->scrollFrame->targetCanvasPosition = newCanvasPos;
 	}

@@ -35,10 +35,12 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor);
 int TEXT_EDITOR_get_wrapX(TEXT_EDITOR* editor);
 
+vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos);
 void move_text_pos_in_view(vec2i textPosition);
 
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt);
 
+TEXT_EDITOR* get_current_text_editor();
 int* get_charsTyped();
 
 #endif

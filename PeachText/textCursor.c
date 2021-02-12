@@ -1,5 +1,6 @@
 #include "textCursor.h"
 #include "textEditorHandler.h"
+#include <stdio.h>
 
 TEXT_CURSOR TEXT_CURSOR_new(TEXT_EDITOR* editor) {
 	Instance* cursorFrame = PT_GUI_OBJ_new();
@@ -400,7 +401,27 @@ void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
 	
 	vec3i newPosData = calculate_text_position(cursor->textArray, cursor->position, dir, cursor->targetX);
 
+	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursor->cursorFrame->subInstance;
+	PT_canvas cursorCanvas = cursorObj->lastCanvas;
+	vec2i midPos = (vec2i){ (cursorCanvas.left + cursorCanvas.right) / 2, (cursorCanvas.top + cursorCanvas.bottom) / 2 };
+
 	vec2i newPos = (vec2i){ newPosData.x, newPosData.y };
+	TEXT_EDITOR* currentTextEditor = get_current_text_editor();
+	if (currentTextEditor && dir.y != 0) {
+		int margin = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + TEXT_EDITOR_get_margin(currentTextEditor);
+		int lineThickness = currentTextEditor->textHeight + currentTextEditor->linePadding;
+		midPos.y += -dir.y * lineThickness;
+		midPos.x = cursor->targetX;
+		newPos = TEXT_EDITOR_screenPos_to_cursorPos(midPos);
+	}
+
+	if (dir.x != 0) {
+		int margin = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + TEXT_EDITOR_get_margin(currentTextEditor);
+		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor) - margin;
+		TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, newPos.y);
+		vec2i offset = get_text_offset(currentTextEditor->charSet, line.str, newPos.x, wrapX);
+		cursor->targetX = offset.x + margin;
+	}
 
 	// there is at least one line clone and at least alt or shift is being held down
 	if (abs(cursor->cloneLineOffset) > 0 && (altDown || shiftDown)) {
@@ -416,7 +437,6 @@ void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
 	}
 
 	cursor->position = newPos;
-	cursor->targetX = newPosData.z;
 	move_text_pos_in_view(cursor->position);
 }
 

@@ -79,6 +79,43 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 	//*/
 }
 
+void render_selection_rects(PT_EXPANDABLE_ARRAY* arr, vec2i canvasOffset) {
+	glUseProgram(PTS_rect);
+
+	uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), screenSize);
+	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), accentColor);
+	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .2f);
+
+	default_quad_corners();
+
+	for (int i = 0; i < arr->numElements / 4; i++) {
+		float alpha = (float)i / ((float)arr->numElements / 4.0f);
+
+		vec2i topRight = *(vec2i*)PT_EXPANDABLE_ARRAY_get(arr, i * 4 + 0);
+		vec2i topLeft = *(vec2i*)PT_EXPANDABLE_ARRAY_get(arr, i * 4 + 1);
+		vec2i bottomLeft = *(vec2i*)PT_EXPANDABLE_ARRAY_get(arr, i * 4 + 2);
+		vec2i bottomRight = *(vec2i*)PT_EXPANDABLE_ARRAY_get(arr, i * 4 + 3);
+
+		set_quad_positions(
+			vector_sub_2i(topLeft, canvasOffset),
+			vector_sub_2i(bottomRight, canvasOffset)
+		);
+
+		glDrawArrays(GL_QUADS, 0, 4);
+	}
+}
+
+void add_quad_to_arr(PT_EXPANDABLE_ARRAY* arr, vec2i topLeft, vec2i bottomRight) {
+	vec2i topRight = (vec2i){ bottomRight.x, topLeft.y };
+	vec2i bottomLeft = (vec2i){ topLeft.x, bottomRight.y };
+
+	// add points to arr in counter-clockwise winding pattern
+	PT_EXPANDABLE_ARRAY_add(arr, (void*)&topRight); 
+	PT_EXPANDABLE_ARRAY_add(arr, (void*)&topLeft); 
+	PT_EXPANDABLE_ARRAY_add(arr, (void*)&bottomLeft); 
+	PT_EXPANDABLE_ARRAY_add(arr, (void*)&bottomRight); 
+}
+
 void render_text_editor(TEXT_EDITOR textEditor) {
 	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
 	vec2i canvasOffset = scrollFrame->canvasPosition;
@@ -105,69 +142,14 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 	int baselineX = xMargin - canvasOffset.x;
 
-
-	// render selection bounding box
-	/*
-	TEXT_CURSOR cursor = textEditor.textCursor;
-	if (!vector_equal_2i(cursor.position, cursor.selectTo)) { // if there is some selected text;
-		glUseProgram(PTS_rect);
-
-		uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), screenSize);
-		uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), accentColor);
-		glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .2f);
-
-		if (cursor.cloneLineOffset == 0) {
-
-			for (int y = start.y; y <= end.y; y++) {
-				int yPos = y * lineThickness;
-				if (yPos + lineThickness > occlusionTopLeftBound.y) {
-					TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
-					int xi = 0;
-					int xf = line.numChars;
-
-					if (y == start.y) {
-						xi = start.x;
-					}
-
-					if (y == end.y) {
-						xf = end.x;
-					}
-
-					int xiPos = xMargin + get_text_rect(textEditor.charSet, line.str, xi, 0).x;
-					int xfPos = xMargin + get_text_rect(textEditor.charSet, line.str, xf, 0).x;
-					if (xf == 1 && y < end.y) {
-						xfPos += textEditor.charWidth / 2; // signify selection of newline
-					}
-
-					// if this selection box's top edge is out of the scrollframe, stop rendering selection box (it isn't visible)
-					if (yPos > occlusionBottomRightBound.y) {
-						break;
-					}
-
-					
-					default_quad_corners();
-					set_quad_positions(
-						(vec2i) {
-							xiPos - canvasOffset.x, yPos - canvasOffset.y
-						},
-						(vec2i) {
-							xfPos - canvasOffset.x, yPos + lineThickness - canvasOffset.y
-						}
-					);
-
-					glDrawArrays(GL_QUADS, 0, 4);
-					
-
-				}
-			}
-		}
-	}
-	//*/
-
 	// render text
 	PT_EXPANDABLE_ARRAY lineNumbers = PT_EXPANDABLE_ARRAY_new(1, sizeof(lineNumber));
 	
-	int wrapX = TEXT_EDITOR_get_wrapX(&textEditor) ;
+	int wrapX = TEXT_EDITOR_get_wrapX(&textEditor);
+	int relWrapX = 0;
+	if (wrapX) {
+		relWrapX = wrapX - baselineX;
+	}
 	int yPos = textEditor.textHeight + textEditor.linePadding / 2;;
 	int maxX = xMargin;
 	int maxY = textEditor.textLines->numElements * (textEditor.linePadding + textEditor.textHeight);
@@ -180,6 +162,18 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
 		vec2i rect = get_text_rect(textEditor.charSet, line.str, line.numChars, wrapX - baselineX);
 		
+		// render cursor position
+		TEXT_CURSOR cursor = textEditor.textCursor;
+		if (y == cursor.position.y) {
+			vec2i offset = get_text_offset(textEditor.charSet, line.str, cursor.position.x, relWrapX);
+			PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursor.cursorFrame->subInstance;
+			cursorObj->position = PT_REL_DIM_new(
+				0, baselineX + offset.x,
+				0, (yPos - lineThickness) + offset.y * lineThickness + textEditor.linePadding / 2 - canvasOffset.y
+			);
+		}
+
+
 		// if this line is even visible
 		if (yPos + (1 + rect.y) * lineThickness > occlusionTopLeftBound.y) {
 			if (yPos > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)	
@@ -191,26 +185,64 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			lnum.lineStartBaselineY = yPos;
 			PT_EXPANDABLE_ARRAY_add(&lineNumbers, &lnum);
 
-			// render cursor position
-			TEXT_CURSOR cursor = textEditor.textCursor;
-			if (y == cursor.position.y) {
-				int relWrapX = 0;
-				if (wrapX) {
-					relWrapX = wrapX - baselineX;
+			// calculate cursor selection rects
+			if (y >= sStart.y && y <= sEnd.y && !vector_equal_2i(sStart, sEnd)) { // a part of this line is selected
+				int lineTop = yPos + -lineThickness + textEditor.linePadding / 2;
+				vec2i sTopLeft = { 0, lineTop };
+				vec2i sBottomRight = { 0 };
+
+				int lineStartIndex = 0;
+				if (y == sStart.y) {
+					lineStartIndex = sStart.x;
+				}
+				vec2i startOffset = get_text_offset(textEditor.charSet, line.str, lineStartIndex, relWrapX);
+				if (y == sStart.y) {
+					sTopLeft.x = startOffset.x + baselineX;
+					sTopLeft.y = lineTop + startOffset.y * lineThickness;
+				}
+				else {
+					sTopLeft.x = baselineX;
 				}
 
-				vec2i offset = get_text_offset(textEditor.charSet, line.str, cursor.position.x, relWrapX);
-				PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursor.cursorFrame->subInstance;
-				cursorObj->position = PT_REL_DIM_new(
-					0, baselineX + offset.x,
-					0, (yPos-lineThickness) + offset.y * lineThickness + textEditor.linePadding / 2 - canvasOffset.y
-				);
+				int lineEndIndex = line.numChars;
+				int lastCharWasNewline = 0;
+				if (y == sEnd.y) {
+					lineEndIndex = sEnd.x;
+				}
+				else if (get_last_char(line) == '\n') {
+					lineEndIndex--;
+					lastCharWasNewline = 1;
+				}
+
+
+				vec2i endOffset = get_text_offset(textEditor.charSet, line.str, lineEndIndex, relWrapX);
+				int endLineNum = endOffset.y;
+				sBottomRight.x = baselineX + endOffset.x;
+				sBottomRight.y = lineTop + (endOffset.y + 1) * lineThickness;
+			
+				if (lastCharWasNewline) {
+					sBottomRight.x += 10;
+				}
+
+				if (startOffset.y == endOffset.y) { // if this line doesn't have any text-wrapping going on
+					add_quad_to_arr(&selectionRects, sTopLeft, sBottomRight);
+				}
+				else { // this line is being wrapped
+					vec2i firstLineBR = (vec2i){ baselineX + rect.x, sTopLeft.y + lineThickness };
+					add_quad_to_arr(&selectionRects, sTopLeft, firstLineBR);
+
+					vec2i midTL = (vec2i){ baselineX, sTopLeft.y + lineThickness };
+					vec2i midBR = (vec2i){ baselineX + rect.x, sBottomRight.y - lineThickness };
+					if (midTL.y < midBR.y) {
+						add_quad_to_arr(&selectionRects, midTL, midBR);
+					}
+
+					vec2i bottomTL = (vec2i){ baselineX, sBottomRight.y - lineThickness };
+					add_quad_to_arr(&selectionRects, bottomTL, sBottomRight);
+				}
 			}
 
-			if (y >= sStart.y && y <= sEnd.y) { // a part of this line is selected
-
-			}
-
+			// render line text
 			if (line.numChars > 0) {
 				///*
 				render_text(
@@ -229,6 +261,8 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 		yPos += (rect.y+1) * lineThickness;
 	}
+
+	render_selection_rects(&selectionRects, canvasOffset);
 
 	render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, &lineNumbers);
 
