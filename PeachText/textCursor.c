@@ -20,6 +20,22 @@ TEXT_CURSOR TEXT_CURSOR_new(TEXT_EDITOR* editor) {
 	return cursor;
 }
 
+void update_targetX(TEXT_CURSOR* cursor) {
+	TEXT_EDITOR* textEditor = get_current_text_editor();
+
+	TEXT_LINE currentLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, cursor->position.y);
+
+	int margin = TEXT_EDITOR_get_margin(textEditor) + textEditor->scrollFrame->guiObj->lastCanvas.left;
+	int wrapX = TEXT_EDITOR_get_wrapX(textEditor);
+	if (wrapX) {
+		wrapX -= margin;
+	}
+
+	vec2i offset = get_text_offset(textEditor->charSet, currentLine.str, cursor->position.x, wrapX);
+
+	cursor->targetX = margin + offset.x;
+}
+
 int is_text_pos_in_range(vec2i p, vec2i start, vec2i end) {
 	int afterRightBound = (p.x >= start.x && p.y == start.y) || p.y > start.y;
 	int beforeLeftBound = (p.x <= end.x && p.y == end.y) || p.y < end.y;
@@ -138,7 +154,7 @@ void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 	// move cursor to start of deletion range
 	cursor->position = start;
 	cursor->selectTo = start;
-	cursor->targetX = start.x;
+	update_targetX(cursor);
 	move_text_pos_in_view(cursor->position);
 }
 
@@ -295,7 +311,7 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 		pos.y + numLines - 1
 	};
 	cursor->selectTo = cursor->position;
-	cursor->targetX = cursor->position.x;
+	update_targetX(cursor);
 	move_text_pos_in_view(cursor->position);
 
 	free(beforeStr);

@@ -100,18 +100,31 @@ void move_text_pos_in_view(vec2i textPosition) {
 
 		int penY = currentTextEditor->linePadding / 2;
 		int penX = 0;
-		int margin = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + TEXT_EDITOR_get_margin(currentTextEditor);
-		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor) - margin;
+		int marginWidth = TEXT_EDITOR_get_margin(currentTextEditor);
+		int margin = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + marginWidth;
+		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor);
+		if (wrapX) {
+			wrapX -= margin;
+		}
 		int lineThickness = currentTextEditor->linePadding + currentTextEditor->textHeight;
-		for (int i = 0; i < textPosition.y; i++) {
+		for (int i = 0; i <= textPosition.y; i++) {
 			TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
 
-			vec2i offset = get_text_offset(currentTextEditor->charSet, line.str, line.numChars, wrapX);
-
-			penY += lineThickness * offset.y;
+			int numChars = line.numChars;
+			if (i == textPosition.y)
+			{
+				numChars = textPosition.x;
+			}
+			else if (get_last_char(line) == '\n') {
+				numChars--;
+			}
+			vec2i offset = get_text_offset(currentTextEditor->charSet, line.str, numChars, wrapX);
 
 			if (i == textPosition.y) {
 				penX = offset.x;
+			}
+			else {
+				penY += lineThickness * (1 + offset.y);
 			}
 		}
 
@@ -120,8 +133,8 @@ void move_text_pos_in_view(vec2i textPosition) {
 		if (penX < canvasPos.x) {
 			newCanvasPos.x = penX;
 		}
-		else if (penX > canvasPos.x + canvasSize.x) {
-			newCanvasPos.x = penX - canvasSize.x;
+		else if (penX + marginWidth > canvasPos.x + canvasSize.x) {
+			newCanvasPos.x = (penX + marginWidth) - canvasSize.x;
 		}
 
 		if (penY < canvasPos.y) {
@@ -345,6 +358,7 @@ void TEXT_EDITOR_on_click() {
 
 		vec2i cursorPos = TEXT_EDITOR_screenPos_to_cursorPos(mousePos);
 		TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
+		cursor->targetX = mousePos.x;
 		vec2i currentPos = cursor->position;
 		vec2i selectPos = cursor->selectTo;
 
@@ -452,7 +466,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->textCursor = mainCursor;
 
 
-	editor->wrapText = 1;
+	editor->wrapText = 0;
 
 	currentTextEditor = editor;
 

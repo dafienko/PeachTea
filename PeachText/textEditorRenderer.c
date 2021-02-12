@@ -144,7 +144,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 	// render text
 	PT_EXPANDABLE_ARRAY lineNumbers = PT_EXPANDABLE_ARRAY_new(1, sizeof(lineNumber));
-	
+
 	int wrapX = TEXT_EDITOR_get_wrapX(&textEditor);
 	int relWrapX = 0;
 	if (wrapX) {
@@ -160,8 +160,8 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 	for (int y = 0; y < textEditor.textLines->numElements; y++) {
 		TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
-		vec2i rect = get_text_rect(textEditor.charSet, line.str, line.numChars, wrapX - baselineX);
-		
+		vec2i rect = get_text_rect(textEditor.charSet, line.str, line.numChars, relWrapX);
+
 		// render cursor position
 		TEXT_CURSOR cursor = textEditor.textCursor;
 		if (y == cursor.position.y) {
@@ -179,7 +179,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			if (yPos > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)	
 				break;
 			}
-			
+
 			lineNumber lnum = { 0 };
 			lnum.l = y;
 			lnum.lineStartBaselineY = yPos;
@@ -219,7 +219,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 				int endLineNum = endOffset.y;
 				sBottomRight.x = baselineX + endOffset.x;
 				sBottomRight.y = lineTop + (endOffset.y + 1) * lineThickness;
-			
+
 				if (lastCharWasNewline) {
 					sBottomRight.x += 10;
 				}
@@ -259,7 +259,8 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			}
 		}
 
-		yPos += (rect.y+1) * lineThickness;
+		maxX = max(maxX, rect.x);
+		yPos += (rect.y + 1) * lineThickness;
 	}
 
 	render_selection_rects(&selectionRects, canvasOffset);
@@ -270,13 +271,22 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	PT_EXPANDABLE_ARRAY_destroy(&lineNumbers);
 
 	// adjust canvas size to maximum line lengths
-	maxX = max(maxX, occlusionBottomRightBound.x - occlusionTopLeftBound.x);
-	maxY = max(maxY, occlusionBottomRightBound.y - occlusionTopLeftBound.y);
-	scrollFrame->canvasSize = PT_REL_DIM_new(0.1f, maxX, .9f, maxY);
-	scrollCanvasSize = calculate_screen_dimension(scrollFrame->canvasSize, scrollFrameSize);
+	if (wrapX) {
+		scrollFrame->canvasSize = PT_REL_DIM_new(1.0f, 0, .9f, maxY);
+		scrollFrame->canvasPosition = (vec2i){ 
+			0,
+			scrollFrame->canvasPosition.y
+		};
+	}
+	else {
+		maxX = max(maxX, occlusionBottomRightBound.x - occlusionTopLeftBound.x);
+		maxY = max(maxY, occlusionBottomRightBound.y - occlusionTopLeftBound.y);
+		scrollFrame->canvasSize = PT_REL_DIM_new(0.1f, maxX, .9f, yPos);
+		scrollCanvasSize = calculate_screen_dimension(scrollFrame->canvasSize, scrollFrameSize);
 
-	scrollFrame->canvasPosition = (vec2i) { // make sure canvas position doesn't over-extend canvas size after canvas is resized
-		max(0, min(scrollFrame->canvasPosition.x, scrollCanvasSize.x - scrollFrameSize.x)),
-		scrollFrame->canvasPosition.y
-	};
+		scrollFrame->canvasPosition = (vec2i){ // make sure canvas position doesn't over-extend canvas size after canvas is resized
+			max(0, min(scrollFrame->canvasPosition.x, scrollCanvasSize.x - scrollFrameSize.x)),
+			scrollFrame->canvasPosition.y
+		};
+	}
 }

@@ -90,6 +90,10 @@ void on_menu_activated(void* args) {
 	}
 }
 
+void on_toggle_wordWrap(void* args) {
+	textEditor->wrapText = textEditor->wrapText ? 0 : 1;
+}
+
 																									
 int main(int argc, char** args) {
 	for (int i = 0; i < argc; i++) {
@@ -99,7 +103,7 @@ int main(int argc, char** args) {
 	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PeachText");
 
 #ifndef _DEBUG 
-	//ShowWindow(GetConsoleWindow(), SW_HIDE);
+	ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
 	menuImage = PT_IMAGE_from_png("assets\\images\\menu.png");
@@ -226,6 +230,30 @@ int main(int argc, char** args) {
 	PT_BINDABLE_EVENT_bind(&menuButtonObj->e_obj_activated, on_menu_activated);
 
 	set_instance_parent(menuButtonInstance, sideBarInstance);
+
+	// word-wrap toggle button
+	Instance* wordWrapInstance = PT_IMAGELABEL_new();
+	wordWrapInstance->name = create_heap_str("menu button");
+	PT_IMAGELABEL* wordWrapButton = (PT_IMAGELABEL*)wordWrapInstance->subInstance;
+	wordWrapButton->image = PT_IMAGE_from_png("assets\\images\\word_wrap.png");
+
+	PT_GUI_OBJ* wordWrapButtonObj = wordWrapButton->guiObj;
+	wordWrapButtonObj->size = PT_REL_DIM_new(0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2, 0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2);
+	wordWrapButtonObj->anchorPosition = (vec2f){ 1, 0 };
+	wordWrapButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 0, 1 * (SIDE_BAR_WIDTH + SIDE_BAR_PADDING));
+
+	wordWrapButtonObj->backgroundColor = PT_COLOR_new(1, 1, 1);
+	wordWrapButtonObj->backgroundTransparency = 1;
+
+	wordWrapButtonObj->reactive = 1;
+	wordWrapButtonObj->borderWidth = 1;
+	wordWrapButtonObj->borderColor = sideBarObj->borderColor;
+	wordWrapButtonObj->activeBorderRange = sideBarObj->activeBorderRange;
+	wordWrapButtonObj->activeBorderColor = sideBarObj->activeBorderColor;
+
+	PT_BINDABLE_EVENT_bind(&wordWrapButtonObj->e_obj_activated, on_toggle_wordWrap);
+
+	set_instance_parent(wordWrapInstance, sideBarInstance);
 
 	// bottom status bar
 	Instance* statusBarInstance = PT_TEXTLABEL_new();
