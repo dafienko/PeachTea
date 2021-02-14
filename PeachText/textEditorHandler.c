@@ -512,7 +512,6 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->linePadding = editor->textHeight * .9;
 
 	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
-
 	editor->charWidth = get_text_rect(editor->charSet, "M", 1, 0).x;
 
 	editor->renderFrame = renderFrame;
@@ -581,6 +580,12 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 	float t = PT_TIME_get();
 	
+	if (editor->charSet->charSize.y != editor->textHeight) {
+		editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
+		editor->charWidth = get_text_rect(editor->charSet, "M", 1, 0).x;
+		editor->linePadding = editor->textHeight * .9;
+	}
+
 	TEXT_CURSOR* textCursor = &editor->textCursor;
 	int cursorY = textCursor->position.y;
 	int cloneLineY = cursorY + textCursor->cloneLineOffset;

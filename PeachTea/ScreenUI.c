@@ -12,6 +12,7 @@
 #include "frameTexture.h"
 #include "renderFrame.h"
 #include "expandableArray.h"
+#include "keyboard.h"
 
 #include <stdio.h>
 
@@ -236,11 +237,15 @@ void on_mouse_down(void* args) {
 }
 
 void on_wheel_scroll_up(void* args) {
-	enumerate_screeenuis(obj_scroll_up);
+	if (!is_key_down(VK_LCONTROL)) {
+		enumerate_screeenuis(obj_scroll_up);
+	}
 }
 
 void on_wheel_scroll_down(void* args) {
-	enumerate_screeenuis(obj_scroll_down);
+	if (!is_key_down(VK_LCONTROL)) {
+		enumerate_screeenuis(obj_scroll_down);
+	}
 }
 
 void PT_SCREEN_UI_init() {

@@ -94,7 +94,26 @@ void on_toggle_wordWrap(void* args) {
 	textEditor->wrapText = textEditor->wrapText ? 0 : 1;
 }
 
-																									
+void on_scroll(void* args) {
+	if (is_key_down(VK_LCONTROL)) {
+		int d = -*(int*)args;
+
+		if (d > 0) {
+			d = 1;
+		}
+		else {
+			d = -1;
+		}
+
+		int currentTextHeight = textEditor->textHeight;
+		int textHeight = min(100, max(6, currentTextHeight + d));
+
+		textEditor->textHeight = textHeight;
+	}
+
+}
+
+
 int main(int argc, char** args) {
 	for (int i = 0; i < argc; i++) {
 		printf("%i: \"%s\"\n\n", i, *(args + i));
@@ -326,6 +345,9 @@ int main(int argc, char** args) {
 	//*/
 
 	PT_SCREEN_UI_update_rendertree(ui);
+
+	PT_BINDABLE_EVENT_bind(&e_wheelUp, on_scroll);
+	PT_BINDABLE_EVENT_bind(&e_wheelDown, on_scroll);
 
 	PT_RUN(onUpdate, onRender);
 	//PT_RUN(NULL, onRender);
