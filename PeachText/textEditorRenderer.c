@@ -263,6 +263,8 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		yPos += (rect.y + 1) * lineThickness;
 	}
 
+	maxY = max(yPos, maxY);
+
 	render_selection_rects(&selectionRects, canvasOffset);
 
 	render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, &lineNumbers);
@@ -277,11 +279,12 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			0,
 			scrollFrame->canvasPosition.y
 		};
+		scrollFrame->targetCanvasPosition = scrollFrame->canvasPosition;
 	}
 	else {
 		maxX = max(maxX, occlusionBottomRightBound.x - occlusionTopLeftBound.x);
 		maxY = max(maxY, occlusionBottomRightBound.y - occlusionTopLeftBound.y);
-		scrollFrame->canvasSize = PT_REL_DIM_new(0.1f, maxX, .9f, yPos);
+		scrollFrame->canvasSize = PT_REL_DIM_new(0.1f, maxX, .9f, maxY);
 		scrollCanvasSize = calculate_screen_dimension(scrollFrame->canvasSize, scrollFrameSize);
 
 		scrollFrame->canvasPosition = (vec2i){ // make sure canvas position doesn't over-extend canvas size after canvas is resized

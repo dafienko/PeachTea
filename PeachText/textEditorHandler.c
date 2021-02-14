@@ -52,6 +52,62 @@ vec2i get_dir(int key) {
 	return dir;
 }
 
+void insert_str_in_line(const char* str, int len, int index, TEXT_LINE* line) {
+	if (line->numChars + len >= line->numCharSpace) {
+		line->numCharSpace *= 2;
+		line->str = realloc(line->str, sizeof(char) * line->numCharSpace);
+	}
+
+	int afterLen = line->numChars - index;
+	char* afterStr = NULL;
+	if (afterLen) {
+		afterStr = calloc(afterLen, sizeof(char));
+		memcpy(afterStr, line->str + index, afterLen * sizeof(char));
+	}
+
+	memcpy(line->str + index, str, len * sizeof(char)); // copy str into line
+
+	if (afterLen) {
+		memcpy(line->str + index + len, afterStr, afterLen * sizeof(char)); // append afterStr to line
+		free(afterStr);
+	}
+
+	line->numChars += len;
+}
+
+// insert a tab at the beggining of every line in cursor selection
+void tab_selection() {
+	TEXT_CURSOR cursor = currentTextEditor->textCursor;
+
+	vec2i sStart = { 0 };
+	vec2i sEnd = { 0 };
+	get_cursor_selection_bounds(cursor, &sStart, &sEnd);
+
+	for (int i = sStart.y; i <= sEnd.y; i++) {
+		TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
+
+		insert_str_in_line("\t", 1, 0, line);
+	}
+}
+
+// remove a tab from the beginning of every line in cursor selection
+void untab_selection() {
+	TEXT_CURSOR cursor = currentTextEditor->textCursor;
+
+	vec2i sStart = { 0 };
+	vec2i sEnd = { 0 };
+	get_cursor_selection_bounds(cursor, &sStart, &sEnd);
+
+	for (int i = sStart.y; i <= sEnd.y; i++) {
+		TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
+
+		if (*line->str == '\t') {
+			memcpy(line->str, line->str + 1, line->numChars - 1);
+			line->numChars--;
+		}
+	}
+}
+
 void on_char_typed(void* args) {
 	char c = *(char*)args;
 
@@ -83,9 +139,19 @@ void on_char_typed(void* args) {
 			}
 		}
 		else if (c < 127) {
-			charsTyped++;
-			vec2i p = (vec2i){ cursor->position.x, y };
-			insert_str_at_cursor(cursor, &c, 1);
+			if (c == '\t' && !vector_equal_2i(cursor->position, cursor->selectTo)) {
+				if (is_key_down(VK_LSHIFT)) {
+					untab_selection();
+				}
+				else {
+					tab_selection();
+				}
+			}
+			else {
+				charsTyped++;
+				vec2i p = (vec2i){ cursor->position.x, y };
+				insert_str_at_cursor(cursor, &c, 1);
+			}
 		}
 	}	
 }
