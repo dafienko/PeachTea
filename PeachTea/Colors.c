@@ -83,3 +83,7 @@ PT_COLOR PT_COLOR_mul(PT_COLOR c, float factor) {
 		c.b * factor
 	);
 }
+
+int PT_COLOR_equal(PT_COLOR a, PT_COLOR b) {
+	return a.r == b.r && a.g == b.g && a.b == b.b;
+}

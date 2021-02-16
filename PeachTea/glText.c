@@ -44,6 +44,27 @@ void initFT() {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
+void TEXT_METADATA_FLAG_insert(PT_EXPANDABLE_ARRAY* flags, TEXT_METADATA_FLAG flag) {
+	int insertIndex = 0;
+	int flagStrIndex = flag.index;
+	for (int i = 0; i < flags->numElements; i++) {
+		TEXT_METADATA_FLAG thisFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(flags, i);
+		int thisIndex = thisFlag.index;
+
+		if (thisIndex > flagStrIndex) {
+			break;
+		} 
+		else if (thisIndex == flagStrIndex) {
+			fatal_error(L"Tried to insert a flag at an existing flag position (%i == %i)", thisIndex, flagStrIndex);
+		}
+		else {
+			insertIndex++;
+		}
+	}
+
+	PT_EXPANDABLE_ARRAY_insert(flags, insertIndex, &flag);
+}
+
 FT_Face face = { 0 };
 char_set create_char_set(const char* filename, const int textSize) {
 	char_set cs = { 0 };
@@ -260,10 +281,6 @@ vec2i get_text_offset(char_set* cs, const char* str, int len, int wrapX) {
 }
 
 int get_char_position(char_set* cs, const char* str, int len, int x) {
-	if (1) {
-		//return 0;
-	}
-
 	int penX = 0;
 	int cIndex = 0;
 	int distanceToIndex = -1;
@@ -302,9 +319,45 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 	return cIndex;
 }
 
-void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y, int wrapX, int lineWidth) {
+void render_text_section(int sectionStart, int sectionEnd, vec2f* vertexBuffer, vec2f* posBuffer) {
+	vertexBuffer += sectionStart * 4;
+	posBuffer += sectionStart * 4;
+
+	int totalSectionSize = sectionEnd - sectionStart;
+	for (int i = 0; 1; i++) {
+		int chunkRenderIndexStart = TEXT_BUFFER_SIZE * i; // 0, n, 2n, 3n, ...
+		if (chunkRenderIndexStart >= totalSectionSize) {
+			break;
+		}
+
+		int chunkRenderIndexEnd = min(TEXT_BUFFER_SIZE * (i + 1) - 1, totalSectionSize - 1); // inclusive bound   n-1, 2n-1, 3n-1, 4n-1, ...
+		int chunkSize = (chunkRenderIndexEnd - chunkRenderIndexStart) + 1; // add one, from 1-0=1 but from 0 to 1 is two indices
+
+		glBindBuffer(GL_ARRAY_BUFFER, *(textvbos + 0));
+		glBufferSubData(GL_ARRAY_BUFFER, 0, chunkSize * 4 * sizeof(vec2f), vertexBuffer + chunkRenderIndexStart * 4);
+
+		glBindBuffer(GL_ARRAY_BUFFER, *(textvbos + 1));
+		glBufferSubData(GL_ARRAY_BUFFER, 0, chunkSize * 4 * sizeof(vec2f), posBuffer + chunkRenderIndexStart * 4);
+
+		glDrawArrays(GL_QUADS, 0, 4 * chunkSize);
+	}
+}
+
+void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float textTransparency, const char* str, int len, int baseline_x, int baseline_y, int wrapX, int lineWidth, PT_EXPANDABLE_ARRAY* metadataFlags) {
 	if (!lineWidth) {
 		lineWidth = cs->charSize.y;
+	}
+
+	TEXT_METADATA_FLAG currentFlag = { 0 };
+	currentFlag.color = textColor;
+	TEXT_METADATA_FLAG nextFlag = { 0 };
+	nextFlag.index = len;
+	if (metadataFlags) {
+		currentFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(metadataFlags, 0);
+
+		if (metadataFlags->numElements > 1) {
+			nextFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(metadataFlags, 1);
+		}
 	}
 
 	int tabWidth = cs->charSize.x * 5;
@@ -381,7 +434,6 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 	int tLoc = glGetUniformLocation(PTS_text, "transparency");
 
 	glUniform2i(ssLoc, viewportSize.x, viewportSize.y);
-	uniform_PT_COLOR(cLoc, textColor);
 	glUniform1f(tLoc, textTransparency);
 
 	glBindVertexArray(*textvao);
@@ -389,23 +441,47 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, cs->texture);
 
-	for (int i = 0; 1; i++) {
-		int chunkRenderIndexStart = TEXT_BUFFER_SIZE * i; // 0, 10, 20, 30, ...
-		if (chunkRenderIndexStart >= renderIndex) { 
-			break;
+	int numFlags = 1;
+	if (metadataFlags) {
+		numFlags = metadataFlags->numElements;
+	}
+
+
+
+	///*
+	if (numFlags > 1) {
+		//printf("\n");
+	}
+	for (int i = 0; i < numFlags; i++) {
+		if (metadataFlags) {
+			currentFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(metadataFlags, i);
+			
+			if (i + 1 < metadataFlags->numElements) {
+				nextFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(metadataFlags, i + 1);
+			}
+		}
+		
+
+		PT_COLOR color = PT_COLOR_fromHSV(0, 0, (float)(i + 1.0f) / (float)numFlags);
+		color = currentFlag.color;
+		uniform_PT_COLOR(cLoc, color);
+		
+		int startIndex = currentFlag.index;
+
+		int nextIndex = nextFlag.index;
+		if (i == numFlags - 1) {
+			nextIndex = renderIndex;
 		}
 
-		int chunkRenderIndexEnd = min(TEXT_BUFFER_SIZE * (i + 1) - 1, renderIndex - 1); // inclusive bound   9, 19, 29, 39, ...
-		int chunkSize = (chunkRenderIndexEnd - chunkRenderIndexStart) + 1; // add one, from 1-0=1 but from 0 to 1 is two indices
+		if (numFlags > 1) {
+			//printf("%i -> %i    (%.2f, %.2f, %.2f)\n", startIndex, nextFlag.index, currentFlag.color.r, currentFlag.color.g, currentFlag.color.b);
+		}
 
-		glBindBuffer(GL_ARRAY_BUFFER, *(textvbos + 0));
-		glBufferSubData(GL_ARRAY_BUFFER, 0, chunkSize * 4 * sizeof(vec2f), vertexBuffer + chunkRenderIndexStart * 4);
-
-		glBindBuffer(GL_ARRAY_BUFFER, *(textvbos + 1));
-		glBufferSubData(GL_ARRAY_BUFFER, 0, chunkSize * 4 * sizeof(vec2f), posBuffer + chunkRenderIndexStart * 4 );
-
-		glDrawArrays(GL_QUADS, 0, 4 * chunkSize);
+		if (currentFlag.index < len) {
+			render_text_section(startIndex, nextIndex, vertexBuffer, posBuffer);
+		}
 	}
+	//*/
 
 	free(vertexBuffer);
 	free(posBuffer);
@@ -428,10 +504,6 @@ void free_char_set(char_set* cs) {
 }
 
 int get_text_position_from_rel_position(char_set* cs, char* str, int len, vec2i relPos, int lineThickness, int wrapX) {
-	if (1) {
-		//return 0;
-	}
-
 	int penX = 0;
 	int penY = 0;
 	int cIndex = 0;

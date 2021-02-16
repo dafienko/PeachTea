@@ -14,4 +14,6 @@ PT_COLOR PT_COLOR_add(PT_COLOR c1, PT_COLOR c2);
 PT_COLOR PT_COLOR_sub(PT_COLOR c1, PT_COLOR c2);
 PT_COLOR PT_COLOR_mul(PT_COLOR c, float factor);
 
+int PT_COLOR_equal(PT_COLOR a, PT_COLOR b);
+
 #endif

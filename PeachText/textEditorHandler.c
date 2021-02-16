@@ -19,6 +19,51 @@ int charsTyped = 0;
 #define IS_ALPHA_CHAR(c) IS_UPPER_CHAR(c) || IS_LOWER_CHAR(c);
 #define IS_NUMBER_CHAR(c) c >= 48 && c <= 57
 
+TEXT_LINE TEXT_LINE_new(const char* str, int len) {
+	TEXT_LINE line = { 0 };
+
+	line.str = calloc(len + 1, sizeof(char));
+	line.numChars = 0;
+	line.numCharSpace = len;
+	line.flags = PT_EXPANDABLE_ARRAY_new(3, sizeof(TEXT_METADATA_FLAG));
+	
+	float time = PT_TIME_get();
+	TEXT_METADATA_FLAG flag = create_text_metadata_flag(time);
+
+	PT_EXPANDABLE_ARRAY_insert(&line.flags, 0, &flag);
+
+	if (str && len > 0) {
+		line.numChars = len;
+		memcpy(line.str, str, len * sizeof(char));
+	}
+
+	return line;
+}
+
+TEXT_METADATA_FLAG create_text_metadata_flag(float t) {
+	float* pTime = calloc(1, sizeof(float));
+	*pTime = t;
+
+	TEXT_METADATA_FLAG flag = { 0 };
+	flag.index = 0;
+	flag.color = PT_COLOR_new(1, 1, 1);
+	flag.misc = pTime;
+
+	return flag;
+}
+
+void TEXT_LINE_destroy(TEXT_LINE* line) {
+	for (int i = 0; i < line->flags.numElements; i++) {
+		TEXT_METADATA_FLAG flag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&line->flags, i);
+		free(flag.misc);
+	}
+	PT_EXPANDABLE_ARRAY_destroy(&line->flags);
+
+	free(line->str);
+	line->numChars = 0;
+	line->numCharSpace = 0;
+}
+
 TEXT_EDITOR* get_current_text_editor() {
 	return currentTextEditor;
 }
@@ -102,8 +147,7 @@ void untab_selection() {
 		TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
 
 		if (*line->str == '\t') {
-			memcpy(line->str, line->str + 1, line->numChars - 1);
-			line->numChars--;
+			remove_str_at_cursor(&cursor, (vec2i){ 0, i }, (vec2i){ 1, i });
 		}
 	}
 }
@@ -521,10 +565,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	renderFrame->render = on_render_frame_render;
 
 	// init first text line
-	TEXT_LINE firstLine = { 0 };
-	firstLine.str = calloc(1, sizeof(char));
-	firstLine.numChars = 0;
-	firstLine.numCharSpace = 1;
+	TEXT_LINE firstLine = TEXT_LINE_new(NULL, 0);
 	PT_EXPANDABLE_ARRAY_add(editor->textLines, (void*)&firstLine);
 
 	TEXT_CURSOR mainCursor = TEXT_CURSOR_new(editor);
@@ -579,7 +620,7 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 	float t = PT_TIME_get();
-	
+
 	if (editor->charSet->charSize.y != editor->textHeight) {
 		editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
 		editor->charWidth = get_text_rect(editor->charSet, "M", 1, 0).x;

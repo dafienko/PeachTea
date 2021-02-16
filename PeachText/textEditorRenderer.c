@@ -72,7 +72,8 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 			lineNumStr,
 			numDigits,
 			xMargin - (lineNumStrWidth + 10), lnum.lineStartBaselineY - canvasOffset.y,
-			0, lineThickness
+			0, lineThickness,
+			NULL
 		);
 	}
 	free(lineNumStr);
@@ -117,6 +118,8 @@ void add_quad_to_arr(PT_EXPANDABLE_ARRAY* arr, vec2i topLeft, vec2i bottomRight)
 }
 
 void render_text_editor(TEXT_EDITOR textEditor) {
+	float time = PT_TIME_get();
+
 	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
 	vec2i canvasOffset = scrollFrame->canvasPosition;
 	PT_canvas scrollCanvas = scrollFrame->guiObj->lastCanvas;
@@ -159,7 +162,8 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	PT_EXPANDABLE_ARRAY selectionRects = PT_EXPANDABLE_ARRAY_new(50, sizeof(vec2i));
 
 	for (int y = 0; y < textEditor.textLines->numElements; y++) {
-		TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
+		TEXT_LINE* pLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
+		TEXT_LINE line = *pLine;
 		vec2i rect = get_text_rect(textEditor.charSet, line.str, line.numChars, relWrapX);
 
 		// render cursor position
@@ -242,6 +246,34 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 				}
 			}
 
+			PT_EXPANDABLE_ARRAY* lineFlags = &pLine->flags;
+			TEXT_METADATA_FLAG lastFlag = { 0 }; 
+			for (int i = lineFlags->numElements - 1; i >= 0; i--) {
+				TEXT_METADATA_FLAG* flag = PT_EXPANDABLE_ARRAY_get(lineFlags, i);
+				float timeDiff = time - *(float*)flag->misc;
+				float alpha = min(1.0f, timeDiff / textEditor.editFadeTime);
+
+				if (i > 0) {
+					TEXT_METADATA_FLAG* nextFlag = PT_EXPANDABLE_ARRAY_get(lineFlags, i - 1);
+					float nextTimeDiff = time - *(float*)nextFlag->misc;
+					float nextAlpha = min(1.0f, nextTimeDiff / textEditor.editFadeTime);
+
+
+					if (nextAlpha == alpha) { // if the flag at i-1 is the same color as this flag, then destroy it (it's redundant)
+						printf("%.2f %i == %.2f %i\n", alpha, flag->index, nextAlpha, nextFlag->index);
+						
+						free(flag->misc);
+						PT_EXPANDABLE_ARRAY_remove(lineFlags, i);
+					}
+					else {
+						flag->color = PT_COLOR_lerp(textEditor.editColor, textEditor.textColor, alpha);
+					}
+				}
+				else {
+					flag->color = PT_COLOR_lerp(textEditor.editColor, textEditor.textColor, alpha);
+				}
+			}
+
 			// render line text
 			if (line.numChars > 0) {
 				///*
@@ -253,7 +285,8 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 					line.str,
 					line.numChars,
 					baselineX, yPos - canvasOffset.y,
-					wrapX, lineThickness
+					wrapX, lineThickness,
+					&line.flags
 				);
 				//*/
 			}

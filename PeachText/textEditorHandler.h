@@ -8,6 +8,7 @@ typedef struct {
 	char* str;
 	int numChars;
 	int numCharSpace;
+	PT_EXPANDABLE_ARRAY flags;
 } TEXT_LINE;
 
 typedef struct {
@@ -15,6 +16,10 @@ typedef struct {
 
 	int textHeight, charWidth, linePadding;
 	char_set* charSet;
+
+	PT_COLOR textColor;
+	PT_COLOR editColor;
+	float editFadeTime;
 
 	PT_SCROLLFRAME* scrollFrame;
 	PT_RENDERFRAME* renderFrame;
@@ -26,6 +31,11 @@ typedef struct {
 	PT_EXPANDABLE_ARRAY* textLines;
 	TEXT_CURSOR textCursor;
 } TEXT_EDITOR;
+
+TEXT_METADATA_FLAG create_text_metadata_flag(float t);
+
+TEXT_LINE TEXT_LINE_new(const char* str, int len);
+void TEXT_LINE_destroy(TEXT_LINE* line);
 
 char get_last_char(TEXT_LINE line);
 
@@ -42,5 +52,7 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt);
 
 TEXT_EDITOR* get_current_text_editor();
 int* get_charsTyped();
+
+
 
 #endif

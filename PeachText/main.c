@@ -51,7 +51,6 @@ void onUpdate(float dt) {
 		lastTimeIndex = tIndex;
 	}
 
-	//*
 	TEXT_EDITOR_update(textEditor, dt);
 
 	vec2i cursorPosition = textEditor->textCursor.position;
@@ -66,7 +65,6 @@ void onUpdate(float dt) {
 		cursorPosition.y + 1, s,
 		cursorPosition.x + 1, s
 	);
-	//*/
 }
 
 int menuOpen = 0;
@@ -110,7 +108,6 @@ void on_scroll(void* args) {
 
 		textEditor->textHeight = textHeight;
 	}
-
 }
 
 
@@ -343,6 +340,10 @@ int main(int argc, char** args) {
 		//textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, *(args + 1));
 	//}
 	//*/
+
+	textEditor->textColor = PT_COLOR_fromHSV(0, 0, .9);
+	textEditor->editColor = accentColor;
+	textEditor->editFadeTime = .8f;
 
 	PT_SCREEN_UI_update_rendertree(ui);
 

@@ -125,11 +125,8 @@ void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 	}
 
 	// 'startLine' str will be replaced, everything after 'startLine' through 'endLine' get deleted
-	free(startLine.str);
-
-	startLine.numCharSpace = beforeLen + afterLen + 1; // add one for null terminator
-	startLine.str = calloc(startLine.numCharSpace, sizeof(char)); 
-	startLine.numChars = 0;
+	TEXT_LINE_destroy(&startLine);
+	startLine = TEXT_LINE_new(NULL, beforeLen + afterLen);
 
 	if (beforeLen > 0) {
 		memcpy(startLine.str + startLine.numChars, beforeStr, beforeLen * sizeof(char));
@@ -147,7 +144,7 @@ void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 	// delete lines in between start and end
 	for (int i = end.y; i >= start.y + 1; i--) {
 		TEXT_LINE* textLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, i);
-		free(textLine->str);
+		TEXT_LINE_destroy(textLine);
 		PT_EXPANDABLE_ARRAY_remove(cursor->textArray, i);
 	}
 
@@ -242,6 +239,10 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 	vec2i pos = cursor->position;
 
 	TEXT_LINE* currentLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, pos.y);
+	int lineJustTextLen = currentLine->numChars;
+	if (get_last_char(*currentLine)) {
+		lineJustTextLen--;
+	}
 
 	int beforeLen = pos.x;
 	char* beforeStr = calloc(beforeLen + 1, sizeof(char));
@@ -251,23 +252,50 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 
 	int afterLen = (currentLine->numChars - pos.x);
 	char* afterStr = calloc(afterLen + 1, sizeof(char));
+	
 	if (afterLen > 0) {
-		memcpy(afterStr, currentLine->str + beforeLen, afterLen * sizeof(char)); // copy everything before cursor
+		memcpy(afterStr, currentLine->str + beforeLen, afterLen * sizeof(char)); // copy everything after cursor
 	}
 
-	char** strLines;
-	int* lengths;
+	PT_EXPANDABLE_ARRAY beforeFlags = PT_EXPANDABLE_ARRAY_new(currentLine->flags.numElements, sizeof(TEXT_METADATA_FLAG));
+	PT_EXPANDABLE_ARRAY afterFlags = PT_EXPANDABLE_ARRAY_new(currentLine->flags.numElements, sizeof(TEXT_METADATA_FLAG));
+	for (int i = 0; i < currentLine->flags.numElements; i++) {
+		TEXT_METADATA_FLAG flag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&currentLine->flags, i);
+		
+		if (flag.index < pos.x) {
+			PT_EXPANDABLE_ARRAY_add(&beforeFlags, &flag);
+		}
+		else if (flag.index >= pos.x && flag.index != 0 && pos.x != lineJustTextLen) {
+			PT_EXPANDABLE_ARRAY_add(&afterFlags, &flag);
+		}
+		else {
+			if (flag.misc) {
+				free(flag.misc);
+			}
+		}
+	}
+
+	TEXT_METADATA_FLAG insertFlag = create_text_metadata_flag(time);
+	insertFlag.index = pos.x;
+
+	// break up the insertion string into its component lines
+	char** strLines = NULL;
+	int* lengths = NULL;
 	int numLines = 0;
 	format_insert_str(str, len, &strLines, &lengths, &numLines);
+
+	printf("\n%i\n", numLines);
 
 	for (int i = 0; i < numLines; i++) {
 		int l = *(lengths + i);
 		char* line = *(strLines + i);
+		int justTextLen = l;
+		if (*(line + l - 1) == '\n') {
+			justTextLen = l - 1;
+		}
 
-		TEXT_LINE insertLine = { 0 };
+		TEXT_LINE insertLine = TEXT_LINE_new(NULL, beforeLen + l + afterLen);
 		insertLine.numChars = 0;
-		insertLine.numCharSpace = beforeLen + l + afterLen + 1; // may only need 'l', but just to be safe
-		insertLine.str = calloc(insertLine.numCharSpace, sizeof(char));
 
 		if (i == 0) { // first line - prepend beforeStr to this text line
 			if (beforeLen > 0) {
@@ -289,11 +317,86 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 			}
 		}
 
-		if (i == 0) { // if this is the first line, free the existing line and replace array's index with new line
-			free(currentLine->str);
-			PT_EXPANDABLE_ARRAY_set(cursor->textArray, pos.y, (void*)&insertLine);
+		if (i == 0) {
+			// prepend old line's flags to the beginning of the first insertion line 
+			for (int j = 0; j < beforeFlags.numElements; j++) {
+				TEXT_METADATA_FLAG* pFlag = (TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&beforeFlags, j);
+
+				if (pFlag->index == 0) { // first flag is created w/ line by default, overwrite it
+					TEXT_METADATA_FLAG insertFirstFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&insertLine.flags, 0);
+					memcpy(insertFirstFlag.misc, pFlag->misc, sizeof(float));
+					free(pFlag->misc);
+					pFlag->misc = insertFirstFlag.misc;
+					printf("overwriting firstflag @ 0 %.2f\n", *(float*)insertFirstFlag.misc);
+				}
+				else {
+					printf("inserting beforeflag @ %i %.2f\n", pFlag->index, *(float*)pFlag->misc);
+					TEXT_METADATA_FLAG_insert(&insertLine.flags, *pFlag);
+				}
+			}
+
+			if (insertFlag.index != 0) {
+				printf("inserting insert flag @ %i %.2f\n", insertFlag.index, *(float*)insertFlag.misc);
+				TEXT_METADATA_FLAG_insert(&insertLine.flags, insertFlag);
+			}
 		}
-		else { // if this isn't the first line, insert this text line into the array
+
+
+		if (i == numLines - 1) { // last line
+			// insert any pre-existing interrupted flag
+			if (beforeFlags.numElements > 0 && afterLen > 0) {
+				TEXT_METADATA_FLAG firstAfterFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&afterFlags, 0);
+
+				if (firstAfterFlag.index != pos.x && pos.x != lineJustTextLen) {
+					TEXT_METADATA_FLAG lastFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&beforeFlags, beforeFlags.numElements - 1);
+					lastFlag = create_text_metadata_flag(*(float*)lastFlag.misc);
+
+					if (i == 0) {
+						lastFlag.index = beforeLen;
+					}
+					else {
+						lastFlag.index = 0;
+					}
+					lastFlag.index += justTextLen;
+
+					printf("inserting interrupted flag @ %i %.2f\n", lastFlag.index, *(float*)lastFlag.misc);
+					TEXT_METADATA_FLAG_insert(&insertLine.flags, lastFlag);
+				}
+			}
+								 
+			// append afterFlags to the last line
+			for (int j = 0; j < afterFlags.numElements; j++) {
+				TEXT_METADATA_FLAG flag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&afterFlags, j);
+
+				printf("%i - ", flag.index);
+
+				if (i > 0) {
+					flag.index = flag.index - beforeLen;
+					printf("%i - ", flag.index);
+				} 
+
+				flag.index += justTextLen;
+
+				if (flag.index != 0) {
+					printf("inserting afterflag @ %i %.2f\n", flag.index, *(float*)flag.misc);
+					TEXT_METADATA_FLAG_insert(&insertLine.flags, flag);
+				}
+			}			
+		}
+		
+		for (int i = 0; i < insertLine.flags.numElements; i++) {
+			TEXT_METADATA_FLAG flag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&insertLine.flags, i);
+			printf("%i -> ", flag.index);
+		}
+		printf("\n");
+
+
+		if (i == 0) { // if this is the first line, free the existing line and replace array's index with new line
+			//don't do: TEXT_LINE_destroy(currentLine);...
+			free(currentLine->str); // this might look like a leak-- don't worry, i'm reusing the flag misc's. They get freed in TEXT_EDITOR_render
+			
+			PT_EXPANDABLE_ARRAY_set(cursor->textArray, pos.y, (void*)&insertLine);	
+		} else { // if this isn't the first line, insert this text line into the array
 			if (pos.y + i >= cursor->textArray->numElements) {
 				PT_EXPANDABLE_ARRAY_add(cursor->textArray, (void*)&insertLine);
 			}
@@ -302,8 +405,13 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 			}
 		}
 
+
 		free(line);
 	}
+
+
+	PT_EXPANDABLE_ARRAY_destroy(&beforeFlags);
+	PT_EXPANDABLE_ARRAY_destroy(&afterFlags);
 
 	TEXT_LINE* lastLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, pos.y + numLines - 1);
 	cursor->position = (vec2i){

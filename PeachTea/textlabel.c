@@ -118,7 +118,8 @@ PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_SCREEN_UI* ui) {
 				line,
 				strlen(line),
 				baselineX, baselineY + (i + 1) * (textlabel->textSize + linePadding) - linePadding,
-				0, 0
+				0, 0,
+				NULL
 			);
 		}
 
