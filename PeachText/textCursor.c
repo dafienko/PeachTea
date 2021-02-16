@@ -104,13 +104,18 @@ void format_insert_str(const char* str, int strLen, char*** linesOut, int** leng
 	*lengthsOut = lengths;
 }
 
+void is_position_in_range(vec2i p, vec2i start, vec2i end) {
+	//              check y range                if on start line, check start x         if on last line, check end x         
+	return p.y >= start.y && p.x <= end.y && (p.y == start.y ? p.x >= start.x : 1) && (p.y == end.y ? p.x <= end.x : 1);
+}
+
 void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 	float time = PT_TIME_get();
 	cursor->lastTypedTime = time;
 
 	TEXT_LINE startLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, start.y);
 	TEXT_LINE endLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, end.y);
-	
+
 	// get the strings of the lines before and after the deletion range
 	int beforeLen = start.x;
 	char* beforeStr = calloc(beforeLen + 1, sizeof(char));
@@ -124,22 +129,62 @@ void remove_str_at_cursor(TEXT_CURSOR* cursor, vec2i start, vec2i end) {
 		memcpy(afterStr, endLine.str + end.x, afterLen * sizeof(char));
 	}
 
+	TEXT_LINE newLine = TEXT_LINE_new(NULL, beforeLen + afterLen);
+	for (int i = 0; i < startLine.flags.numElements; i++) {
+		TEXT_METADATA_FLAG* pFlag = (TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&startLine.flags, i);
+		TEXT_METADATA_FLAG flag = *pFlag;
+
+		if (pFlag->index < start.x) {
+			if (flag.index == 0) {
+				TEXT_METADATA_FLAG* oldFlag = (TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&newLine.flags, 0);
+				free(oldFlag->misc);
+				oldFlag->misc = flag.misc;
+			}
+			else {
+				TEXT_METADATA_FLAG_insert(&newLine.flags, flag);
+			}
+			pFlag->misc = NULL; // before startLine is destroyed, set the flags we reuse misc's to NULL (they won't get freed if null)
+		}
+
+	}
+
+	for (int i = 0; i < endLine.flags.numElements; i++) {
+		TEXT_METADATA_FLAG* pFlag = (TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&endLine.flags, i);
+		TEXT_METADATA_FLAG flag = *pFlag;
+
+		if (pFlag->index >= end.x) {
+			flag.index -= end.x;
+			flag.index += start.x;
+
+			if (flag.index == 0) {
+				TEXT_METADATA_FLAG* oldFlag = (TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&newLine.flags, 0);
+				free(oldFlag->misc);
+				oldFlag->misc = flag.misc;
+			}
+			else {
+				TEXT_METADATA_FLAG_insert(&newLine.flags, flag);
+			}
+			
+			pFlag->misc = NULL; // before startLine is destroyed, set the flags we reuse misc's to NULL (they won't get freed if null)
+		}
+
+	}
+
 	// 'startLine' str will be replaced, everything after 'startLine' through 'endLine' get deleted
 	TEXT_LINE_destroy(&startLine);
-	startLine = TEXT_LINE_new(NULL, beforeLen + afterLen);
 
 	if (beforeLen > 0) {
-		memcpy(startLine.str + startLine.numChars, beforeStr, beforeLen * sizeof(char));
-		startLine.numChars += beforeLen;
+		memcpy(newLine.str + newLine.numChars, beforeStr, beforeLen * sizeof(char));
+		newLine.numChars += beforeLen;
 	}
 	if (afterLen > 0) {
-		memcpy(startLine.str + startLine.numChars, afterStr, afterLen * sizeof(char));
-		startLine.numChars += afterLen;
+		memcpy(newLine.str + newLine.numChars, afterStr, afterLen * sizeof(char));
+		newLine.numChars += afterLen;
 	}
 	free(beforeStr);
 	free(afterStr);
 
-	PT_EXPANDABLE_ARRAY_set(cursor->textArray, start.y, (void*)&startLine);
+	PT_EXPANDABLE_ARRAY_set(cursor->textArray, start.y, (void*)&newLine);
 
 	// delete lines in between start and end
 	for (int i = end.y; i >= start.y + 1; i--) {

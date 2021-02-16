@@ -55,7 +55,9 @@ TEXT_METADATA_FLAG create_text_metadata_flag(float t) {
 void TEXT_LINE_destroy(TEXT_LINE* line) {
 	for (int i = 0; i < line->flags.numElements; i++) {
 		TEXT_METADATA_FLAG flag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&line->flags, i);
-		free(flag.misc);
+		if (flag.misc) {
+			free(flag.misc);
+		}
 	}
 	PT_EXPANDABLE_ARRAY_destroy(&line->flags);
 
