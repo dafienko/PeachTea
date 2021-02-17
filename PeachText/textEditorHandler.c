@@ -12,6 +12,7 @@ TEXT_EDITOR* currentTextEditor = NULL;
 PT_EXPANDABLE_ARRAY* lines = NULL;
 int keyDownBound = 0;
 
+int insertMode = 0;
 int charsTyped = 0;
 
 #define IS_UPPER_CHAR(c) c >= 65 && c <= 90
@@ -196,6 +197,25 @@ void on_char_typed(void* args) {
 			else {
 				charsTyped++;
 				vec2i p = (vec2i){ cursor->position.x, y };
+
+
+				if (insertMode && c != '\n' && c != '\r') {
+					int nextCharIndex = p.x + 1;
+
+					TEXT_LINE thisLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, p.y);
+					int lineLen = thisLine.numChars;
+
+					if (p.y < cursor->textArray->numElements - 1) { // if this isn't the last line, sub 1 from lineLen (ignore '\n' char)
+						lineLen--;
+					}
+
+					nextCharIndex = min(nextCharIndex, lineLen);
+
+					if (nextCharIndex > p.x) {
+						remove_str_at_cursor(cursor, p, (vec2i) { nextCharIndex, p.y });
+					}
+				}
+
 				insert_str_at_cursor(cursor, &c, 1);
 			}
 		}
@@ -288,7 +308,7 @@ void on_key_down(void* args) {
 		}
 	}
 	else if (key == VK_INSERT) {
-		currentTextEditor->textCursor.insert = !currentTextEditor->textCursor.insert;
+		insertMode = insertMode ? 0 : 1;
 	}
 }
 
@@ -643,7 +663,7 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 
 		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
 
-		if (textCursor->insert) {
+		if (insertMode) {
 			cursorObj->size = PT_REL_DIM_new(0, editor->charWidth, 0, editor->textHeight + editor->linePadding);
 		}
 		else {
