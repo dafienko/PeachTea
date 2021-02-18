@@ -195,6 +195,7 @@ void on_char_typed(void* args) {
 				}
 			}
 			else {
+				
 				charsTyped++;
 				vec2i p = (vec2i){ cursor->position.x, y };
 
@@ -217,6 +218,7 @@ void on_char_typed(void* args) {
 				}
 
 				insert_str_at_cursor(cursor, &c, 1);
+				
 			}
 		}
 	}	
@@ -387,6 +389,22 @@ void on_command(void* args) {
 			cursor->selectTo = (vec2i){ 0, 0 };
 			cursor->position = (vec2i){ lastLine.numChars, cursor->textArray->numElements - 1 };
 
+			break;
+		case PT_ZOOM_IN:
+			;
+			int textHeight = currentTextEditor->textHeight;
+			textHeight++;
+
+			textHeight = min(100, textHeight);
+			currentTextEditor->textHeight = textHeight;
+			break;
+		case PT_ZOOM_OUT:
+			;
+			textHeight = currentTextEditor->textHeight;
+			textHeight--;
+
+			textHeight = max(4, textHeight);
+			currentTextEditor->textHeight = textHeight;
 			break;
 		}
 	}
@@ -574,10 +592,10 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_LINE));
 
-	editor->textHeight = 16;
+	editor->textHeight = 13;
 	editor->linePadding = editor->textHeight * .9;
 
-	editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
+	editor->charSet = get_char_set(PT_FONT_ARIAL, editor->textHeight);
 	editor->charWidth = get_text_rect(editor->charSet, "M", 1, 0).x;
 
 	editor->renderFrame = renderFrame;
@@ -643,8 +661,8 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 	float t = PT_TIME_get();
 
-	if (editor->charSet->charSize.y != editor->textHeight) {
-		editor->charSet = get_char_set(PT_FONT_CONSOLA_B, editor->textHeight);
+	if (editor->charSet->textHeight != editor->textHeight) {
+		editor->charSet = get_char_set(PT_FONT_ARIAL, editor->textHeight);
 		editor->charWidth = get_text_rect(editor->charSet, "M", 1, 0).x;
 		editor->linePadding = editor->textHeight * .9;
 	}

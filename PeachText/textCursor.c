@@ -421,27 +421,17 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 			for (int j = 0; j < afterFlags.numElements; j++) {
 				TEXT_METADATA_FLAG flag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&afterFlags, j);
 
-				printf("%i - ", flag.index);
-
 				if (i > 0) {
 					flag.index = flag.index - beforeLen;
-					printf("%i - ", flag.index);
 				} 
 
 				flag.index += justTextLen;
 
 				if (flag.index != 0) {
-					printf("inserting afterflag @ %i %.2f\n", flag.index, *(float*)flag.misc);
 					TEXT_METADATA_FLAG_insert(&insertLine.flags, flag);
 				}
 			}			
 		}
-		
-		for (int i = 0; i < insertLine.flags.numElements; i++) {
-			TEXT_METADATA_FLAG flag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&insertLine.flags, i);
-			printf("%i -> ", flag.index);
-		}
-		printf("\n");
 
 
 		if (i == 0) { // if this is the first line, free the existing line and replace array's index with new line

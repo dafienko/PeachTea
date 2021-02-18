@@ -164,8 +164,8 @@ int main(int argc, char** args) {
 	vBar->backgroundColor = PT_COLOR_fromHSV(0, 0, .8f);
 	vBar->backgroundTransparency = 0.15f;
 	vBar->blurred = 1;
-	vBar->blurAlpha = .5f;
-	vBar->blurRadius = 15;
+	vBar->blurAlpha = .8f;
+	vBar->blurRadius = 10;
 	vBar->reactive = 1;
 	vBar->activeBackgroundColor = PT_COLOR_new(1, 1, 1);
 	vBar->activeBackgroundRange = (vec2f){ 10, 200 };

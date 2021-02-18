@@ -33,8 +33,6 @@ char_set* get_char_set(PT_FONT font, int fontSize) {
 	}
 
 	// if we haven't returned by now, the font doesn't exist and it needs to be created
-
-
 	char* fontPath = "";
 	switch (font) {
 	case PT_FONT_COMIC: 
@@ -46,6 +44,24 @@ char_set* get_char_set(PT_FONT font, int fontSize) {
 	case PT_FONT_CONSOLA_B:
 		fontPath = "assets\\fonts\\consolab.ttf";
 		break;
+
+	case PT_FONT_ARIAL:
+		fontPath = "assets\\fonts\\arial.ttf";
+		break;
+	case PT_FONT_ARIAL_B:
+		fontPath = "assets\\fonts\\arialbd.ttf";
+		break;
+	case PT_FONT_ARIAL_BLK:
+		fontPath = "assets\\fonts\\arialblk.ttf";
+		break;
+	case PT_FONT_ARIAL_BI:
+		fontPath = "assets\\fonts\\arialbi.ttf";
+		break;
+	case PT_FONT_ARIAL_I:
+		fontPath = "assets\\fonts\\ariali.ttf";
+		break;
+
+
 	case PT_FONT_TIMES:
 		fontPath = "assets\\fonts\\times.ttf";
 		break;

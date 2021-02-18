@@ -260,8 +260,6 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 
 					if (nextAlpha == alpha) { // if the flag at i-1 is the same color as this flag, then destroy it (it's redundant)
-						printf("%.2f %i == %.2f %i\n", alpha, flag->index, nextAlpha, nextFlag->index);
-						
 						free(flag->misc);
 						PT_EXPANDABLE_ARRAY_remove(lineFlags, i);
 					}

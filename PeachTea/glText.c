@@ -72,6 +72,7 @@ char_set create_char_set(const char* filename, const int textSize) {
 	cs.advance = calloc(128, sizeof(float));
 	cs.size = calloc(128, sizeof(vec2i));
 	cs.bearing = calloc(128, sizeof(vec2i));
+	cs.textHeight = textSize;
 
 	FILE* f = fopen(filename, "rb");
 	int ee = errno;
@@ -85,7 +86,7 @@ char_set create_char_set(const char* filename, const int textSize) {
 		fatal_error(L"Failed to load font");
 	}
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 	int dpi = 100;
 	e = FT_Set_Char_Size(
@@ -106,7 +107,7 @@ char_set create_char_set(const char* filename, const int textSize) {
 		int glyphIndex = FT_Get_Char_Index(face, (char)i);
 		e = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
 		if (!e) {
-			e = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+			e = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_LCD);
 		}
 		if (e)
 		{
@@ -119,11 +120,11 @@ char_set create_char_set(const char* filename, const int textSize) {
 		glTexImage2D(
 			GL_TEXTURE_2D,
 			0,
-			GL_RED,
-			face->glyph->bitmap.width,
+			GL_RGB,
+			face->glyph->bitmap.width / 3,
 			face->glyph->bitmap.rows,
 			0,
-			GL_RED,
+			GL_RGB,
 			GL_UNSIGNED_BYTE,
 			face->glyph->bitmap.buffer
 		);
@@ -132,11 +133,12 @@ char_set create_char_set(const char* filename, const int textSize) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+
 		*(glyphTextures + i) = glyphTex;
 
 		*(cs.advance + i) = (float)face->glyph->advance.x / cs.ssFactor; // advance is in 64ths of a pixel
-		*(cs.size + i) = (vec2i){face->glyph->bitmap.width / cs.ssFactor, face->glyph->bitmap.rows / cs.ssFactor };
-		*(cs.bearing + i) = (vec2i){ face->glyph->bitmap_left / cs.ssFactor, face->glyph->bitmap_top / cs.ssFactor };
+		*(cs.size + i) = (vec2i){(face->glyph->bitmap.width / 3) / cs.ssFactor, face->glyph->bitmap.rows / cs.ssFactor };
+		*(cs.bearing + i) = (vec2i){ (face->glyph->bitmap_left / 3) / cs.ssFactor, face->glyph->bitmap_top / cs.ssFactor };
 
 		vec2i thisSize = *(cs.size + i);
 		cs.charSize = (vec2i){ max(cs.charSize.x, thisSize.x), max(cs.charSize.y, thisSize.y) };
@@ -158,11 +160,11 @@ char_set create_char_set(const char* filename, const int textSize) {
 	glTexImage2D(
 		GL_TEXTURE_2D,
 		0,
-		GL_RED,
+		GL_RGB,
 		spriteSheetSize.x,
 		spriteSheetSize.y,
 		0,
-		GL_RED,
+		GL_RGB,
 		GL_UNSIGNED_BYTE,
 		0
 	);
@@ -447,11 +449,6 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 	}
 
 
-
-	///*
-	if (numFlags > 1) {
-		//printf("\n");
-	}
 	for (int i = 0; i < numFlags; i++) {
 		if (metadataFlags) {
 			currentFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(metadataFlags, i);
@@ -471,10 +468,6 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 		int nextIndex = nextFlag.index;
 		if (i == numFlags - 1) {
 			nextIndex = renderIndex;
-		}
-
-		if (numFlags > 1) {
-			//printf("%i -> %i    (%.2f, %.2f, %.2f)\n", startIndex, nextFlag.index, currentFlag.color.r, currentFlag.color.g, currentFlag.color.b);
 		}
 
 		if (currentFlag.index < len) {

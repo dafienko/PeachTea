@@ -202,6 +202,12 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			case 'A':
 				command = PT_SELECTALL;
 				break;
+			case VK_OEM_PLUS:
+				command = PT_ZOOM_IN;
+				break;
+			case VK_OEM_MINUS:
+				command = PT_ZOOM_OUT;
+				break;
 			}
 
 			if (command >= 0) {

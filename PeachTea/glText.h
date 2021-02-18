@@ -16,6 +16,7 @@ typedef struct {
 
 	vec2i charSize;
 	int maxCharHeight;
+	int textHeight;
 
 	int ssFactor;
 } char_set;
