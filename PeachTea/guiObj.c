@@ -106,6 +106,19 @@ PT_GUI_OBJ* PT_GUI_OBJ_clone(PT_GUI_OBJ* source, Instance* instanceClone) {
 
 	clone->instance = instanceClone;
 
+	// don't inherit sources' bound events
+	if (instanceClone) {
+		memset(&instanceClone->childAdded, 0, sizeof(PT_BINDABLE_EVENT));
+		memset(&instanceClone->childRemoved, 0, sizeof(PT_BINDABLE_EVENT));
+	}
+
+	memset(&clone->e_obj_activated, 0, sizeof(PT_BINDABLE_EVENT));
+	memset(&clone->e_obj_dragged, 0, sizeof(PT_BINDABLE_EVENT));
+	memset(&clone->e_obj_mouseEnter, 0, sizeof(PT_BINDABLE_EVENT));
+	memset(&clone->e_obj_mouseLeave, 0, sizeof(PT_BINDABLE_EVENT));
+	memset(&clone->e_obj_pressed, 0, sizeof(PT_BINDABLE_EVENT));
+	memset(&clone->e_obj_released, 0, sizeof(PT_BINDABLE_EVENT));
+
 	if (instanceClone) {
 		PT_BINDABLE_EVENT_bind(&instanceClone->childAdded, onDescendantsChanged);
 		PT_BINDABLE_EVENT_bind(&instanceClone->childRemoved, onDescendantsChanged);

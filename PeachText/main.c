@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <commdlg.h>
 
 Instance* screenUI = NULL;
 TEXT_EDITOR* textEditor = NULL;
@@ -110,12 +111,87 @@ void on_scroll(void* args) {
 	}
 }
 
-
-int main(int argc, char** args) {
-	for (int i = 0; i < argc; i++) {
-		printf("%i: \"%s\"\n\n", i, *(args + i));
+void on_save_as() {
+	TEXT_EDITOR* editor = get_current_text_editor();
+	if (!editor) {
+		return;
 	}
 
+	OPENFILENAMEA ofna = { 0 };
+	ofna.lStructSize = sizeof(OPENFILENAMEA);
+	ofna.nMaxFile = 512;
+	ofna.lpstrFile = calloc(ofna.nMaxFile - 1, sizeof(char));
+	ofna.Flags = OFN_EXPLORER;
+	ofna.lpstrFilter = "Text File\0*.TXT\0All Files\0*.*\0\0";
+
+	if (GetSaveFileNameA(&ofna)) {
+		int totalLen = strlen(ofna.lpstrFile);
+
+		int pathLen = ofna.nFileOffset;
+		char* path = calloc(pathLen + 1, sizeof(char)); // add 1 for null terminator
+		if (pathLen > 0) {
+			memcpy(path, ofna.lpstrFile, pathLen * sizeof(char));
+		}
+		if (editor->path) {
+			free(editor->path);
+		}
+		editor->path = path;
+
+		int nameLen = (ofna.nFileExtension - ofna.nFileOffset) - 1; // subtract 1 (exclude the '.')
+		char* filename = calloc(nameLen + 1, sizeof(char)); 
+		if (nameLen > 0) {
+			memcpy(filename, ofna.lpstrFile + ofna.nFileOffset, nameLen * sizeof(char));
+		}
+		if (editor->filename) {
+			free(editor->filename);
+		}
+		editor->filename = filename;
+
+		int extensionLen = totalLen - ofna.nFileExtension;
+		char* extension = calloc(extensionLen + 1, sizeof(char));
+		if (extensionLen > 0) {
+			memcpy(extension, ofna.lpstrFile + ofna.nFileExtension, extensionLen * sizeof(char));
+		}
+		if (editor->extension) {
+			free(editor->extension);
+		}
+		editor->extension = extension;
+
+		TEXT_EDITOR_save(editor);
+	}
+
+
+	free(ofna.lpstrFile);
+}
+
+void on_save() {
+	TEXT_EDITOR* editor = get_current_text_editor();
+	if (!editor) {
+		return;
+	}
+
+	if (editor->path) {
+		TEXT_EDITOR_save(editor);
+	}
+	else {
+		on_save_as();
+	}
+}
+
+void main_on_command(void* arg) {
+	PT_COMMAND command = *(PT_COMMAND*)arg;
+
+	switch (command) {
+	case PT_SAVE:
+		on_save();
+		break;
+	case PT_SAVE_AS:
+		on_save_as();
+		break;
+	}
+}
+
+int main(int argc, char** args) {
 	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PeachText");
 
 #ifndef _DEBUG 
@@ -223,53 +299,89 @@ int main(int argc, char** args) {
 
 	set_instance_parent(sideBarInstance, backgroundInstance);
 
+
+	// side bar text editor list scrollframe
+	Instance* editorListInstance = PT_SCROLLFRAME_new();
+	PT_SCROLLFRAME* editorListScrollframe = (PT_SCROLLFRAME*)editorListInstance->subInstance;
+	editorListScrollframe->canvasSize = PT_REL_DIM_new(0, 0, 2.0f, 0);
+	editorListScrollframe->scrollBarThickness = 5;
+
+	PT_GUI_OBJ* svTrack = editorListScrollframe->vscrollTrack;
+	svTrack->backgroundTransparency = vTrack->backgroundTransparency;
+
+	PT_GUI_OBJ* svBar = editorListScrollframe->vscrollBar;
+	svBar->backgroundColor = vBar->backgroundColor;
+	svBar->backgroundTransparency = vBar->backgroundTransparency;
+	svBar->blurred = vBar->blurred;
+	svBar->blurAlpha = vBar->blurAlpha;
+	svBar->blurRadius = vBar->blurRadius;
+	svBar->reactive = vBar->reactive;
+	svBar->activeBackgroundColor = vBar->activeBackgroundColor;
+	svBar->activeBackgroundRange = vBar->activeBackgroundRange;
+
+	PT_GUI_OBJ* editorListObj = editorListScrollframe->guiObj;
+	editorListObj->position = PT_REL_DIM_new(0, 12, 0, 50);
+	editorListObj->anchorPosition = (vec2f){ 0, 0 };
+	editorListObj->size = PT_REL_DIM_new(1.0f, -(12 + SIDE_BAR_WIDTH), 1.0f, -62);
+	editorListObj->backgroundTransparency = 1.0f;
+	editorListObj->borderWidth = 0;
+
+	set_instance_parent(editorListInstance, sideBarInstance);
+
 	// side menu collapse/expand button
 	Instance* menuButtonInstance = PT_IMAGELABEL_new();
 	menuButtonInstance->name = create_heap_str("menu button");
 	PT_IMAGELABEL* menuButton = (PT_IMAGELABEL*)menuButtonInstance->subInstance;
 	menuButton->image = menuImage;
+	menuButton->imageTint = PT_COLOR_fromHSV(0, 0, 1);
+	menuButton->imageTintAlpha = 1.0f;
 
 	PT_GUI_OBJ* menuButtonObj = menuButton->guiObj;
 	menuButtonObj->size = PT_REL_DIM_new(0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2, 0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2);
 	menuButtonObj->anchorPosition = (vec2f){ 1, 0 };
 	menuButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 0, SIDE_BAR_PADDING);
 	
-	menuButtonObj->backgroundColor = PT_COLOR_new(1, 1, 1);
-	menuButtonObj->backgroundTransparency = 1;
+	menuButtonObj->backgroundColor = PT_COLOR_fromHSV(0, 0, 0);
+	menuButtonObj->backgroundTransparency = .6f;
 
 	menuButtonObj->reactive = 1;
-	menuButtonObj->borderWidth = 1;
-	menuButtonObj->borderColor = sideBarObj->borderColor;
-	menuButtonObj->activeBorderRange = sideBarObj->activeBorderRange;
-	menuButtonObj->activeBorderColor = sideBarObj->activeBorderColor;
+	menuButtonObj->activeBackgroundRange = sideBarObj->activeBorderRange;
+	menuButtonObj->activeBackgroundColor = sideBarObj->activeBorderColor;
 
 	PT_BINDABLE_EVENT_bind(&menuButtonObj->e_obj_activated, on_menu_activated);
 
 	set_instance_parent(menuButtonInstance, sideBarInstance);
 
 	// word-wrap toggle button
-	Instance* wordWrapInstance = PT_IMAGELABEL_new();
-	wordWrapInstance->name = create_heap_str("menu button");
+	Instance* wordWrapInstance = clone_instance(menuButtonInstance);
 	PT_IMAGELABEL* wordWrapButton = (PT_IMAGELABEL*)wordWrapInstance->subInstance;
 	wordWrapButton->image = PT_IMAGE_from_png("assets\\images\\word_wrap.png");
-
 	PT_GUI_OBJ* wordWrapButtonObj = wordWrapButton->guiObj;
-	wordWrapButtonObj->size = PT_REL_DIM_new(0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2, 0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2);
-	wordWrapButtonObj->anchorPosition = (vec2f){ 1, 0 };
-	wordWrapButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 0, 1 * (SIDE_BAR_WIDTH + SIDE_BAR_PADDING));
-
-	wordWrapButtonObj->backgroundColor = PT_COLOR_new(1, 1, 1);
-	wordWrapButtonObj->backgroundTransparency = 1;
-
-	wordWrapButtonObj->reactive = 1;
-	wordWrapButtonObj->borderWidth = 1;
-	wordWrapButtonObj->borderColor = sideBarObj->borderColor;
-	wordWrapButtonObj->activeBorderRange = sideBarObj->activeBorderRange;
-	wordWrapButtonObj->activeBorderColor = sideBarObj->activeBorderColor;
-
+	wordWrapButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 0, 1 * (SIDE_BAR_WIDTH + SIDE_BAR_PADDING) + SIDE_BAR_PADDING);
 	PT_BINDABLE_EVENT_bind(&wordWrapButtonObj->e_obj_activated, on_toggle_wordWrap);
-
 	set_instance_parent(wordWrapInstance, sideBarInstance);
+
+	// save button
+	Instance* saveButtonInstance = clone_instance(menuButtonInstance);
+	PT_IMAGELABEL* saveButton = (PT_IMAGELABEL*)saveButtonInstance->subInstance;
+	saveButton->image = PT_IMAGE_from_png("assets\\images\\save.png");
+	saveButton->imageScale = .6f;
+	PT_GUI_OBJ* saveButtonObj = saveButton->guiObj;
+	saveButtonObj->anchorPosition = (vec2f){ 1, 1 };
+	saveButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -0 * (SIDE_BAR_WIDTH + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
+	PT_BINDABLE_EVENT_bind(&saveButtonObj->e_obj_activated, on_save);
+	set_instance_parent(saveButtonInstance, sideBarInstance);
+	
+	// save-as button
+	Instance* saveAsButtonInstance = clone_instance(menuButtonInstance);
+	PT_IMAGELABEL* saveAsButton = (PT_IMAGELABEL*)saveAsButtonInstance->subInstance;
+	saveAsButton->image = PT_IMAGE_from_png("assets\\images\\saveAs.png");
+	saveAsButton->imageScale = .6f;
+	PT_GUI_OBJ* saveAsButtonObj = saveAsButton->guiObj;
+	saveAsButtonObj->anchorPosition = (vec2f){ 1, 1 };
+	saveAsButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -1 * (SIDE_BAR_WIDTH + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
+	PT_BINDABLE_EVENT_bind(&saveAsButtonObj->e_obj_activated, on_save_as);
+	set_instance_parent(saveAsButtonInstance, sideBarInstance);
 
 	// bottom status bar
 	Instance* statusBarInstance = PT_TEXTLABEL_new();
@@ -278,8 +390,8 @@ int main(int argc, char** args) {
 	statusBarLabel->horizontalAlignment = PT_H_ALIGNMENT_RIGHT;
 	statusBarLabel->verticalAlignment = PT_V_ALIGNMENT_CENTER;
 	statusBarLabel->textColor = PT_COLOR_fromHSV(0, 0, .85f);
-	statusBarLabel->font = PT_FONT_CONSOLA_B;
-	statusBarLabel->textSize = 15;
+	statusBarLabel->font = PT_FONT_CONSOLA;
+	statusBarLabel->textSize = 12;
 	statusBarLabel->text = status;
 	statusBarLabel->textTransparency = .1f;
 
@@ -349,6 +461,8 @@ int main(int argc, char** args) {
 
 	PT_BINDABLE_EVENT_bind(&e_wheelUp, on_scroll);
 	PT_BINDABLE_EVENT_bind(&e_wheelDown, on_scroll);
+	PT_BINDABLE_EVENT_bind(&eOnCommand, main_on_command);
+
 
 	PT_RUN(onUpdate, onRender);
 	//PT_RUN(NULL, onRender);

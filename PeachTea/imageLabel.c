@@ -19,6 +19,8 @@ Instance* PT_IMAGELABEL_new() {
 	instance->subInstance = (void*)imgLabel;
 	instance->instanceType = IT_IMAGELABEL;
 
+	imgLabel->imageScale = 1.0f;
+
 	return instance;
 }
 
@@ -54,8 +56,11 @@ void PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_SCREEN_UI* ui) {
 		glUniform2i(clXLoc, img->guiObj->lastCanvas.cleft, img->guiObj->lastCanvas.cright);
 		glUniform2i(clYLoc, img->guiObj->lastCanvas.ctop, img->guiObj->lastCanvas.cbottom);
 
+		vec2i canvasSize = canvas_size(childCanvas);
 		vec2i topLeft = canvas_pos(childCanvas);
-		vec2i bottomRight = vector_add_2i(topLeft, canvas_size(childCanvas));
+		vec2i bottomRight = vector_add_2i(topLeft, canvasSize);
+
+
 
 		int ssLoc = glGetUniformLocation(PTS_img, "screenSize");
 		int tLoc = glGetUniformLocation(PTS_img, "imageTransparency");
@@ -88,6 +93,15 @@ void PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_SCREEN_UI* ui) {
 
 		vec2f topLeftCorner = (vec2f){ image.topLeft.x / (float)image.totalImageSize.x, image.topLeft.y / (float)image.totalImageSize.y };
 		vec2f bottomRightCorner = (vec2f){ image.bottomRight.x / (float)image.totalImageSize.x, image.bottomRight.y / (float)image.totalImageSize.y };
+
+
+		vec2i canvasCenter = vector_add_2i(topLeft, vector_div_2i(canvasSize, 2));
+		canvasSize = (vec2i){ canvasSize.x * img->imageScale, canvasSize.y * img->imageScale };
+
+		topLeft = vector_sub_2i(canvasCenter, vector_div_2i(canvasSize, 2));
+		bottomRight = vector_add_2i(canvasCenter, vector_div_2i(canvasSize, 2));
+		
+
 
 		set_quad_positions(topLeft, bottomRight);
 		set_quad_corners(topLeftCorner, bottomRightCorner);

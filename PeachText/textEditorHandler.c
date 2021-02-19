@@ -20,6 +20,30 @@ int charsTyped = 0;
 #define IS_ALPHA_CHAR(c) IS_UPPER_CHAR(c) || IS_LOWER_CHAR(c);
 #define IS_NUMBER_CHAR(c) c >= 48 && c <= 57
 
+void TEXT_EDITOR_save(TEXT_EDITOR* textEditor) {
+	if (textEditor->path && textEditor->filename && textEditor->extension) { // this function requires the path, filename, and extinsion properties of the given struct to be non-null
+		char* fullPath = calloc(1000, sizeof(char));
+		sprintf(fullPath, "%s%s.%s", textEditor->path, textEditor->filename, textEditor->extension);
+
+		FILE* file = fopen(fullPath, "w");
+		if (!file) {
+			wchar_t* wpath = calloc(1000, sizeof(wchar_t));
+			mbstowcs(wpath, fullPath, 1000);
+			fatal_error(L"failed to save file to %s", wpath);
+			free(wpath);
+			return;
+		}
+
+		for (int i = 0; i < textEditor->textLines->numElements; i++) {
+			TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor->textLines, i);
+			fwrite(line.str, sizeof(char), line.numChars, file);
+		}
+
+		fclose(file);
+		free(fullPath);
+	}
+}
+
 TEXT_LINE TEXT_LINE_new(const char* str, int len) {
 	TEXT_LINE line = { 0 };
 

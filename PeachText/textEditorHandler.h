@@ -30,6 +30,10 @@ typedef struct {
 
 	PT_EXPANDABLE_ARRAY* textLines;
 	TEXT_CURSOR textCursor;
+
+	char* path;
+	char* filename;
+	char* extension;
 } TEXT_EDITOR;
 
 TEXT_METADATA_FLAG create_text_metadata_flag(float t);
@@ -41,6 +45,7 @@ char get_last_char(TEXT_LINE line);
 
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframe, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame);
 TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, const char* filename);
+void TEXT_EDITOR_save(TEXT_EDITOR* textEditor);
 
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor);
 int TEXT_EDITOR_get_wrapX(TEXT_EDITOR* editor);

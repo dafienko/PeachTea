@@ -15,17 +15,16 @@ layout (binding=0) uniform sampler2D spritesheet;
 out vec4 FragColor;
 
 void main() {
-	int shouldBeRendered = 1;
+	bool shouldBeRendered = true;
 	
 	// test if fragment is outside of occlusion bounds
 	if (useClipBounds == 1) {
 		if (!(posPx.x > clipX.x && posPx.x < clipX.y && posPx.y > clipY.x && posPx.y < clipY.y)) {
-			shouldBeRendered = 0;
+			shouldBeRendered = false;
 		}
 	}
 	
-	//FragColor = vec4(1, 0, 0, 1);
-	if (shouldBeRendered == 1) {
+	if (shouldBeRendered) {
 		//float texColor = texture(spritesheet, glyphSamplePos).r;
 		vec3 texColor = vec3(texture(spritesheet, glyphSamplePos).rgb);
 		
@@ -51,12 +50,8 @@ void main() {
 		} else {
 			FragColor = vec4(0, 0, 0, 0);
 		}
-		//if (texColor == 0) {
-		//	FragColor = vec4(1, 0, 0, 1);
-		//}
-		//FragColor = vec4(0, 0, 1, 1);
 	} else {
-		//FragColor = vec4(0, 1, 0, 1);
+
 	}
 }
 

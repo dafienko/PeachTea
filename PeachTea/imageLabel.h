@@ -12,6 +12,7 @@ typedef struct {
 	int visible;
 
 	PT_IMAGE image;
+	float imageScale;
 
 	float imageTransparency;
 	PT_COLOR imageTint;

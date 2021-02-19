@@ -52,12 +52,14 @@ void PT_set_window_cursor(int idc);
 PT_COLOR accentColor;
 
 typedef enum {
-	PT_PASTE,
-	PT_COPY,
-	PT_CUT,
-	PT_SELECTALL,
-	PT_ZOOM_IN,
-	PT_ZOOM_OUT
+	PT_PASTE, // ctrl v
+	PT_COPY, // ctrl c
+	PT_CUT, // ctrl x
+	PT_SELECTALL, // ctrl a
+	PT_ZOOM_IN, // ctrl scroll up
+	PT_ZOOM_OUT, // ctrl scroll down
+	PT_SAVE, // ctrl s
+	PT_SAVE_AS, // ctrl shift s
 } PT_COMMAND;
 
 PT_BINDABLE_EVENT eOnCommand;

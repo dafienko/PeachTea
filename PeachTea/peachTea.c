@@ -208,6 +208,8 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			case VK_OEM_MINUS:
 				command = PT_ZOOM_OUT;
 				break;
+			case 'S':
+				command = is_key_down(VK_LSHIFT) ? PT_SAVE_AS : PT_SAVE;
 			}
 
 			if (command >= 0) {
