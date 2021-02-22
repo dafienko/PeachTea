@@ -71,6 +71,7 @@ void PT_SCREEN_UI_destroy(void* obj);
 
 PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui);
 
+struct PT_GUI_OBJ* get_instance_gui_obj(Instance* instance);
 
 PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas);
 void render_gui_instance(Instance* instance, PT_SCREEN_UI* ui);

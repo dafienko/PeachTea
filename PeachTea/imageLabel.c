@@ -5,6 +5,7 @@
 #include "glUniformUtil.h"
 #include "mouse.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 Instance* PT_IMAGELABEL_new() {
 	PT_IMAGELABEL* imgLabel = calloc(1, sizeof(PT_IMAGELABEL));
@@ -75,6 +76,7 @@ void PT_IMAGELABEL_render(PT_IMAGELABEL* img, PT_SCREEN_UI* ui) {
 		int mif = mousePos.x > topLeft.x && mousePos.x < bottomRight.x; // "Mouse In Frame"
 		mif = mif && mousePos.y > topLeft.y && mousePos.y < bottomRight.y;
 
+		//printf("%.2f, %.2f, %.2f     -  %.2f\n", img->imageTint.r, img->imageTint.g, img->imageTint.b, img->imageTransparency);
 		glUniform2i(ssLoc, screenSize.x, screenSize.y);
 		glUniform1f(tLoc, img->imageTransparency);
 		uniform_PT_COLOR(itLoc, img->imageTint);

@@ -165,7 +165,11 @@ int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*, int), int p
 
 	if (obj != NULL) {
 		if (obj->visible) {
+			int processedBefore = processed;
 			processed |= callback(obj, processed);
+			if (!processedBefore && processed) {
+				printf("%s", instance->name);
+			}
 		}
 	}
 
@@ -175,11 +179,19 @@ int process_callback(Instance* instance, int(*callback)(PT_GUI_OBJ*, int), int p
 int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*callback)(PT_GUI_OBJ*, int), int processed) {
 	Instance* rootInstance = renderTree->rootInstance;
 
+	PT_GUI_OBJ* obj = get_instance_gui_obj(rootInstance);
+	if (obj && !obj->visible) {
+		return;
+	}
+
 	int isScrollEvent = callback == obj_scroll_down || callback == obj_scroll_up;
 
 	// process scrollframe controls
 	if (rootInstance->instanceType == IT_SCROLLFRAME) {
 		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)rootInstance->subInstance;
+
+
+		int processedBefore = processed;
 
 		processed |= callback(scrollFrame->vscrollBar, processed);
 		processed |= callback(scrollFrame->hscrollBar, processed);
@@ -187,6 +199,9 @@ int enumerate_render_tree(PT_UI_RENDER_TREE* renderTree, PT_SCREEN_UI* ui, int(*
 		if (!processed && isScrollEvent) {
 			processed |= process_callback(rootInstance, callback, processed);
 		}
+
+		printf("%s", rootInstance->name);
+		
 	}
 
 	for (int i = renderTree->numBranches - 1; i >= 0; i--) {
@@ -344,9 +359,13 @@ void print_rendertree(PT_UI_RENDER_TREE* tree, int tabs) {
 
 	free(str);
 
-	for (int i = 0; i < tree->numBranches; i++) {
+	for (int i = tree->numBranches - 1; i >= 0; i--) {
 		PT_UI_RENDER_TREE* branch = *(tree->branches + i);
 		print_rendertree(branch, tabs + 1);
+	}
+
+	if (tabs == 0) {
+		printf("\n");
 	}
 }
 
@@ -356,7 +375,7 @@ void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui) {
 	}
 
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
-	//print_rendertree(tree, 0);
+	print_rendertree(tree, 0);
 	ui->lastRenderTree = tree;
 }
 

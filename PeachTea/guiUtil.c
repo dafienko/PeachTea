@@ -9,7 +9,37 @@
 #include "PeachTeaShaders.h"
 #include "renderFrame.h"
 
+struct PT_GUI_OBJ* get_instance_gui_obj(Instance* instance) {
+	PT_GUI_OBJ* obj = NULL;
 
+	switch (instance->instanceType) {
+	case IT_GUI_OBJ:
+		obj = (PT_GUI_OBJ*)instance->subInstance;
+		break;
+	case IT_TEXTLABEL:
+		;
+		PT_TEXTLABEL* textlabel = (PT_TEXTLABEL*)instance->subInstance;
+		obj = textlabel->guiObj;
+		break;
+	case IT_IMAGELABEL:
+		;
+		PT_IMAGELABEL* imagelabel = (PT_IMAGELABEL*)instance->subInstance;
+		obj = imagelabel->guiObj;
+		break;
+	case IT_SCROLLFRAME:
+		;
+		PT_SCROLLFRAME* scrollframe = (PT_SCROLLFRAME*)instance->subInstance;
+		obj = scrollframe->guiObj;
+		break;
+	case IT_RENDERFRAME:
+		;
+		PT_RENDERFRAME* renderframe = (PT_RENDERFRAME*)instance->subInstance;
+		obj = renderframe->guiObj;
+		break;
+	}
+
+	return obj;
+}
 
 PT_canvas update_gui_instance_size(Instance* instance, PT_canvas parentCanvas) {
 	PT_canvas canvas = { 0 };

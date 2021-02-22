@@ -77,7 +77,11 @@ char_set create_char_set(const char* filename, const int textSize) {
 	FILE* f = fopen(filename, "rb");
 	int ee = errno;
 	if (f == NULL) {
-		fatal_windows_error(ee, L"LOL file failed to open");
+		wchar_t* wfilename = calloc(500, sizeof(wchar_t));
+		mbstowcs(wfilename, filename, 499);
+		fatal_windows_error(ee, L"LOL file failed to open: %s", wfilename);
+
+		free(wfilename);
 	}
 	fclose(f);
 
@@ -354,6 +358,7 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 	currentFlag.color = textColor;
 	TEXT_METADATA_FLAG nextFlag = { 0 };
 	nextFlag.index = len;
+	nextFlag.color = textColor;
 	if (metadataFlags) {
 		currentFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(metadataFlags, 0);
 

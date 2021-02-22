@@ -146,6 +146,9 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	int baselineX = xMargin - canvasOffset.x;
 
 	// render text
+	glUseProgram(PTS_text);
+	glUniform1i(glGetUniformLocation(PTS_text, "useClipBounds"), 0);
+
 	PT_EXPANDABLE_ARRAY lineNumbers = PT_EXPANDABLE_ARRAY_new(1, sizeof(lineNumber));
 
 	int wrapX = TEXT_EDITOR_get_wrapX(&textEditor);

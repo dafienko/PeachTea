@@ -65,6 +65,7 @@ void PT_RENDERFRAME_render(PT_RENDERFRAME* renderFrame, PT_SCREEN_UI* ui) {
 	vec2i size = canvas_size(childCanvas);
 
 	if (renderFrame->visible) {
+
 		if (renderFrame->render) {
 			if (renderFrame->renderTexture.tex) {
 				PT_FRAMETEXTURE_bind(renderFrame->renderTexture);
@@ -75,6 +76,15 @@ void PT_RENDERFRAME_render(PT_RENDERFRAME* renderFrame, PT_SCREEN_UI* ui) {
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+				// make sure we don't accidentally use the last rendered object's clipping uniforms
+				PT_GUI_OBJ* obj = renderFrame->guiObj;
+				GLuint ucbLoc = glGetUniformLocation(PTS_guiObj, "useClipBounds");
+				GLuint clXLoc = glGetUniformLocation(PTS_guiObj, "clipX");
+				GLuint clYLoc = glGetUniformLocation(PTS_guiObj, "clipY");
+				glUniform1i(ucbLoc, obj->lastCanvas.clipDescendants);
+				glUniform2i(clXLoc, obj->lastCanvas.cleft, obj->lastCanvas.cright);
+				glUniform2i(clYLoc, obj->lastCanvas.ctop, obj->lastCanvas.cbottom);
+
 				renderFrame->render(renderFrame); // call user-defined render function
 			}
 		}
@@ -82,7 +92,6 @@ void PT_RENDERFRAME_render(PT_RENDERFRAME* renderFrame, PT_SCREEN_UI* ui) {
 		PT_FRAMETEXTURE_bind(ui->frameTexture);
 		PT_GUI_OBJ_render(renderFrame->guiObj, ui);
 
-		//printf("%s\n", renderFrame->instance->name);
 		if (renderFrame->renderTexture.tex) {
 			// copy user-rendered texture to window
 			glUseProgram(PTS_tex);

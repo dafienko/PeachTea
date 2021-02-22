@@ -48,10 +48,12 @@ void PT_TWEEN_stop(PT_TWEEN* tween);
 float PT_TWEEN_float(float a, float b, float alpha, TWEEN_TYPE type, TWEEN_DIRECTION direction);
 vec2f PT_TWEEN_vec2f(vec2f a, vec2f b, float alpha, TWEEN_TYPE type, TWEEN_DIRECTION direction);
 PT_REL_DIM PT_TWEEN_PT_REL_DIM(PT_REL_DIM a, PT_REL_DIM b, float alpha, TWEEN_TYPE type, TWEEN_DIRECTION direction);
+PT_COLOR PT_TWEEN_PT_COLOR(PT_COLOR a, PT_COLOR b, float alpha, TWEEN_TYPE type, TWEEN_DIRECTION direction);
 
 PT_TWEEN* PT_TWEEN_float_new(float end, float* dest, TWEEN_CONFIG config);
 PT_TWEEN* PT_TWEEN_vec2f_new(vec2f end, vec2f* dest, TWEEN_CONFIG config);
 PT_TWEEN* PT_TWEEN_PT_REL_DIM_new(PT_REL_DIM end, PT_REL_DIM* dest, TWEEN_CONFIG config);
+PT_TWEEN* PT_TWEEN_PT_COLOR_new(PT_COLOR end, PT_COLOR* dest, TWEEN_CONFIG config);
 
 
 void PT_TWEEN_destroy(PT_TWEEN* tween);

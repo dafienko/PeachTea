@@ -3,27 +3,21 @@
 #include "PeachTea.h"
 #include "glText.h"
 
+#include "ui.h"
 #include "textEditorHandler.h";
 #include "textCursor.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <commdlg.h>
+#include <direct.h>
 
 Instance* screenUI = NULL;
-TEXT_EDITOR* textEditor = NULL;
 
 PT_IMAGE menuImage, arrowImage;
 
 PT_TEXTLABEL* statusBarLabel = NULL;
 char* status = NULL;
-
-const int STATUS_BAR_HEIGHT = 20;
-
-const int SIDE_BAR_WIDTH = 40;
-const int SIDE_BAR_PADDING = 3;
-
-const int SIDE_MENU_WIDTH = 320;
 
 void onRender() {
 	PT_SCREEN_UI_render(screenUI->subInstance);
@@ -38,6 +32,8 @@ int cpm = 0;
 int lastTimeIndex = 0;
 float fpsUpdateInterval = 1.0f;
 void onUpdate(float dt) {
+	TEXT_EDITOR* textEditor = get_current_text_editor();
+
 	float time = PT_TIME_get();
 	frames++;
 	int tIndex = time / fpsUpdateInterval;
@@ -90,10 +86,12 @@ void on_menu_activated(void* args) {
 }
 
 void on_toggle_wordWrap(void* args) {
-	textEditor->wrapText = textEditor->wrapText ? 0 : 1;
+	wrapText = wrapText ? 0 : 1;
 }
 
 void on_scroll(void* args) {
+	TEXT_EDITOR* textEditor = get_current_text_editor();
+
 	if (is_key_down(VK_LCONTROL)) {
 		int d = -*(int*)args;
 
@@ -158,6 +156,8 @@ void on_save_as() {
 		editor->extension = extension;
 
 		TEXT_EDITOR_save(editor);
+		_chdir(initWorkingDir);
+
 	}
 
 
@@ -191,6 +191,11 @@ void main_on_command(void* arg) {
 	}
 }
 
+void update_rendertree() {
+	PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
+	PT_SCREEN_UI_update_rendertree(ui);
+}
+
 int main(int argc, char** args) {
 	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PeachText");
 
@@ -222,53 +227,9 @@ int main(int argc, char** args) {
 
 	set_instance_parent(backgroundInstance, screenUI);
 
-
-
-	// main text scrollframe 
-	Instance* scrollFrameInstance = PT_SCROLLFRAME_new();
-	scrollFrameInstance->name = create_heap_str("scrollframe");
-	PT_SCROLLFRAME* scrollframe = (PT_SCROLLFRAME*)scrollFrameInstance->subInstance;
-	scrollframe->canvasSize = PT_REL_DIM_new(0.0f, 0, 0.0f, 1000);
-	scrollframe->scrollBarThickness = 12;
-
-	PT_GUI_OBJ* vTrack = scrollframe->vscrollTrack;
-	vTrack->backgroundTransparency = 1;
-	PT_GUI_OBJ* hTrack = scrollframe->hscrollTrack;
-	hTrack->backgroundTransparency = vTrack->backgroundTransparency;
-
-	PT_GUI_OBJ* vBar = scrollframe->vscrollBar;
-	vBar->backgroundColor = PT_COLOR_fromHSV(0, 0, .8f);
-	vBar->backgroundTransparency = 0.15f;
-	vBar->blurred = 1;
-	vBar->blurAlpha = .8f;
-	vBar->blurRadius = 10;
-	vBar->reactive = 1;
-	vBar->activeBackgroundColor = PT_COLOR_new(1, 1, 1);
-	vBar->activeBackgroundRange = (vec2f){ 10, 200 };
-	PT_GUI_OBJ* hBar = scrollframe->hscrollBar;
-	hBar->backgroundColor = vBar->backgroundColor;
-	hBar->backgroundTransparency = vBar->backgroundTransparency;
-	hBar->blurred = vBar->blurred;
-	hBar->blurAlpha = vBar->blurAlpha;
-	hBar->blurRadius = vBar->blurRadius;
-	hBar->reactive = vBar->reactive;
-	hBar->activeBackgroundColor = vBar->activeBackgroundColor;
-	hBar->activeBackgroundRange = vBar->activeBackgroundRange;
-
-	PT_GUI_OBJ* scrollObj = scrollframe->guiObj;
-	scrollObj->backgroundColor = backgroundObj->backgroundColor;
-	scrollObj->backgroundTransparency = 1;
-	scrollObj->position = PT_REL_DIM_new(0, SIDE_BAR_WIDTH, 0, 0);
-	scrollObj->size = PT_REL_DIM_new(1.0f, -SIDE_BAR_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
-	scrollObj->zIndex = 5;
-	scrollObj->clipDescendants = 1;
-	//scrollObj->processEvents = 0;
-
-	set_instance_parent(scrollFrameInstance, backgroundInstance);
-
 	// side menu 
 	Instance* sideBarInstance = PT_GUI_OBJ_new();
-	sideBarInstance->name = create_heap_str("side bar");
+	sideBarInstance->name = create_heap_str("sidebar");
 	PT_GUI_OBJ* sideBarObj = (PT_GUI_OBJ*)sideBarInstance->subInstance;
 	sideBarObj->size = PT_REL_DIM_new(0, SIDE_MENU_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
 	sideBarObj->anchorPosition = (vec2f){1.0f, 0.0f };
@@ -299,25 +260,26 @@ int main(int argc, char** args) {
 
 	set_instance_parent(sideBarInstance, backgroundInstance);
 
+	Instance* sidebarHeaderInstance = PT_TEXTLABEL_new();
+	sidebarHeaderInstance->name = create_heap_str("sidebar header");
+	PT_TEXTLABEL* sidebarHeader = (PT_TEXTLABEL*)sidebarHeaderInstance->subInstance;
+	sidebarHeader->text = create_heap_str("Files");
+	sidebarHeader->textSize = 20;
+	sidebarHeader->font = PT_FONT_CONSOLA_B;
+	sidebarHeader->textColor = PT_COLOR_fromHSV(0, 0, 1);
+	sidebarHeader->horizontalAlignment = PT_H_ALIGNMENT_LEFT;
+	sidebarHeader->verticalAlignment = PT_V_ALIGNMENT_CENTER;
+	PT_GUI_OBJ* sidebarHeaderObj = sidebarHeader->guiObj;
+	sidebarHeaderObj->position = PT_REL_DIM_new(0, 16, 0, 0);
+	sidebarHeaderObj->size = PT_REL_DIM_new(1.0f, -(12 + SIDE_BAR_WIDTH), 0, 50);
+	sidebarHeaderObj->backgroundTransparency = 1;
+
+	set_instance_parent(sidebarHeaderInstance, sideBarInstance);
 
 	// side bar text editor list scrollframe
-	Instance* editorListInstance = PT_SCROLLFRAME_new();
-	PT_SCROLLFRAME* editorListScrollframe = (PT_SCROLLFRAME*)editorListInstance->subInstance;
-	editorListScrollframe->canvasSize = PT_REL_DIM_new(0, 0, 2.0f, 0);
+	PT_SCROLLFRAME* editorListScrollframe = create_editor_scrollframe();
+	editorListScrollframe->instance->name = create_heap_str("editor list scrollframe");
 	editorListScrollframe->scrollBarThickness = 5;
-
-	PT_GUI_OBJ* svTrack = editorListScrollframe->vscrollTrack;
-	svTrack->backgroundTransparency = vTrack->backgroundTransparency;
-
-	PT_GUI_OBJ* svBar = editorListScrollframe->vscrollBar;
-	svBar->backgroundColor = vBar->backgroundColor;
-	svBar->backgroundTransparency = vBar->backgroundTransparency;
-	svBar->blurred = vBar->blurred;
-	svBar->blurAlpha = vBar->blurAlpha;
-	svBar->blurRadius = vBar->blurRadius;
-	svBar->reactive = vBar->reactive;
-	svBar->activeBackgroundColor = vBar->activeBackgroundColor;
-	svBar->activeBackgroundRange = vBar->activeBackgroundRange;
 
 	PT_GUI_OBJ* editorListObj = editorListScrollframe->guiObj;
 	editorListObj->position = PT_REL_DIM_new(0, 12, 0, 50);
@@ -325,8 +287,9 @@ int main(int argc, char** args) {
 	editorListObj->size = PT_REL_DIM_new(1.0f, -(12 + SIDE_BAR_WIDTH), 1.0f, -62);
 	editorListObj->backgroundTransparency = 1.0f;
 	editorListObj->borderWidth = 0;
+	editorListObj->clipDescendants = 1;
 
-	set_instance_parent(editorListInstance, sideBarInstance);
+	set_instance_parent(editorListScrollframe->instance, sideBarInstance);
 
 	// side menu collapse/expand button
 	Instance* menuButtonInstance = PT_IMAGELABEL_new();
@@ -342,7 +305,7 @@ int main(int argc, char** args) {
 	menuButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 0, SIDE_BAR_PADDING);
 	
 	menuButtonObj->backgroundColor = PT_COLOR_fromHSV(0, 0, 0);
-	menuButtonObj->backgroundTransparency = .6f;
+	menuButtonObj->backgroundTransparency = .5f;
 
 	menuButtonObj->reactive = 1;
 	menuButtonObj->activeBackgroundRange = sideBarObj->activeBorderRange;
@@ -355,9 +318,12 @@ int main(int argc, char** args) {
 	// word-wrap toggle button
 	Instance* wordWrapInstance = clone_instance(menuButtonInstance);
 	PT_IMAGELABEL* wordWrapButton = (PT_IMAGELABEL*)wordWrapInstance->subInstance;
+	wordWrapButton->imageTintAlpha = 0;
 	wordWrapButton->image = PT_IMAGE_from_png("assets\\images\\word_wrap.png");
+	wordWrapButton->imageScale = .8f;
 	PT_GUI_OBJ* wordWrapButtonObj = wordWrapButton->guiObj;
-	wordWrapButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 0, 1 * (SIDE_BAR_WIDTH + SIDE_BAR_PADDING) + SIDE_BAR_PADDING);
+	wordWrapButtonObj->anchorPosition = (vec2f){ 1, 1 };
+	wordWrapButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -2 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
 	PT_BINDABLE_EVENT_bind(&wordWrapButtonObj->e_obj_activated, on_toggle_wordWrap);
 	set_instance_parent(wordWrapInstance, sideBarInstance);
 
@@ -365,10 +331,10 @@ int main(int argc, char** args) {
 	Instance* saveButtonInstance = clone_instance(menuButtonInstance);
 	PT_IMAGELABEL* saveButton = (PT_IMAGELABEL*)saveButtonInstance->subInstance;
 	saveButton->image = PT_IMAGE_from_png("assets\\images\\save.png");
-	saveButton->imageScale = .6f;
+	saveButton->imageScale = .7f;
 	PT_GUI_OBJ* saveButtonObj = saveButton->guiObj;
 	saveButtonObj->anchorPosition = (vec2f){ 1, 1 };
-	saveButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -0 * (SIDE_BAR_WIDTH + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
+	saveButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, 0 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
 	PT_BINDABLE_EVENT_bind(&saveButtonObj->e_obj_activated, on_save);
 	set_instance_parent(saveButtonInstance, sideBarInstance);
 	
@@ -376,10 +342,10 @@ int main(int argc, char** args) {
 	Instance* saveAsButtonInstance = clone_instance(menuButtonInstance);
 	PT_IMAGELABEL* saveAsButton = (PT_IMAGELABEL*)saveAsButtonInstance->subInstance;
 	saveAsButton->image = PT_IMAGE_from_png("assets\\images\\saveAs.png");
-	saveAsButton->imageScale = .6f;
+	saveAsButton->imageScale = .7f;
 	PT_GUI_OBJ* saveAsButtonObj = saveAsButton->guiObj;
 	saveAsButtonObj->anchorPosition = (vec2f){ 1, 1 };
-	saveAsButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -1 * (SIDE_BAR_WIDTH + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
+	saveAsButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -1 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
 	PT_BINDABLE_EVENT_bind(&saveAsButtonObj->e_obj_activated, on_save_as);
 	set_instance_parent(saveAsButtonInstance, sideBarInstance);
 
@@ -441,7 +407,13 @@ int main(int argc, char** args) {
 
 	set_instance_parent(sideRenderInstance, backgroundInstance);
 
-	textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, sideRenderFrame, "shaders\\core\\blur.fs");
+	//*
+	TEXT_EDITOR* test = TEXT_EDITOR_from_file(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe, "shaders\\core\\UIFrame.fs");
+	test->textColor = PT_COLOR_fromHSV(0, 0, .9);
+	test->editColor = accentColor;
+	test->editFadeTime = .8f;
+	//*/
+
 	//*/
 
 	///*
@@ -453,11 +425,16 @@ int main(int argc, char** args) {
 	//}
 	//*/
 
+	//*
+	TEXT_EDITOR* textEditor = TEXT_EDITOR_from_file(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe, "shaders\\core\\blur.fs");
 	textEditor->textColor = PT_COLOR_fromHSV(0, 0, .9);
 	textEditor->editColor = accentColor;
 	textEditor->editFadeTime = .8f;
+	//*/
 
-	PT_SCREEN_UI_update_rendertree(ui);
+	update_rendertree();
+	update_rendertree();
+	//PT_SCREEN_UI_update_rendertree(ui);
 
 	PT_BINDABLE_EVENT_bind(&e_wheelUp, on_scroll);
 	PT_BINDABLE_EVENT_bind(&e_wheelDown, on_scroll);

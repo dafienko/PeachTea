@@ -112,11 +112,13 @@ void PT_UI_RENDER_TREE_render(PT_UI_RENDER_TREE* tree, PT_SCREEN_UI* ui) {
 	// draw scrollframe ui controls atop descendants
 	if (tree->rootInstance->instanceType == IT_SCROLLFRAME) {
 		PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)tree->rootInstance->subInstance;
-		PT_GUI_OBJ_render(scrollFrame->vscrollTrack, ui);
-		PT_GUI_OBJ_render(scrollFrame->vscrollBar, ui);
+		if (scrollFrame->guiObj->visible) {
+			PT_GUI_OBJ_render(scrollFrame->vscrollTrack, ui);
+			PT_GUI_OBJ_render(scrollFrame->vscrollBar, ui);
 
-		PT_GUI_OBJ_render(scrollFrame->hscrollTrack, ui);
-		PT_GUI_OBJ_render(scrollFrame->hscrollBar, ui);
+			PT_GUI_OBJ_render(scrollFrame->hscrollTrack, ui);
+			PT_GUI_OBJ_render(scrollFrame->hscrollBar, ui);
+		}
 	}
 }
 

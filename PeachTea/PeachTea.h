@@ -48,6 +48,9 @@ void PT_CREATE_MAIN_WND(vec2i size, const char* title);
 HWND PT_GET_MAIN_HWND();
 
 void PT_set_window_cursor(int idc);
+void PT_set_window_title(const char* format, ...);
+
+char* initWorkingDir;
 
 PT_COLOR accentColor;
 

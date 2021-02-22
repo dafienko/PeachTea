@@ -64,7 +64,7 @@ void format_insert_str(const char* str, int strLen, char*** linesOut, int** leng
 	for (int i = 0; i < strLen; i++) {
 		char c = *(str + i);
 		if (c == '\r') {
-			continue;
+			goto evalEnd; // yeah, yeah, ik goto is the devil itself, but I'm only jumping like 15 lines in the same scope
 		}
 
 		*(tempStr + tempLen) = c;
@@ -85,6 +85,7 @@ void format_insert_str(const char* str, int strLen, char*** linesOut, int** leng
 			lineIndex++;
 		}
 
+		evalEnd: // I skip the middle section if c == '\r' because '\n' represents both carriage return and linefeed, '\r' is redundant and unnecessary. Don't append '\r' to the line string.
 		if (i == strLen - 1) {// at the last character
 			char* line = calloc(tempLen + 1, sizeof(char));
 

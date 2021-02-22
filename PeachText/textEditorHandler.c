@@ -4,15 +4,19 @@
 #include "PeachTea.h";
 #include "textCursor.h"
 #include "textEditorRenderer.h"
+#include "ui.h"
 
 #include <stdlib.h>
 #include <stdio.h>
+
+#define LIST_ELEMENT_THICKNESS 50
+
+PT_EXPANDABLE_ARRAY editors = { 0 };
 
 TEXT_EDITOR* currentTextEditor = NULL;
 PT_EXPANDABLE_ARRAY* lines = NULL;
 int keyDownBound = 0;
 
-int insertMode = 0;
 int charsTyped = 0;
 
 #define IS_UPPER_CHAR(c) c >= 65 && c <= 90
@@ -20,10 +24,279 @@ int charsTyped = 0;
 #define IS_ALPHA_CHAR(c) IS_UPPER_CHAR(c) || IS_LOWER_CHAR(c);
 #define IS_NUMBER_CHAR(c) c >= 48 && c <= 57
 
+void update_list_element_order() {
+	int bottomY = 0;
+	for (int i = 0; i < editors.numElements; i++) {
+		TEXT_EDITOR* editor = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+		EDITOR_LIST_ELEMENT listElement = editor->listElement;
+		
+		int y = 2 + (i * LIST_ELEMENT_THICKNESS + 2);
+		listElement.main->position = PT_REL_DIM_new(0, 2, 0, y);
+
+		if (i == editors.numElements - 1) { // on the last element in the list, shrinkwrap the size of the container's canvas
+			bottomY = y + LIST_ELEMENT_THICKNESS;
+			PT_SCROLLFRAME* container = (PT_SCROLLFRAME*)listElement.main->instance->parent->subInstance;
+			container->canvasSize = PT_REL_DIM_new(0, 0, 0, bottomY);
+		}
+	}
+}
+
+void list_element_mouseEnter(void* args) {
+	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
+	TEXT_EDITOR* editor = NULL;
+
+	for (int i = 0; i < editors.numElements; i++) {
+		TEXT_EDITOR* e = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+		
+		if (e->listElement.main == obj) {
+			editor = e;
+			break;
+		}
+	}
+
+	if (editor) { // editor shouldn't ever be null, but just in case
+		if (editor != currentTextEditor) { // don't do hover effects if this element is already selected
+			for (int i = 0; i < editor->listElement.onhoverTweens.numElements; i++) {
+				PT_TWEEN* tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&editor->listElement.onhoverTweens, i);
+				PT_TWEEN_play(tween);
+			}
+		}
+	}
+}
+
+void list_element_mouseLeave(void* args) {
+	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
+	TEXT_EDITOR* editor = NULL;
+
+	for (int i = 0; i < editors.numElements; i++) {
+		TEXT_EDITOR* e = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+
+		if (e->listElement.main == obj) {
+			editor = e;
+			break;
+		}
+	}
+
+	if (editor) { // editor shouldn't ever be null, but just in case
+		if (editor != currentTextEditor) { // don't do hover effects if this element is already selected
+			for (int i = 0; i < editor->listElement.deselectTweens.numElements; i++) {
+				PT_TWEEN* tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&editor->listElement.deselectTweens, i);
+				PT_TWEEN_play(tween);
+			}
+		}
+	}
+}
+
+void list_element_activated(void* args) {
+	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
+	TEXT_EDITOR* editor = NULL;
+
+	for (int i = 0; i < editors.numElements; i++) {
+		TEXT_EDITOR* e = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+
+		if (e->listElement.main == obj) {
+			editor = e;
+			break;
+		}
+	}
+
+	if (editor && editor != currentTextEditor) {
+		TEXT_EDITOR_select(editor);
+	}
+}
+
+EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRAME* listContainer) {
+	PT_COLOR SELECTED_COLOR = accentColor;
+	PT_COLOR SELECTED_ACTIVE_COLOR = PT_COLOR_lerp(accentColor, PT_COLOR_fromHSV(0, 0, 1), .3f);
+	PT_REL_DIM SELECTED_SIZE = PT_REL_DIM_new(1, -(2 + listContainer->scrollBarThickness * 2), 0, LIST_ELEMENT_THICKNESS);
+	PT_COLOR DESELECTED_COLOR = PT_COLOR_fromHSV(0, 0, 0);
+	PT_COLOR DESELECTED_ACTIVE_COLOR = PT_COLOR_fromHSV(0, 0, .15f);
+	PT_REL_DIM DESELECTED_SIZE = PT_REL_DIM_new(1, -(20 + listContainer->scrollBarThickness * 2), 0, LIST_ELEMENT_THICKNESS);
+	PT_REL_DIM HOVER_SIZE = PT_REL_DIM_new(1, -(15 + listContainer->scrollBarThickness * 2), 0, LIST_ELEMENT_THICKNESS);
+
+	EDITOR_LIST_ELEMENT listElement = { 0 };
+
+	PT_GUI_OBJ* main = (PT_GUI_OBJ*)PT_GUI_OBJ_new()->subInstance;
+	main->instance->name = create_heap_str("editor list element");
+	main->size = SELECTED_SIZE;
+	main->reactive = 1;
+	
+	main->backgroundTransparency = .7f;
+	main->activeBackgroundColor = DESELECTED_ACTIVE_COLOR;
+	main->activeBackgroundRange = (vec2f){ 50, 150 };
+	
+	main->borderWidth = 1;
+	main->borderTransparancy = .3f;
+	main->activeBorderColor = PT_COLOR_fromHSV(0, 0, 1);
+	main->activeBorderRange = (vec2f){ 10, 200 };
+
+	PT_TEXTLABEL* header = (PT_TEXTLABEL*)PT_TEXTLABEL_new()->subInstance;
+	header->instance->name = create_heap_str("editor header");
+	header->textSize = 13;
+	header->font = PT_FONT_CONSOLA_B;
+	header->horizontalAlignment = PT_H_ALIGNMENT_LEFT;
+	header->verticalAlignment = PT_V_ALIGNMENT_CENTER;
+	header->textColor = PT_COLOR_fromHSV(0, 0, 1);
+
+	PT_GUI_OBJ* headerObj = header->guiObj;
+	headerObj->size = PT_REL_DIM_new(1, -50, .65, 0);
+	headerObj->anchorPosition = (vec2f){ .5f, 0 };
+	headerObj->position = PT_REL_DIM_new(.5f, 0, 0, 0);
+	headerObj->backgroundTransparency = 1.0f;
+	headerObj->clipDescendants = 1;
+	headerObj->processEvents = 0;
+
+	PT_TEXTLABEL* desc = (PT_TEXTLABEL*)PT_TEXTLABEL_new()->subInstance;
+	desc->instance->name = create_heap_str("editor desc");
+	desc->textSize = 9;
+	desc->font = PT_FONT_CONSOLA;
+	desc->horizontalAlignment = PT_H_ALIGNMENT_LEFT;
+	desc->verticalAlignment = PT_V_ALIGNMENT_TOP;
+	desc->textColor = PT_COLOR_fromHSV(0, 0, .7);
+
+	PT_GUI_OBJ* descObj = desc->guiObj;
+	descObj->size = PT_REL_DIM_new(1, headerObj->size.xOffset, 1 - headerObj->size.yFactor, 0);
+	descObj->anchorPosition = (vec2f){ .5f, 0 };
+	descObj->position = PT_REL_DIM_new(.5f, 0, headerObj->size.yFactor, 0);
+	descObj->backgroundTransparency = 1;
+	descObj->clipDescendants = 1;
+	descObj->processEvents = 0;
+
+	listElement.main = main;
+	listElement.header = header;
+	listElement.desc = desc;
+	listElement.editor = editor;
+	listElement.selectTweens = PT_EXPANDABLE_ARRAY_new(4, sizeof(PT_TWEEN*));
+	listElement.deselectTweens = PT_EXPANDABLE_ARRAY_new(4, sizeof(PT_TWEEN*));
+	listElement.onhoverTweens = PT_EXPANDABLE_ARRAY_new(4, sizeof(PT_TWEEN*));
+
+	set_instance_parent(header->instance, main->instance);
+	set_instance_parent(desc->instance, main->instance);
+	set_instance_parent(main->instance, listContainer->instance);
+
+	TWEEN_CONFIG selectConfig = { 0 };
+	selectConfig.direction = PT_OUT;
+	selectConfig.type = PT_CUBIC;
+	selectConfig.duration = .25f;
+
+	TWEEN_CONFIG deselectConfig = { 0 };
+	deselectConfig.direction = PT_IN;
+	deselectConfig.type = PT_CUBIC;
+	deselectConfig.duration = .25f;
+
+	// on-select tweens
+	PT_TWEEN* tween = PT_TWEEN_PT_COLOR_new(SELECTED_COLOR, &main->backgroundColor, selectConfig);
+	PT_EXPANDABLE_ARRAY_add(&listElement.selectTweens, &tween);
+
+	tween = PT_TWEEN_PT_COLOR_new(SELECTED_ACTIVE_COLOR, &main->activeBackgroundColor, selectConfig);
+	PT_EXPANDABLE_ARRAY_add(&listElement.selectTweens, &tween);
+	
+	tween = PT_TWEEN_PT_REL_DIM_new(SELECTED_SIZE, &main->size, selectConfig);
+	PT_EXPANDABLE_ARRAY_add(&listElement.selectTweens, &tween);
+
+	// on-deselect tweens
+	tween = PT_TWEEN_PT_COLOR_new(DESELECTED_COLOR, &main->backgroundColor, deselectConfig);
+	PT_EXPANDABLE_ARRAY_add(&listElement.deselectTweens, &tween);
+
+	tween = PT_TWEEN_PT_COLOR_new(DESELECTED_ACTIVE_COLOR, &main->activeBackgroundColor, deselectConfig);
+	PT_EXPANDABLE_ARRAY_add(&listElement.deselectTweens, &tween);
+
+	tween = PT_TWEEN_PT_REL_DIM_new(DESELECTED_SIZE, &main->size, deselectConfig);
+	PT_EXPANDABLE_ARRAY_add(&listElement.deselectTweens, &tween);
+
+	// on-hover tweens
+	tween = PT_TWEEN_PT_REL_DIM_new(HOVER_SIZE, &main->size, selectConfig);
+	PT_EXPANDABLE_ARRAY_add(&listElement.onhoverTweens, &tween);
+
+	PT_BINDABLE_EVENT_bind(&main->e_obj_mouseEnter, list_element_mouseEnter);
+	PT_BINDABLE_EVENT_bind(&main->e_obj_mouseLeave, list_element_mouseLeave);
+	PT_BINDABLE_EVENT_bind(&main->e_obj_activated, list_element_activated);
+
+	editor->listElement = listElement;
+
+	TEXT_EDITOR_update_list_element(editor);
+
+	PT_EXPANDABLE_ARRAY_insert(&editors, 0, &editor);
+
+	update_list_element_order();
+
+	return listElement;
+}
+
+void TEXT_EDITOR_update_list_element(TEXT_EDITOR* editor) {
+	EDITOR_LIST_ELEMENT listElement = editor->listElement;
+
+	// free any old existing heap strings
+	if (listElement.header->text) {
+		free(listElement.header->text);
+	}
+
+	if (listElement.desc->text) {
+		free(listElement.desc->text);
+	}
+
+
+	// update header string
+	char* filename = calloc(1000, sizeof(char));
+	if (editor->extension) {
+		sprintf(filename, "%s.%s", editor->filename, editor->extension);
+	}
+	else {
+		sprintf(filename, "%s", editor->filename);
+	}
+	if (!editor->saved) {
+		*(filename + strlen(filename)) = '*';
+	}
+	listElement.header->text = filename;
+	PT_set_window_title("PeachText - %s", filename);
+
+	// update desc string
+	int truncateLen = 23;
+	char* path = calloc(1000, sizeof(char));
+	if (editor->path) {
+		memcpy(path, editor->path, min(truncateLen, strlen(editor->path)));
+	}
+	if (editor->path && strlen(editor->path) > truncateLen) {
+		for (int i = 0; i < 3; i++) {
+			*(path + truncateLen + i) = '.';
+		}
+		*(path + truncateLen + 3) = '\0';
+	}
+	listElement.desc->text = path;
+}
+
+void TEXT_EDITOR_select(TEXT_EDITOR* textEditor) {
+	if (currentTextEditor) { // deselect the old editor (if it exists)
+		for (int i = 0; i < textEditor->listElement.deselectTweens.numElements; i++) {
+			PT_TWEEN* tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&currentTextEditor->listElement.deselectTweens, i);
+			PT_TWEEN_play(tween);
+		}
+
+		currentTextEditor->scrollFrame->visible = 0;
+	}
+
+	if (textEditor) { 
+		for (int i = 0; i < textEditor->listElement.selectTweens.numElements; i++) {
+			PT_TWEEN* tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&textEditor->listElement.selectTweens, i);
+			PT_TWEEN_play(tween);
+		}
+
+		textEditor->scrollFrame->visible = 1;
+	}
+
+	currentTextEditor = textEditor;
+	TEXT_EDITOR_update_list_element(textEditor);
+}
+
 void TEXT_EDITOR_save(TEXT_EDITOR* textEditor) {
-	if (textEditor->path && textEditor->filename && textEditor->extension) { // this function requires the path, filename, and extinsion properties of the given struct to be non-null
+	if (textEditor->path && textEditor->filename) { // this function requires the path and filename properties of the given struct to be non-null
 		char* fullPath = calloc(1000, sizeof(char));
-		sprintf(fullPath, "%s%s.%s", textEditor->path, textEditor->filename, textEditor->extension);
+		if (textEditor->extension) {
+			sprintf(fullPath, "%s%s.%s", textEditor->path, textEditor->filename, textEditor->extension);
+		}
+		else {
+			sprintf(fullPath, "%s%s", textEditor->path, textEditor->filename);
+		}
 
 		FILE* file = fopen(fullPath, "w");
 		if (!file) {
@@ -41,6 +314,9 @@ void TEXT_EDITOR_save(TEXT_EDITOR* textEditor) {
 
 		fclose(file);
 		free(fullPath);
+
+		textEditor->saved = 1;
+		TEXT_EDITOR_update_list_element(textEditor);
 	}
 }
 
@@ -194,6 +470,7 @@ void on_char_typed(void* args) {
 	int endY = max(cursorY, cloneLineY);
 	for (int y = endY; y >= startY; y--) {
 		vec2i cursorPos = cursor->position;
+		int editsMade = 1;
 
 		if (c == '\b') {
 			if (vector_equal_2i(cursor->selectTo, cursor->position)) { // if nothing is selected
@@ -244,6 +521,14 @@ void on_char_typed(void* args) {
 				insert_str_at_cursor(cursor, &c, 1);
 				
 			}
+		}
+		else {
+			editsMade = 0;
+		}
+
+		if (editsMade) {
+			currentTextEditor->saved = 0;
+			TEXT_EDITOR_update_list_element(currentTextEditor);
 		}
 	}	
 }
@@ -332,6 +617,9 @@ void on_key_down(void* args) {
 		else {
 			delete_cursor_selection(cursor);
 		}
+
+		currentTextEditor->saved = 0;
+		TEXT_EDITOR_update_list_element(currentTextEditor);
 	}
 	else if (key == VK_INSERT) {
 		insertMode = insertMode ? 0 : 1;
@@ -368,6 +656,8 @@ void copy(TEXT_CURSOR* cursor) {
 void on_command(void* args) {
 	int command = *(int*)args;
 
+	int editsMade = 0;
+
 	if (currentTextEditor) {
 		TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
 
@@ -385,6 +675,8 @@ void on_command(void* args) {
 				vec2i start, end;
 				get_cursor_selection_bounds(*cursor, &start, &end);
 				remove_str_at_cursor(cursor, start, end);
+
+				editsMade = 1;
 			}
 			break;
 		case PT_PASTE:
@@ -399,6 +691,7 @@ void on_command(void* args) {
 					int clipboardLen = strlen(pchData);
 
 					insert_str_at_cursor(cursor, pchData, clipboardLen);
+					editsMade = 1;
 
 					GlobalUnlock(hClipboardData);
 				}
@@ -432,6 +725,11 @@ void on_command(void* args) {
 			break;
 		}
 	}
+
+	if (editsMade) {
+		currentTextEditor->saved = 0;
+		TEXT_EDITOR_update_list_element(currentTextEditor);
+	}
 }
 
 void on_sys_key_down(void* args) {
@@ -456,7 +754,7 @@ void on_render_frame_render(PT_RENDERFRAME* renderFrame) {
 
 int TEXT_EDITOR_get_wrapX(TEXT_EDITOR* editor) {
 	PT_GUI_OBJ* obj = editor->scrollFrame->guiObj;
-	return editor->wrapText ? (obj->lastCanvas.right - editor->scrollFrame->scrollBarThickness) : 0;
+	return wrapText ? (obj->lastCanvas.right - editor->scrollFrame->scrollBarThickness) : 0;
 }
 
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor) {
@@ -595,8 +893,20 @@ void TEXT_EDITOR_mouse_move() {
 	}
 }
 
-TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame) {
-	PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)scrollframeInstance->subInstance;
+TEXT_EDITOR* TEXT_EDITOR_new(Instance* backgroundInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, PT_SCROLLFRAME* listContainer) {
+	if (!editors.data) { // init
+		editors = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_EDITOR*));
+
+		insertMode = 0;
+		wrapText = 0;
+	}
+
+	PT_GUI_OBJ* backgroundObj = (PT_GUI_OBJ*)backgroundInstance->subInstance;
+
+	// main text scrollframe 
+	PT_SCROLLFRAME* scrollFrame = create_editor_scrollframe();
+	set_instance_parent(scrollFrame->instance, backgroundInstance);
+
 	if (!keyDownBound) {
 		keyDownBound = 1;
 
@@ -613,6 +923,8 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 
 	TEXT_EDITOR* editor = calloc(1, sizeof(TEXT_EDITOR));
 
+	editor->filename = create_heap_str("untitled");
+	editor->extension = create_heap_str("txt");
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_LINE));
 
@@ -624,7 +936,7 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 
 	editor->renderFrame = renderFrame;
 	editor->sideRenderFrame = sideRenderFrame;
-	editor->scrollFrame = (PT_SCROLLFRAME*)scrollframeInstance->subInstance;
+	editor->scrollFrame = scrollFrame;
 
 	renderFrame->render = on_render_frame_render;
 
@@ -635,16 +947,15 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* scrollframeInstance, PT_RENDERFRAME* rend
 	TEXT_CURSOR mainCursor = TEXT_CURSOR_new(editor);
 	editor->textCursor = mainCursor;
 
+	create_editor_list_element(editor, listContainer);
 
-	editor->wrapText = 0;
-
-	currentTextEditor = editor;
+	TEXT_EDITOR_select(editor);
 
 	return editor;
 }
 
-TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, const char* filename) {
-	TEXT_EDITOR* editor = TEXT_EDITOR_new(scrollframe, renderFrame, sideRenderFrame);
+TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, PT_SCROLLFRAME* listContainer, const char* filename) {
+	TEXT_EDITOR* editor = TEXT_EDITOR_new(backgroundInstance, renderFrame, sideRenderFrame, listContainer);
 	
 	FILE* file = fopen(filename, "rb+");
 	if (!file) {
@@ -661,7 +972,7 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 
 	TEXT_CURSOR* cursor = &editor->textCursor;
 	const int bufferSize = 1000;
-	char* buffer = calloc(bufferSize, sizeof(char));
+	char* buffer = calloc(bufferSize + 1, sizeof(char)); // add one for null terminator
 	int charsRead = 0;
 	do {
 		charsRead = fread(buffer, sizeof(char), bufferSize, file);
@@ -669,7 +980,7 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 			insert_str_at_cursor(cursor, buffer, charsRead);
 		}
 	} while (charsRead == bufferSize);
-
+	free(buffer);
 	fclose(file);
 
 	// initial view should be at the top of the file
@@ -678,6 +989,51 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* scrollframe, PT_RENDERFRAME* render
 	editor->textCursor.targetX = 0;
 	editor->scrollFrame->canvasPosition = (vec2i){ 0, 0 };
 	editor->scrollFrame->targetCanvasPosition = (vec2i){ 0, 0 };
+
+	char* path = calloc(1000, sizeof(char));
+	if (*(filename + 1) != ':') { // if the second character isn't ':', then this is a relative directory. Convert to absolute (starting from a drive)
+		sprintf(path, "%s\\%s", initWorkingDir, filename);
+	}
+	char* name = calloc(1000, sizeof(char));
+	char* extension = calloc(50, sizeof(char));
+	int pathlen = strlen(path);
+	int extensionIndex = pathlen + 1;
+	int nameIndex = -1;
+	for (int i = pathlen - 1; i >= 0; i--) {
+		char c = *(path + i);
+
+		if (c == '.') {
+			int extensionLen = (pathlen - (i + 1));
+			memcpy(extension, path + i + 1, extensionLen);
+			extensionIndex = i + 1;
+		}
+
+		if (c == '\\' && nameIndex < 0) {
+			int nameLen = (extensionIndex - 1) - (i + 1);
+			memcpy(name, path + i + 1, nameLen);
+			nameIndex = i + 1;
+			break;
+		}
+	}
+
+	if (extensionIndex == pathlen + 1) { // extensionIndex hasn't been changed: this file doesn't have an extension
+		free(extension);
+		extension = NULL;
+	}
+	
+	if (nameIndex > 0) {
+		*(path + nameIndex) = '\0';
+	}
+	else {
+		fatal_error(L"nameIndex < 0 (%i)", nameIndex);
+	}
+
+	editor->saved = 1;
+	editor->path = path;
+	editor->filename = name;
+	editor->extension = extension;
+
+	TEXT_EDITOR_update_list_element(editor);
 
 	return editor;
 }

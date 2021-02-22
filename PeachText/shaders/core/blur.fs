@@ -2,8 +2,8 @@
 
 in vec2 pos;
 in vec2 posPx;
-layout (binding=0) uniform sampler2D tex;
-
+layout (binding=0) uniform sampler2D tex; //test
+//bruh
 uniform ivec2 screenSize;
 uniform int blurRadius;
 uniform vec2 blurDir;

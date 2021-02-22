@@ -129,6 +129,14 @@ PT_REL_DIM PT_TWEEN_PT_REL_DIM(PT_REL_DIM a, PT_REL_DIM b, float alpha, TWEEN_TY
 	return PT_REL_DIM_new(xScale, (int)xOff, yScale, (int)yOff);
 }
 
+PT_COLOR PT_TWEEN_PT_COLOR(PT_COLOR a, PT_COLOR b, float alpha, TWEEN_TYPE type, TWEEN_DIRECTION direction) {
+	return PT_COLOR_new(
+		PT_TWEEN_float(a.r, b.r, alpha, type, direction),
+		PT_TWEEN_float(a.g, b.g, alpha, type, direction),
+		PT_TWEEN_float(a.b, b.b, alpha, type, direction)
+	);
+}
+
 void intermediate_tween_float(void* a, void* b, void* dest, float alpha, TWEEN_TYPE type, TWEEN_DIRECTION direction) {
 	float fa = *(float*)a;
 	float fb = *(float*)b;
@@ -153,6 +161,15 @@ void intermediate_tween_PT_REL_DIM(void* a, void* b, void* dest, float alpha, TW
 	PT_REL_DIM* fdest = (PT_REL_DIM*)dest;
 
 	PT_REL_DIM v = PT_TWEEN_PT_REL_DIM(fa, fb, alpha, type, direction);
+	*fdest = v;
+}
+
+void intermediate_tween_PT_COLOR(void* a, void* b, void* dest, float alpha, TWEEN_TYPE type, TWEEN_DIRECTION direction) {
+	PT_COLOR fa = *(PT_COLOR*)a;
+	PT_COLOR fb = *(PT_COLOR*)b;
+	PT_COLOR* fdest = (PT_COLOR*)dest;
+
+	PT_COLOR v = PT_TWEEN_PT_COLOR(fa, fb, alpha, type, direction);
 	*fdest = v;
 }
 
@@ -199,6 +216,14 @@ PT_TWEEN* PT_TWEEN_PT_REL_DIM_new(PT_REL_DIM end, PT_REL_DIM* dest, TWEEN_CONFIG
 	return tween;
 }
 
+PT_TWEEN* PT_TWEEN_PT_COLOR_new(PT_COLOR end, PT_COLOR* dest, TWEEN_CONFIG config) {
+	PT_TWEEN* tween = tween_new(dest, &end, dest, sizeof(PT_COLOR), config);
+
+	tween->elementSizeBytes = sizeof(PT_COLOR);
+	tween->alphaToValueFunc = intermediate_tween_PT_COLOR;
+
+	return tween;
+}
 
 void PT_TWEEN_destroy(PT_TWEEN* tween) {
 	PT_TWEEN_stop(tween); // stop the tween in case it's playing

@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/timeb.h>
+#include <direct.h>
+
 
 #pragma comment(lib, "dwmapi")
 
@@ -47,6 +49,9 @@ void update_main_window_pos() {
 }
 
 void PT_INIT(vec2i screenSize) {
+	initWorkingDir = calloc(512, sizeof(char));
+	_getcwd(initWorkingDir, 511);
+
 	screensize_init(screenSize);
 	GLEInit();
 	initFT();
@@ -86,6 +91,21 @@ void update_accent_color() {
 	unsigned char b = (c >> 0) & 255u;
 
 	accentColor = PT_COLOR_fromRGB(r, g, b);
+}
+
+void PT_set_window_title(const char* format, ...) {
+	va_list args = NULL;
+	va_start(args, format);
+
+	long length = (strlen(format) + 100) * 2;
+	char* str = calloc(length, sizeof(char));
+
+	vsprintf(str, format, args);
+	va_end(args);
+
+	SetWindowTextA(hMainWnd, str);
+
+	free(str);
 }
 
 void PT_CREATE_MAIN_WND(vec2i size, const char* title) {	
