@@ -273,6 +273,9 @@ void TEXT_EDITOR_select(TEXT_EDITOR* textEditor) {
 		}
 
 		currentTextEditor->scrollFrame->visible = 0;
+	
+		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)currentTextEditor->textCursor.cursorFrame->subInstance;
+		cursorObj->visible = 0;
 	}
 
 	if (textEditor) { 
@@ -282,6 +285,9 @@ void TEXT_EDITOR_select(TEXT_EDITOR* textEditor) {
 		}
 
 		textEditor->scrollFrame->visible = 1;
+
+		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textEditor->textCursor.cursorFrame->subInstance;
+		cursorObj->visible = 1;
 	}
 
 	currentTextEditor = textEditor;
@@ -905,6 +911,9 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* backgroundInstance, PT_RENDERFRAME* rende
 
 	// main text scrollframe 
 	PT_SCROLLFRAME* scrollFrame = create_editor_scrollframe();
+	char* name = calloc(50, sizeof(char));
+	sprintf(name, "editor %i", editors.numElements + 1);
+	scrollFrame->instance->name = name;
 	set_instance_parent(scrollFrame->instance, backgroundInstance);
 
 	if (!keyDownBound) {

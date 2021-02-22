@@ -4,6 +4,7 @@
 
 TEXT_CURSOR TEXT_CURSOR_new(TEXT_EDITOR* editor) {
 	Instance* cursorFrame = PT_GUI_OBJ_new();
+	cursorFrame->name = create_heap_str("cursor");
 	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
 	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
 	cursorObj->zIndex = 3;

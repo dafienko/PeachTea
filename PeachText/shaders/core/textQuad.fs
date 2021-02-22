@@ -25,28 +25,18 @@ void main() {
 	}
 	
 	if (shouldBeRendered) {
-		//float texColor = texture(spritesheet, glyphSamplePos).r;
 		vec3 texColor = vec3(texture(spritesheet, glyphSamplePos).rgb);
 		
-		//FragColor = vec4(texture(spritesheet, glyphSamplePos).xyz, 1);
 		float totalTextGamma = texColor.r + texColor.g + texColor.b;
-		
 		float totalColorGamma = textColor.r + textColor.g + textColor.b;
-		float rComp = textColor.r / totalColorGamma;
-		float gComp = textColor.g / totalColorGamma;
-		float bComp = textColor.b / totalColorGamma;
 		
 		if (totalTextGamma > 0) {
-			if (totalTextGamma == 3) {
-				FragColor = vec4(textColor.rgb, 1 - transparency);
-			} else {
-				FragColor = vec4(
-					texColor.r * rComp * 3,
-					texColor.g * gComp * 3,
-					texColor.b * bComp * 3,
-					(1 - transparency) //* (totalTextGamma * .333)
-				);
-			}
+			FragColor = vec4(
+				min(texColor.r, textColor.r),
+				min(texColor.g, textColor.g),
+				min(texColor.b, textColor.b),
+				(1 - transparency) 
+			);
 		} else {
 			FragColor = vec4(0, 0, 0, 0);
 		}

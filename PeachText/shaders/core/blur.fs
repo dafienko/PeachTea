@@ -2,16 +2,14 @@
 
 in vec2 pos;
 in vec2 posPx;
-layout (binding=0) uniform sampler2D tex; //test
-//bruh
+layout (binding=0) uniform sampler2D tex; 
+
 uniform ivec2 screenSize;
 uniform int blurRadius;
 uniform vec2 blurDir;
 uniform float offsetScale;
 
 out vec4 color;
-
-
 
 const float c = .8f;
 

@@ -433,7 +433,6 @@ int main(int argc, char** args) {
 	//*/
 
 	update_rendertree();
-	update_rendertree();
 	//PT_SCREEN_UI_update_rendertree(ui);
 
 	PT_BINDABLE_EVENT_bind(&e_wheelUp, on_scroll);
