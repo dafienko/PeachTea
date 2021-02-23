@@ -11,4 +11,6 @@
 void update_rendertree();
 PT_SCROLLFRAME* create_editor_scrollframe();
 
+void collapse_sidebar();
+
 #endif

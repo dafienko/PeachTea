@@ -374,7 +374,7 @@ void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui) {
 	}
 
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
-	print_rendertree(tree, 0);
+	//print_rendertree(tree, 0);
 	ui->lastRenderTree = tree;
 }
 

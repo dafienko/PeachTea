@@ -5,7 +5,6 @@ in vec2 posPx;
 
 layout (binding=0) uniform sampler2D tex;
 
-//out float FragColor;
 out vec4 FragColor;
 
 void main() {

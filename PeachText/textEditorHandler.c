@@ -30,7 +30,7 @@ void update_list_element_order() {
 		TEXT_EDITOR* editor = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
 		EDITOR_LIST_ELEMENT listElement = editor->listElement;
 		
-		int y = 2 + (i * LIST_ELEMENT_THICKNESS + 2);
+		int y = 2 + i * (LIST_ELEMENT_THICKNESS + 1);
 		listElement.main->position = PT_REL_DIM_new(0, 2, 0, y);
 
 		if (i == editors.numElements - 1) { // on the last element in the list, shrinkwrap the size of the container's canvas
@@ -177,12 +177,12 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	TWEEN_CONFIG selectConfig = { 0 };
 	selectConfig.direction = PT_OUT;
 	selectConfig.type = PT_CUBIC;
-	selectConfig.duration = .25f;
+	selectConfig.duration = .15f;
 
 	TWEEN_CONFIG deselectConfig = { 0 };
 	deselectConfig.direction = PT_IN;
 	deselectConfig.type = PT_CUBIC;
-	deselectConfig.duration = .25f;
+	deselectConfig.duration = .15f;
 
 	// on-select tweens
 	PT_TWEEN* tween = PT_TWEEN_PT_COLOR_new(SELECTED_COLOR, &main->backgroundColor, selectConfig);
@@ -831,6 +831,8 @@ vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
 
 void TEXT_EDITOR_on_click() {
 	if (currentTextEditor) {
+		collapse_sidebar();
+
 		int altDown = is_key_down(VK_MENU);
 		int shiftDown = is_key_down(VK_LSHIFT);
 

@@ -13,7 +13,7 @@
 #include <direct.h>
 
 Instance* screenUI = NULL;
-
+PT_IMAGELABEL* menuButton;
 PT_IMAGE menuImage, arrowImage;
 
 PT_TEXTLABEL* statusBarLabel = NULL;
@@ -82,6 +82,13 @@ void on_menu_activated(void* args) {
 	else {
 		PT_TWEEN_play(closeMenuTween);
 		imageLabel->image = menuImage;
+	}
+}
+
+void collapse_sidebar() {
+	if (menuOpen) {
+		PT_TWEEN_play(closeMenuTween);
+		menuButton->image = menuImage;
 	}
 }
 
@@ -294,7 +301,7 @@ int main(int argc, char** args) {
 	// side menu collapse/expand button
 	Instance* menuButtonInstance = PT_IMAGELABEL_new();
 	menuButtonInstance->name = create_heap_str("menu button");
-	PT_IMAGELABEL* menuButton = (PT_IMAGELABEL*)menuButtonInstance->subInstance;
+	menuButton = (PT_IMAGELABEL*)menuButtonInstance->subInstance;
 	menuButton->image = menuImage;
 	menuButton->imageTint = PT_COLOR_fromHSV(0, 0, 1);
 	menuButton->imageTintAlpha = 1.0f;
@@ -407,41 +414,31 @@ int main(int argc, char** args) {
 
 	set_instance_parent(sideRenderInstance, backgroundInstance);
 
-	//*
-	TEXT_EDITOR* test = TEXT_EDITOR_from_file(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe, "shaders\\core\\UIFrame.fs");
-	test->textColor = PT_COLOR_fromHSV(0, 0, .9);
-	test->editColor = accentColor;
-	test->editFadeTime = .8f;
-	//*/
+	if (argc <= 1) {
+		TEXT_EDITOR* e = TEXT_EDITOR_new(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe);
+		e->textColor = PT_COLOR_fromHSV(0, 0, .9);
+		e->editColor = accentColor;
+		e->editFadeTime = .8f;
+	}
+	else {
+		for (int i = 1; i < argc; i++) {
+			char* filename = *(args + i);
 
-	//*/
-
-	///*
-	//if (argc <= 1) {
-		//textEditor = TEXT_EDITOR_new(scrollFrameInstance, renderFrame, sideRenderFrame);
-	//}
-	//else {
-		//textEditor = TEXT_EDITOR_from_file(scrollFrameInstance, renderFrame, *(args + 1));
-	//}
-	//*/
-
-	//*
-	TEXT_EDITOR* textEditor = TEXT_EDITOR_from_file(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe, "shaders\\core\\blur.fs");
-	textEditor->textColor = PT_COLOR_fromHSV(0, 0, .9);
-	textEditor->editColor = accentColor;
-	textEditor->editFadeTime = .8f;
-	//*/
+			TEXT_EDITOR* e = TEXT_EDITOR_from_file(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe, filename);
+			e->textColor = PT_COLOR_fromHSV(0, 0, .9);
+			e->editColor = accentColor;
+			e->editFadeTime = .8f;
+		}
+	}
+	
 
 	update_rendertree();
-	//PT_SCREEN_UI_update_rendertree(ui);
 
 	PT_BINDABLE_EVENT_bind(&e_wheelUp, on_scroll);
 	PT_BINDABLE_EVENT_bind(&e_wheelDown, on_scroll);
 	PT_BINDABLE_EVENT_bind(&eOnCommand, main_on_command);
 
-
 	PT_RUN(onUpdate, onRender);
-	//PT_RUN(NULL, onRender);
-
+	
 	free(status);
 }
