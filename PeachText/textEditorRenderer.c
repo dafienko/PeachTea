@@ -18,7 +18,7 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 	PT_canvas scrollCanvas = scrollFrame->guiObj->lastCanvas;
 	
 	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(&textEditor);
-	int lineThickness = textEditor.textHeight + textEditor.linePadding;
+	int lineThickness = editorTextHeight + editorLinePadding;
 
 	textEditor.sideRenderFrame->guiObj->size = PT_REL_DIM_new(0, xMargin - 5, 1, 0);
 
@@ -63,10 +63,10 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 
 		// render line number
 		int numDigits = (int)strlen(lineNumStr);
-		int lineNumStrWidth = get_text_rect(textEditor.charSet, lineNumStr, numDigits, 0).x;
+		int lineNumStrWidth = get_text_rect(editorCharSet, lineNumStr, numDigits, 0).x;
 		render_text(
 			frameSize,
-			textEditor.charSet,
+			editorCharSet,
 			accentColor, //PT_COLOR_fromRGB(43, 145, 175),
 			0,
 			lineNumStr,
@@ -141,7 +141,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	};
 
 	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(&textEditor);
-	int lineThickness = textEditor.textHeight + textEditor.linePadding;
+	int lineThickness = editorTextHeight + editorLinePadding;
 
 	int baselineX = xMargin - canvasOffset.x;
 
@@ -156,9 +156,9 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	if (wrapX) {
 		relWrapX = wrapX - baselineX;
 	}
-	int yPos = textEditor.textHeight + textEditor.linePadding / 2;;
+	int yPos = editorTextHeight + editorLinePadding / 2;;
 	int maxX = xMargin;
-	int maxY = textEditor.textLines->numElements * (textEditor.linePadding + textEditor.textHeight);
+	int maxY = textEditor.textLines->numElements * (editorLinePadding + editorTextHeight);
 
 	vec2i sStart, sEnd;
 	get_cursor_selection_bounds(textEditor.textCursor, &sStart, &sEnd);
@@ -167,16 +167,16 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	for (int y = 0; y < textEditor.textLines->numElements; y++) {
 		TEXT_LINE* pLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
 		TEXT_LINE line = *pLine;
-		vec2i rect = get_text_rect(textEditor.charSet, line.str, line.numChars, relWrapX);
+		vec2i rect = get_text_rect(editorCharSet, line.str, line.numChars, relWrapX);
 
 		// render cursor position
 		TEXT_CURSOR cursor = textEditor.textCursor;
 		if (y == cursor.position.y) {
-			vec2i offset = get_text_offset(textEditor.charSet, line.str, cursor.position.x, relWrapX);
+			vec2i offset = get_text_offset(editorCharSet, line.str, cursor.position.x, relWrapX);
 			PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursor.cursorFrame->subInstance;
 			cursorObj->position = PT_REL_DIM_new(
 				0, baselineX + offset.x,
-				0, (yPos - lineThickness) + offset.y * lineThickness + textEditor.linePadding / 2 - canvasOffset.y
+				0, (yPos - lineThickness) + offset.y * lineThickness + editorLinePadding / 2 - canvasOffset.y
 			);
 		}
 
@@ -194,7 +194,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 			// calculate cursor selection rects
 			if (y >= sStart.y && y <= sEnd.y && !vector_equal_2i(sStart, sEnd)) { // a part of this line is selected
-				int lineTop = yPos + -lineThickness + textEditor.linePadding / 2;
+				int lineTop = yPos + -lineThickness + editorLinePadding / 2;
 				vec2i sTopLeft = { 0, lineTop };
 				vec2i sBottomRight = { 0 };
 
@@ -202,7 +202,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 				if (y == sStart.y) {
 					lineStartIndex = sStart.x;
 				}
-				vec2i startOffset = get_text_offset(textEditor.charSet, line.str, lineStartIndex, relWrapX);
+				vec2i startOffset = get_text_offset(editorCharSet, line.str, lineStartIndex, relWrapX);
 				if (y == sStart.y) {
 					sTopLeft.x = startOffset.x + baselineX;
 					sTopLeft.y = lineTop + startOffset.y * lineThickness;
@@ -222,7 +222,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 				}
 
 
-				vec2i endOffset = get_text_offset(textEditor.charSet, line.str, lineEndIndex, relWrapX);
+				vec2i endOffset = get_text_offset(editorCharSet, line.str, lineEndIndex, relWrapX);
 				int endLineNum = endOffset.y;
 				sBottomRight.x = baselineX + endOffset.x;
 				sBottomRight.y = lineTop + (endOffset.y + 1) * lineThickness;
@@ -280,7 +280,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 				///*
 				render_text(
 					canvasSize,
-					textEditor.charSet,
+					editorCharSet,
 					PT_COLOR_fromHSV(0, 0, .8f),
 					0,
 					line.str,

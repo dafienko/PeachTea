@@ -3,6 +3,8 @@
 layout (location=0) in vec2 screenPos;
 layout (location=1) in vec2 quadCorner;
 
+// bruh
+
 uniform ivec2 screenSize;
 uniform float depth;
 

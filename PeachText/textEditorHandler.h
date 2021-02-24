@@ -24,9 +24,6 @@ typedef struct {
 } EDITOR_LIST_ELEMENT;
 
 typedef struct {
-	int textHeight, charWidth, linePadding;
-	char_set* charSet;
-
 	PT_COLOR textColor;
 	PT_COLOR editColor;
 	float editFadeTime;
@@ -50,6 +47,14 @@ typedef struct {
 	int saved;
 } TEXT_EDITOR;
 
+typedef struct {
+	int wordWrap;
+	int textSize;
+
+	char** openFiles;
+	int numOpenFiles;
+} EDITOR_STATE_CONFIG;
+
 TEXT_METADATA_FLAG create_text_metadata_flag(float t);
 
 TEXT_LINE TEXT_LINE_new(const char* str, int len);
@@ -65,6 +70,7 @@ void TEXT_EDITOR_update_list_element(TEXT_EDITOR* editor);
 void TEXT_EDITOR_select(TEXT_EDITOR* textEditor);
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor);
 int TEXT_EDITOR_get_wrapX(TEXT_EDITOR* editor);
+PT_EXPANDABLE_ARRAY get_open_editors();
 
 vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos);
 void move_text_pos_in_view(vec2i textPosition);
@@ -74,7 +80,18 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt);
 TEXT_EDITOR* get_current_text_editor();
 int* get_charsTyped();
 
+// editor state config functions
+void save_state_config(EDITOR_STATE_CONFIG config);
+void free_editor_state_config(EDITOR_STATE_CONFIG* config);
+EDITOR_STATE_CONFIG get_editor_state_config();
+void realize_editor_state_config(Instance* backgroundInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, PT_SCROLLFRAME* listContainer, EDITOR_STATE_CONFIG config);
+EDITOR_STATE_CONFIG load_editor_state_config();
+
+
 int wrapText;
 int insertMode;
+
+int editorTextHeight, editorCharWidth, editorLinePadding;
+char_set* editorCharSet;
 
 #endif

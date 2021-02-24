@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="editorStateConfig.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="textCursor.c" />
     <ClCompile Include="textEditorHandler.c" />

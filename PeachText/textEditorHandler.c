@@ -19,6 +19,7 @@ int keyDownBound = 0;
 
 int charsTyped = 0;
 
+#define REPLACE_STR(str, replacement) if (str) { free(str); } str = replacement;
 #define IS_UPPER_CHAR(c) c >= 65 && c <= 90
 #define IS_LOWER_CHAR(c) c >= 97 && c <= 122
 #define IS_ALPHA_CHAR(c) IS_UPPER_CHAR(c) || IS_LOWER_CHAR(c);
@@ -126,22 +127,22 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	main->activeBackgroundRange = (vec2f){ 50, 150 };
 	
 	main->borderWidth = 1;
-	main->borderTransparancy = .3f;
+	main->borderTransparancy = .7f;
 	main->activeBorderColor = PT_COLOR_fromHSV(0, 0, 1);
 	main->activeBorderRange = (vec2f){ 10, 200 };
 
 	PT_TEXTLABEL* header = (PT_TEXTLABEL*)PT_TEXTLABEL_new()->subInstance;
 	header->instance->name = create_heap_str("editor header");
-	header->textSize = 13;
-	header->font = PT_FONT_CONSOLA_B;
+	header->textSize = 11;
+	header->font = PT_FONT_ARIAL;
 	header->horizontalAlignment = PT_H_ALIGNMENT_LEFT;
 	header->verticalAlignment = PT_V_ALIGNMENT_CENTER;
 	header->textColor = PT_COLOR_fromHSV(0, 0, 1);
 
 	PT_GUI_OBJ* headerObj = header->guiObj;
-	headerObj->size = PT_REL_DIM_new(1, -50, .65, 0);
+	headerObj->size = PT_REL_DIM_new(1, -34, .65, 0);
 	headerObj->anchorPosition = (vec2f){ .5f, 0 };
-	headerObj->position = PT_REL_DIM_new(.5f, 0, 0, 0);
+	headerObj->position = PT_REL_DIM_new(.5f, -5, 0, 0);
 	headerObj->backgroundTransparency = 1.0f;
 	headerObj->clipDescendants = 1;
 	headerObj->processEvents = 0;
@@ -149,7 +150,7 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	PT_TEXTLABEL* desc = (PT_TEXTLABEL*)PT_TEXTLABEL_new()->subInstance;
 	desc->instance->name = create_heap_str("editor desc");
 	desc->textSize = 9;
-	desc->font = PT_FONT_CONSOLA;
+	desc->font = PT_FONT_ARIAL_I;
 	desc->horizontalAlignment = PT_H_ALIGNMENT_LEFT;
 	desc->verticalAlignment = PT_V_ALIGNMENT_TOP;
 	desc->textColor = PT_COLOR_fromHSV(0, 0, .7);
@@ -251,7 +252,7 @@ void TEXT_EDITOR_update_list_element(TEXT_EDITOR* editor) {
 	PT_set_window_title("PeachText - %s", filename);
 
 	// update desc string
-	int truncateLen = 23;
+	int truncateLen = 28;
 	char* path = calloc(1000, sizeof(char));
 	if (editor->path) {
 		memcpy(path, editor->path, min(truncateLen, strlen(editor->path)));
@@ -547,7 +548,7 @@ void move_text_pos_in_view(vec2i textPosition) {
 		canvasSize.x -= currentTextEditor->scrollFrame->scrollBarThickness;
 		canvasSize.y -= currentTextEditor->scrollFrame->scrollBarThickness;
 
-		int penY = currentTextEditor->linePadding / 2;
+		int penY = editorLinePadding / 2;
 		int penX = 0;
 		int marginWidth = TEXT_EDITOR_get_margin(currentTextEditor);
 		int margin = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + marginWidth;
@@ -555,7 +556,7 @@ void move_text_pos_in_view(vec2i textPosition) {
 		if (wrapX) {
 			wrapX -= margin;
 		}
-		int lineThickness = currentTextEditor->linePadding + currentTextEditor->textHeight;
+		int lineThickness = editorLinePadding + editorLinePadding;
 		for (int i = 0; i <= textPosition.y; i++) {
 			TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
 
@@ -567,7 +568,7 @@ void move_text_pos_in_view(vec2i textPosition) {
 			else if (get_last_char(line) == '\n') {
 				numChars--;
 			}
-			vec2i offset = get_text_offset(currentTextEditor->charSet, line.str, numChars, wrapX);
+			vec2i offset = get_text_offset(editorCharSet, line.str, numChars, wrapX);
 
 			if (i == textPosition.y) {
 				penX = offset.x;
@@ -715,19 +716,19 @@ void on_command(void* args) {
 			break;
 		case PT_ZOOM_IN:
 			;
-			int textHeight = currentTextEditor->textHeight;
+			int textHeight = editorTextHeight;
 			textHeight++;
 
 			textHeight = min(100, textHeight);
-			currentTextEditor->textHeight = textHeight;
+			editorTextHeight = textHeight;
 			break;
 		case PT_ZOOM_OUT:
 			;
-			textHeight = currentTextEditor->textHeight;
+			textHeight = editorTextHeight;
 			textHeight--;
 
 			textHeight = max(4, textHeight);
-			currentTextEditor->textHeight = textHeight;
+			editorTextHeight = textHeight;
 			break;
 		}
 	}
@@ -764,7 +765,11 @@ int TEXT_EDITOR_get_wrapX(TEXT_EDITOR* editor) {
 }
 
 int TEXT_EDITOR_get_margin(TEXT_EDITOR* editor) {
-	return editor->charWidth * 5;
+	return editorCharWidth * 5;
+}
+
+PT_EXPANDABLE_ARRAY get_open_editors() {
+	return editors;
 }
 
 vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
@@ -786,7 +791,7 @@ vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
 		relMousePos.x -= xMargin;
 		relMousePos = vector_sub_2i(relMousePos, absPos);
 		
-		int lineThickness = currentTextEditor->textHeight + currentTextEditor->linePadding;
+		int lineThickness = editorTextHeight + editorLinePadding;
 
 		int cx = 0;
 		int cy = 0;
@@ -796,13 +801,13 @@ vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
 			TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
 			vec2i lineOrigin = (vec2i){ penX, penY};
 
-			vec2i textBounds = get_text_rect(currentTextEditor->charSet, line->str, line->numChars, wrapX);
+			vec2i textBounds = get_text_rect(editorCharSet, line->str, line->numChars, wrapX);
 			int boundsHeight = (textBounds.y + 1) * lineThickness;
 			
 			if (relMousePos.y >= penY && relMousePos.y < penY + boundsHeight) {
 				cy = i;
 				cx = get_text_position_from_rel_position(
-					currentTextEditor->charSet, 
+					editorCharSet, 
 					line->str, line->numChars, 
 					vector_sub_2i(relMousePos, lineOrigin),
 					lineThickness, wrapX
@@ -907,6 +912,11 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* backgroundInstance, PT_RENDERFRAME* rende
 
 		insertMode = 0;
 		wrapText = 0;
+
+		editorTextHeight = 13;
+		editorLinePadding = editorTextHeight * .9;
+		editorCharSet = get_char_set(PT_FONT_ARIAL, editorTextHeight);
+		editorCharWidth = get_text_rect(editorCharSet, "M", 1, 0).x;
 	}
 
 	PT_GUI_OBJ* backgroundObj = (PT_GUI_OBJ*)backgroundInstance->subInstance;
@@ -939,15 +949,13 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* backgroundInstance, PT_RENDERFRAME* rende
 	editor->textLines = calloc(1, sizeof(PT_EXPANDABLE_ARRAY));
 	*editor->textLines = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_LINE));
 
-	editor->textHeight = 13;
-	editor->linePadding = editor->textHeight * .9;
-
-	editor->charSet = get_char_set(PT_FONT_ARIAL, editor->textHeight);
-	editor->charWidth = get_text_rect(editor->charSet, "M", 1, 0).x;
-
 	editor->renderFrame = renderFrame;
 	editor->sideRenderFrame = sideRenderFrame;
 	editor->scrollFrame = scrollFrame;
+
+	editor->textColor = PT_COLOR_fromHSV(0, 0, .9);
+	editor->editColor = accentColor;
+	editor->editFadeTime = .8f;
 
 	renderFrame->render = on_render_frame_render;
 
@@ -965,7 +973,78 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* backgroundInstance, PT_RENDERFRAME* rende
 	return editor;
 }
 
+
 TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, PT_SCROLLFRAME* listContainer, const char* filename) {
+	// convert path to absolute full path and break path into components (parent path, filename, and file extension)
+	char* path = calloc(1000, sizeof(char));
+	if (*(filename + 1) != ':') { // if the second character isn't ':', then this is a relative directory. Convert to absolute (starting from a drive)
+		sprintf(path, "%s\\%s", initWorkingDir, filename);
+	}
+	else {
+		sprintf(path, "%s", filename);
+	}
+	char* name = calloc(1000, sizeof(char));
+	char* extension = calloc(50, sizeof(char));
+	int pathlen = strlen(path);
+	int extensionIndex = pathlen + 1;
+	int nameIndex = -1;
+	for (int i = pathlen - 1; i >= 0; i--) {
+		char c = *(path + i);
+
+		if (c == '.') {
+			int extensionLen = (pathlen - (i + 1));
+			memcpy(extension, path + i + 1, extensionLen);
+			extensionIndex = i + 1;
+		}
+
+		if (c == '\\' && nameIndex < 0) {
+			int nameLen = (extensionIndex - 1) - (i + 1);
+			memcpy(name, path + i + 1, nameLen);
+			nameIndex = i + 1;
+			break;
+		}
+	}
+
+	if (extensionIndex == pathlen + 1) { // extensionIndex hasn't been changed: this file doesn't have an extension
+		free(extension);
+		extension = NULL;
+	}
+
+	if (nameIndex > 0) {
+		*(path + nameIndex) = '\0';
+	}
+	else {
+		fatal_error(L"nameIndex < 0 (%i)", nameIndex);
+	}
+
+
+	// make sure we don't already have the same file open
+	for (int i = 0; i < editors.numElements; i++) {
+		TEXT_EDITOR* e = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+
+		int extensionsEqual = 0;
+		if (e->extension && extension) {
+			extensionsEqual = strcmp(e->extension, extension) == 0;
+		}
+		else { 
+			if (!(e->extension || extension)) { // both are null
+				extensionsEqual = 1;
+			}
+		}
+
+		int namesEqual = strcmp(e->filename, name) == 0;
+		int pathsEqual = strcmp(e->path, path) == 0;
+	
+		if (namesEqual || pathsEqual) {
+			int x = 0;
+		}
+
+		if (extensionsEqual && namesEqual && pathsEqual) {
+			return NULL;
+		}
+	}
+	
+	
 	TEXT_EDITOR* editor = TEXT_EDITOR_new(backgroundInstance, renderFrame, sideRenderFrame, listContainer);
 	
 	FILE* file = fopen(filename, "rb+");
@@ -1001,48 +1080,10 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME*
 	editor->scrollFrame->canvasPosition = (vec2i){ 0, 0 };
 	editor->scrollFrame->targetCanvasPosition = (vec2i){ 0, 0 };
 
-	char* path = calloc(1000, sizeof(char));
-	if (*(filename + 1) != ':') { // if the second character isn't ':', then this is a relative directory. Convert to absolute (starting from a drive)
-		sprintf(path, "%s\\%s", initWorkingDir, filename);
-	}
-	char* name = calloc(1000, sizeof(char));
-	char* extension = calloc(50, sizeof(char));
-	int pathlen = strlen(path);
-	int extensionIndex = pathlen + 1;
-	int nameIndex = -1;
-	for (int i = pathlen - 1; i >= 0; i--) {
-		char c = *(path + i);
-
-		if (c == '.') {
-			int extensionLen = (pathlen - (i + 1));
-			memcpy(extension, path + i + 1, extensionLen);
-			extensionIndex = i + 1;
-		}
-
-		if (c == '\\' && nameIndex < 0) {
-			int nameLen = (extensionIndex - 1) - (i + 1);
-			memcpy(name, path + i + 1, nameLen);
-			nameIndex = i + 1;
-			break;
-		}
-	}
-
-	if (extensionIndex == pathlen + 1) { // extensionIndex hasn't been changed: this file doesn't have an extension
-		free(extension);
-		extension = NULL;
-	}
-	
-	if (nameIndex > 0) {
-		*(path + nameIndex) = '\0';
-	}
-	else {
-		fatal_error(L"nameIndex < 0 (%i)", nameIndex);
-	}
-
 	editor->saved = 1;
-	editor->path = path;
-	editor->filename = name;
-	editor->extension = extension;
+	REPLACE_STR(editor->path, path);
+	REPLACE_STR(editor->filename, name);
+	REPLACE_STR(editor->extension, extension);
 
 	TEXT_EDITOR_update_list_element(editor);
 
@@ -1052,10 +1093,10 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME*
 void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 	float t = PT_TIME_get();
 
-	if (editor->charSet->textHeight != editor->textHeight) {
-		editor->charSet = get_char_set(PT_FONT_ARIAL, editor->textHeight);
-		editor->charWidth = get_text_rect(editor->charSet, "M", 1, 0).x;
-		editor->linePadding = editor->textHeight * .9;
+	if (editorCharSet->textHeight != editorTextHeight) {
+		editorCharSet = get_char_set(PT_FONT_ARIAL, editorTextHeight);
+		editorCharWidth = get_text_rect(editorCharSet, "M", 1, 0).x;
+		editorLinePadding = editorTextHeight * .9;
 	}
 
 	TEXT_CURSOR* textCursor = &editor->textCursor;
@@ -1073,10 +1114,10 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
 
 		if (insertMode) {
-			cursorObj->size = PT_REL_DIM_new(0, editor->charWidth, 0, editor->textHeight + editor->linePadding);
+			cursorObj->size = PT_REL_DIM_new(0, editorCharWidth, 0, editorTextHeight + editorLinePadding);
 		}
 		else {
-			cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
+			cursorObj->size = PT_REL_DIM_new(0, 2, 0, editorTextHeight + editorLinePadding);
 		}
 
 		float lastTypedTime = textCursor->lastTypedTime;

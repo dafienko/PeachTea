@@ -109,10 +109,10 @@ void on_scroll(void* args) {
 			d = -1;
 		}
 
-		int currentTextHeight = textEditor->textHeight;
+		int currentTextHeight = editorTextHeight;
 		int textHeight = min(100, max(6, currentTextHeight + d));
 
-		textEditor->textHeight = textHeight;
+		editorTextHeight = textHeight;
 	}
 }
 
@@ -414,20 +414,18 @@ int main(int argc, char** args) {
 
 	set_instance_parent(sideRenderInstance, backgroundInstance);
 
+	EDITOR_STATE_CONFIG editorConfig = load_editor_state_config();
+	realize_editor_state_config(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe, editorConfig);
+	free_editor_state_config(&editorConfig);
+
 	if (argc <= 1) {
 		TEXT_EDITOR* e = TEXT_EDITOR_new(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe);
-		e->textColor = PT_COLOR_fromHSV(0, 0, .9);
-		e->editColor = accentColor;
-		e->editFadeTime = .8f;
 	}
 	else {
 		for (int i = 1; i < argc; i++) {
 			char* filename = *(args + i);
 
 			TEXT_EDITOR* e = TEXT_EDITOR_from_file(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe, filename);
-			e->textColor = PT_COLOR_fromHSV(0, 0, .9);
-			e->editColor = accentColor;
-			e->editFadeTime = .8f;
 		}
 	}
 	
@@ -439,6 +437,10 @@ int main(int argc, char** args) {
 	PT_BINDABLE_EVENT_bind(&eOnCommand, main_on_command);
 
 	PT_RUN(onUpdate, onRender);
+
+	editorConfig = get_editor_state_config();
+	save_state_config(editorConfig);
+	free_editor_state_config(&editorConfig);
 	
 	free(status);
 }

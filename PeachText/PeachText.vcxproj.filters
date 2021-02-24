@@ -30,6 +30,9 @@
     <ClCompile Include="ui.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="editorStateConfig.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="textEditorHandler.h">

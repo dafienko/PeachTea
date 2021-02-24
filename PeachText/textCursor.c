@@ -6,7 +6,7 @@ TEXT_CURSOR TEXT_CURSOR_new(TEXT_EDITOR* editor) {
 	Instance* cursorFrame = PT_GUI_OBJ_new();
 	cursorFrame->name = create_heap_str("cursor");
 	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
-	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editor->textHeight + editor->linePadding);
+	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editorTextHeight + editorLinePadding);
 	cursorObj->zIndex = 3;
 	cursorObj->backgroundColor = PT_COLOR_fromHSV(0, 0, .9f);
 
@@ -32,7 +32,7 @@ void update_targetX(TEXT_CURSOR* cursor) {
 		wrapX -= margin;
 	}
 
-	vec2i offset = get_text_offset(textEditor->charSet, currentLine.str, cursor->position.x, wrapX);
+	vec2i offset = get_text_offset(editorCharSet, currentLine.str, cursor->position.x, wrapX);
 
 	cursor->targetX = margin + offset.x;
 }
@@ -578,7 +578,7 @@ void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
 	TEXT_EDITOR* currentTextEditor = get_current_text_editor();
 	if (currentTextEditor && dir.y != 0) {
 		int margin = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + TEXT_EDITOR_get_margin(currentTextEditor);
-		int lineThickness = currentTextEditor->textHeight + currentTextEditor->linePadding;
+		int lineThickness = editorTextHeight + editorLinePadding;
 		midPos.y += -dir.y * lineThickness;
 		midPos.x = cursor->targetX;
 		newPos = TEXT_EDITOR_screenPos_to_cursorPos(midPos);
@@ -588,7 +588,7 @@ void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
 		int margin = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + TEXT_EDITOR_get_margin(currentTextEditor);
 		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor) - margin;
 		TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, newPos.y);
-		vec2i offset = get_text_offset(currentTextEditor->charSet, line.str, newPos.x, wrapX);
+		vec2i offset = get_text_offset(editorCharSet, line.str, newPos.x, wrapX);
 		cursor->targetX = offset.x + margin;
 	}
 
