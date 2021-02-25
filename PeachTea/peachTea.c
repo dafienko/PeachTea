@@ -17,7 +17,8 @@ HDC hMainDC = NULL;
 HGLRC hMainRC = NULL;
 HWND hMainWnd = NULL;
 
-void(*renderCallback)(void);
+void (*on_contextmenu)(WPARAM, LPARAM) = NULL;
+void(*renderCallback)(void) = NULL;
 
 int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void));
 
@@ -29,6 +30,10 @@ void PT_set_window_cursor(int idc) {
 int mousewheelDelta = 0;
 int get_mousewheel_delta() {
 	return mousewheelDelta;
+}
+
+void PT_set_on_contextmenu(void (*f)(WPARAM, LPARAM)) {
+	on_contextmenu = f;
 }
 
 void update_main_window_pos() {
@@ -49,8 +54,18 @@ void update_main_window_pos() {
 }
 
 void PT_INIT(vec2i screenSize) {
-	initWorkingDir = calloc(512, sizeof(char));
-	_getcwd(initWorkingDir, 511);
+	initWorkingDir = calloc(MAX_PATH + 1, sizeof(char));
+	GetModuleFileNameA(NULL, initWorkingDir, MAX_PATH);
+	for (int i = strlen(_pgmptr) - 1; i >= 0; i--) {
+		char c = *(initWorkingDir + i);
+
+		if (c == '\\') {
+			*(initWorkingDir + i + 1) = '\0';
+			break;
+		}
+	}
+	printf("%s\n", initWorkingDir);
+	_chdir(initWorkingDir);
 
 	screensize_init(screenSize);
 	GLEInit();
@@ -138,6 +153,16 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 
 	switch (uMsg) {
+	case WM_COMMAND:
+		;
+		int commandId = LOWORD(wParam);
+		PT_BINDABLE_EVENT_fire(&eOnCommand, &commandId);
+		break;
+	case WM_RBUTTONDOWN:
+		if (on_contextmenu) {
+			on_contextmenu(wParam, lParam);
+		}
+		break;
 	case WM_SIZE:
 		;
 		vec2i size = (vec2i){ LOWORD(lParam), HIWORD(lParam) };

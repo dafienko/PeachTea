@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <commdlg.h>
 #include <direct.h>
+#include <windowsx.h>
 
 Instance* screenUI = NULL;
 PT_IMAGELABEL* menuButton;

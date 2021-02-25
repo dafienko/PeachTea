@@ -49,6 +49,7 @@ HWND PT_GET_MAIN_HWND();
 
 void PT_set_window_cursor(int idc);
 void PT_set_window_title(const char* format, ...);
+void PT_set_on_contextmenu(void (*on_contextmenu)(WPARAM, LPARAM));
 
 char* initWorkingDir;
 
