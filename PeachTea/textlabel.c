@@ -5,6 +5,7 @@
 #include "glText.h"
 #include "screenSize.h"
 #include "PeachTeaShaders.h"
+#include "glUniformUtil.h"
 
 #include "fontHandler.h"
 #include "stringUtil.h"
@@ -109,6 +110,8 @@ PT_canvas PT_TEXTLABEL_render(PT_TEXTLABEL* textlabel, PT_SCREEN_UI* ui) {
 			glUniform1i(ucbLoc, textlabel->guiObj->lastCanvas.clipDescendants);
 			glUniform2i(clXLoc, textlabel->guiObj->lastCanvas.cleft, textlabel->guiObj->lastCanvas.cright);
 			glUniform2i(clYLoc, textlabel->guiObj->lastCanvas.ctop, textlabel->guiObj->lastCanvas.cbottom);
+			
+			uniform_PT_COLOR(glGetUniformLocation(PTS_text, "fringeColor"), textlabel->fringeColor); // major approximation
 
 			render_text(
 				screenSize,

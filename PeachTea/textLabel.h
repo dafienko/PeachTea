@@ -17,6 +17,7 @@ typedef struct {
 	int textSize;
 	PT_FONT font;
 	PT_COLOR textColor;
+	PT_COLOR fringeColor;
 	float textTransparency;
 
 	char* text;

@@ -416,7 +416,7 @@ PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 	update_instance_size_recur(ui->instance, canvas);
 
 	
-	PT_FRAMETEXTURE_clear(ui->frameTexture);
+	PT_FRAMETEXTURE_clear(ui->frameTexture, PT_COLOR_new(0, 0, 0));
 	PT_FRAMETEXTURE_bind(ui->frameTexture);
 
 	glEnable(GL_BLEND);

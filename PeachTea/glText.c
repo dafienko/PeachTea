@@ -218,9 +218,12 @@ char_set create_char_set(const char* filename, const int textSize) {
 	return cs;
 }
 
+int get_tab_width(char_set* cs) {
+	return cs->charSize.x * 4;
+}
 
 vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
-	int tabWidth = cs->charSize.x * 5;
+	int tabWidth = get_tab_width(cs);
 	int maxX = 0;
 	int penY = 0;
 	int penX = 0;
@@ -255,7 +258,7 @@ vec2i get_text_rect(char_set* cs, const char* str, int len, int wrapX) {
 }
 
 vec2i get_text_offset(char_set* cs, const char* str, int len, int wrapX) {
-	int tabWidth = cs->charSize.x * 5;
+	int tabWidth = get_tab_width(cs);
 	int penY = 0;
 	int penX = 0;
 
@@ -290,7 +293,7 @@ int get_char_position(char_set* cs, const char* str, int len, int x) {
 	int penX = 0;
 	int cIndex = 0;
 	int distanceToIndex = -1;
-	int tabWidth = cs->charSize.x * 5;
+	int tabWidth = get_tab_width(cs);
 
 	for (int i = 0; i < len; i++) {
 		char c = *(str + i);
@@ -367,7 +370,7 @@ void render_text(vec2i viewportSize, char_set* cs, PT_COLOR textColor, float tex
 		}
 	}
 
-	int tabWidth = cs->charSize.x * 5;
+	int tabWidth = get_tab_width(cs);
 	int penX = baseline_x;
 	int penY = baseline_y;
 
@@ -506,7 +509,7 @@ int get_text_position_from_rel_position(char_set* cs, char* str, int len, vec2i 
 	int penY = 0;
 	int cIndex = 0;
 	int distanceToIndex = -1;
-	int tabWidth = cs->charSize.x * 5;
+	int tabWidth = get_tab_width(cs);
 
 	for (int i = 0; i <= len; i++) {
 		if (relPos.y >= penY && relPos.y < penY + lineThickness) {

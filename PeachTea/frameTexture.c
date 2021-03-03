@@ -120,9 +120,9 @@ void PT_FRAMETEXTURE_unbind() {
 	glViewport(0, 0, screenSize.x, screenSize.y);
 }
 
-void PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex) {
+void PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex, PT_COLOR clearColor) {
 	glBindFramebuffer(GL_FRAMEBUFFER, tex.fbo);
-	glClearColor(0, 0, 0, 0);
+	glClearColor(clearColor.r, clearColor.g, clearColor.b, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
 }

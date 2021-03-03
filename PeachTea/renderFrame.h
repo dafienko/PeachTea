@@ -12,6 +12,8 @@ typedef struct {
 
 	int visible;
 
+	PT_COLOR clearColor;
+
 	PT_FRAMETEXTURE renderTexture;
 	void (*render)(struct PT_RENDERFRAME*);
 } PT_RENDERFRAME;

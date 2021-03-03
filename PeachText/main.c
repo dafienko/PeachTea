@@ -13,11 +13,15 @@
 #include <direct.h>
 #include <windowsx.h>
 
-Instance* screenUI = NULL;
-PT_IMAGELABEL* menuButton;
 PT_IMAGE menuImage, arrowImage;
+PT_IMAGE sunImage, moonImage;
 
-PT_TEXTLABEL* statusBarLabel = NULL;
+PT_SCROLLFRAME* editorListScrollframe;
+PT_RENDERFRAME* renderFrame;
+PT_RENDERFRAME* sideRenderFrame;
+
+int updateRendertree = 0;
+
 char* status = NULL;
 
 void onRender() {
@@ -33,6 +37,11 @@ int cpm = 0;
 int lastTimeIndex = 0;
 float fpsUpdateInterval = 1.0f;
 void onUpdate(float dt) {
+	if (updateRendertree) {
+		PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
+		PT_SCREEN_UI_update_rendertree(ui);
+	}
+
 	TEXT_EDITOR* textEditor = get_current_text_editor();
 
 	float time = PT_TIME_get();
@@ -95,6 +104,24 @@ void collapse_sidebar() {
 
 void on_toggle_wordWrap(void* args) {
 	wrapText = wrapText ? 0 : 1;
+}
+
+void on_new_file(void* args) {
+	TEXT_EDITOR_new(backgroundObj->instance, renderFrame, sideRenderFrame, editorListScrollframe);
+}
+
+void on_toggle_theme(void* args) {
+	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
+	PT_IMAGELABEL* imageLabel = (PT_IMAGELABEL*)obj->instance->subInstance;
+
+	if (imageLabel->image.texId == moonImage.texId) {
+		imageLabel->image = sunImage;
+		realize_color_theme(lightTheme);
+	}
+	else {
+		imageLabel->image = moonImage;
+		realize_color_theme(darkTheme);
+	}
 }
 
 void on_scroll(void* args) {
@@ -199,20 +226,47 @@ void main_on_command(void* arg) {
 	}
 }
 
+
 void update_rendertree() {
-	PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
-	PT_SCREEN_UI_update_rendertree(ui);
+	updateRendertree = 1;
 }
 
 int main(int argc, char** args) {
-	PT_CREATE_MAIN_WND((vec2i) { 800, 600 }, "PeachText");
+	PT_CREATE_MAIN_WND((vec2i) { 1100, 800 }, "PeachText");
+
+	sideFrameTransparency = .3f;
 
 #ifndef _DEBUG 
 	ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
+	darkTheme = (EDITOR_COLOR_THEME){ 0 };
+	darkTheme.accentColor = accentColor;
+	darkTheme.backgroundColor = PT_COLOR_fromHSV(0, 0, 30.0f / 255.0f);
+	darkTheme.editColor = accentColor;
+	darkTheme.sidebarColor = PT_COLOR_new(0, 0, 0);
+	darkTheme.textColor = PT_COLOR_fromHSV(0, 0, .9);
+	darkTheme.borderColor = PT_COLOR_fromHSV(0, 0, 1);
+	darkTheme.selectedLineColor = PT_COLOR_fromHSV(0, 0, .2f);
+	darkTheme.cursorColor = PT_COLOR_fromHSV(0, 0, 1);
+
+	lightTheme = (EDITOR_COLOR_THEME){ 0 };
+	lightTheme.accentColor = accentColor;
+	lightTheme.backgroundColor = PT_COLOR_fromHSV(0, 0, .95f);
+	lightTheme.editColor = accentColor;
+	lightTheme.sidebarColor = PT_COLOR_fromHSV(0, 0, .8f);
+	lightTheme.textColor = PT_COLOR_fromHSV(0, 0, .04f);
+	lightTheme.borderColor = PT_COLOR_fromHSV(0, 0, 0);
+	lightTheme.selectedLineColor = PT_COLOR_fromHSV(0, 0, .85f);
+	lightTheme.cursorColor = PT_COLOR_fromHSV(0, 0, 0);
+
+	colorTheme = darkTheme;
+
 	menuImage = PT_IMAGE_from_png("assets\\images\\menu.png");
 	arrowImage = PT_IMAGE_from_png("assets\\images\\arrow.png");
+	sunImage = PT_IMAGE_from_png("assets\\images\\sun.png");
+	moonImage = PT_IMAGE_from_png("assets\\images\\moon.png");
+
 
 	status = calloc(200, sizeof(char));
 
@@ -228,8 +282,8 @@ int main(int argc, char** args) {
 	// main background frame
 	Instance* backgroundInstance = PT_GUI_OBJ_new();
 	backgroundInstance->name = create_heap_str("backgroundFrame");
-	PT_GUI_OBJ* backgroundObj = (PT_GUI_OBJ*)backgroundInstance->subInstance;
-	backgroundObj->backgroundColor = PT_COLOR_fromHSV(0, 0, 30.0f/255.0f);
+	backgroundObj = (PT_GUI_OBJ*)backgroundInstance->subInstance;
+	backgroundObj->backgroundColor = colorTheme.backgroundColor;
 	backgroundObj->size = PT_REL_DIM_new(1.0f, 0, 1.0f, 0);
 	backgroundObj->zIndex = 0;
 
@@ -238,7 +292,7 @@ int main(int argc, char** args) {
 	// side menu 
 	Instance* sideBarInstance = PT_GUI_OBJ_new();
 	sideBarInstance->name = create_heap_str("sidebar");
-	PT_GUI_OBJ* sideBarObj = (PT_GUI_OBJ*)sideBarInstance->subInstance;
+	sideBarObj = (PT_GUI_OBJ*)sideBarInstance->subInstance;
 	sideBarObj->size = PT_REL_DIM_new(0, SIDE_MENU_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
 	sideBarObj->anchorPosition = (vec2f){1.0f, 0.0f };
 	sideBarObj->position = MENU_CLOSE_POS;
@@ -247,14 +301,12 @@ int main(int argc, char** args) {
 	sideBarObj->blurAlpha = 0.6f;
 	sideBarObj->blurRadius = 50;
 
-	sideBarObj->backgroundColor = PT_COLOR_fromRGB(0, 0, 0);
-	//sideBarObj->backgroundColor = accentColor;
+	sideBarObj->backgroundColor = colorTheme.sidebarColor;
 
 	sideBarObj->borderWidth = 0;
 	sideBarObj->reactive = 1;
 	sideBarObj->borderColor = PT_COLOR_fromRGB(40, 40, 40);
 	sideBarObj->activeBorderColor = PT_COLOR_fromRGB(100, 100, 100);
-	//sideBarObj->activeBorderColor = PT_COLOR_fromHSV(0, 0, .95f);
 	sideBarObj->activeBorderRange = (vec2f){ 10, 80 };
 	sideBarObj->zIndex = 10;
 
@@ -268,15 +320,18 @@ int main(int argc, char** args) {
 
 	set_instance_parent(sideBarInstance, backgroundInstance);
 
+	PT_COLOR fringeColor = PT_TWEEN_PT_COLOR(colorTheme.sidebarColor, colorTheme.backgroundColor, sideFrameTransparency, PT_LINEAR, PT_IN);
+
 	Instance* sidebarHeaderInstance = PT_TEXTLABEL_new();
 	sidebarHeaderInstance->name = create_heap_str("sidebar header");
-	PT_TEXTLABEL* sidebarHeader = (PT_TEXTLABEL*)sidebarHeaderInstance->subInstance;
+	sidebarHeader = (PT_TEXTLABEL*)sidebarHeaderInstance->subInstance;
 	sidebarHeader->text = create_heap_str("Files");
 	sidebarHeader->textSize = 20;
 	sidebarHeader->font = PT_FONT_CONSOLA_B;
-	sidebarHeader->textColor = PT_COLOR_fromHSV(0, 0, 1);
+	sidebarHeader->textColor = colorTheme.textColor;
 	sidebarHeader->horizontalAlignment = PT_H_ALIGNMENT_LEFT;
 	sidebarHeader->verticalAlignment = PT_V_ALIGNMENT_CENTER;
+	sidebarHeader->fringeColor = colorTheme.sidebarColor;
 	PT_GUI_OBJ* sidebarHeaderObj = sidebarHeader->guiObj;
 	sidebarHeaderObj->position = PT_REL_DIM_new(0, 16, 0, 0);
 	sidebarHeaderObj->size = PT_REL_DIM_new(1.0f, -(12 + SIDE_BAR_WIDTH), 0, 50);
@@ -285,7 +340,7 @@ int main(int argc, char** args) {
 	set_instance_parent(sidebarHeaderInstance, sideBarInstance);
 
 	// side bar text editor list scrollframe
-	PT_SCROLLFRAME* editorListScrollframe = create_editor_scrollframe();
+	editorListScrollframe = create_editor_scrollframe();
 	editorListScrollframe->instance->name = create_heap_str("editor list scrollframe");
 	editorListScrollframe->scrollBarThickness = 5;
 
@@ -304,51 +359,59 @@ int main(int argc, char** args) {
 	menuButtonInstance->name = create_heap_str("menu button");
 	menuButton = (PT_IMAGELABEL*)menuButtonInstance->subInstance;
 	menuButton->image = menuImage;
-	menuButton->imageTint = PT_COLOR_fromHSV(0, 0, 1);
-	menuButton->imageTintAlpha = 1.0f;
+	menuButton->imageTint = colorTheme.borderColor;
+	menuButton->imageTintAlpha = .85f;
 
 	PT_GUI_OBJ* menuButtonObj = menuButton->guiObj;
 	menuButtonObj->size = PT_REL_DIM_new(0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2, 0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2);
 	menuButtonObj->anchorPosition = (vec2f){ 1, 0 };
 	menuButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 0, SIDE_BAR_PADDING);
 	
-	menuButtonObj->backgroundColor = PT_COLOR_fromHSV(0, 0, 0);
+	menuButtonObj->backgroundColor = colorTheme.sidebarColor;
 	menuButtonObj->backgroundTransparency = .5f;
 
 	menuButtonObj->reactive = 1;
 	menuButtonObj->activeBackgroundRange = sideBarObj->activeBorderRange;
 	menuButtonObj->activeBackgroundColor = sideBarObj->activeBorderColor;
-
 	PT_BINDABLE_EVENT_bind(&menuButtonObj->e_obj_activated, on_menu_activated);
-
 	set_instance_parent(menuButtonInstance, sideBarInstance);
 
+	// color theme toggle button
+	Instance* themeButtonInstance = clone_instance(menuButtonInstance);
+	themeButton = (PT_IMAGELABEL*)themeButtonInstance->subInstance;
+	themeButton->image = moonImage;
+	themeButton->imageScale = .8f;
+	PT_GUI_OBJ* themeObj = themeButton->guiObj;
+	themeObj->anchorPosition = (vec2f){ 1, 1 };
+	themeObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -4 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
+	PT_BINDABLE_EVENT_bind(&themeObj->e_obj_activated, on_toggle_theme);
+	set_instance_parent(themeButtonInstance, sideBarInstance);
+	
 	// word-wrap toggle button
 	Instance* wordWrapInstance = clone_instance(menuButtonInstance);
-	PT_IMAGELABEL* wordWrapButton = (PT_IMAGELABEL*)wordWrapInstance->subInstance;
-	wordWrapButton->imageTintAlpha = 0;
+	wordWrapButton = (PT_IMAGELABEL*)wordWrapInstance->subInstance;
 	wordWrapButton->image = PT_IMAGE_from_png("assets\\images\\word_wrap.png");
 	wordWrapButton->imageScale = .8f;
 	PT_GUI_OBJ* wordWrapButtonObj = wordWrapButton->guiObj;
 	wordWrapButtonObj->anchorPosition = (vec2f){ 1, 1 };
-	wordWrapButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -2 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
+	wordWrapButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -3 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
 	PT_BINDABLE_EVENT_bind(&wordWrapButtonObj->e_obj_activated, on_toggle_wordWrap);
 	set_instance_parent(wordWrapInstance, sideBarInstance);
-
-	// save button
-	Instance* saveButtonInstance = clone_instance(menuButtonInstance);
-	PT_IMAGELABEL* saveButton = (PT_IMAGELABEL*)saveButtonInstance->subInstance;
-	saveButton->image = PT_IMAGE_from_png("assets\\images\\save.png");
-	saveButton->imageScale = .7f;
-	PT_GUI_OBJ* saveButtonObj = saveButton->guiObj;
-	saveButtonObj->anchorPosition = (vec2f){ 1, 1 };
-	saveButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, 0 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
-	PT_BINDABLE_EVENT_bind(&saveButtonObj->e_obj_activated, on_save);
-	set_instance_parent(saveButtonInstance, sideBarInstance);
 	
+	// new file button
+	Instance* newButtonInstance = clone_instance(menuButtonInstance);
+	newFileButton = (PT_IMAGELABEL*)newButtonInstance->subInstance;
+	newFileButton->image = PT_IMAGE_from_png("assets\\images\\new.png");;
+	newFileButton->imageScale = .8f;
+	PT_GUI_OBJ* newObj = newFileButton->guiObj;
+	newObj->anchorPosition = (vec2f){ 1, 1 };
+	newObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -2 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
+	PT_BINDABLE_EVENT_bind(&newObj->e_obj_activated, on_new_file);
+	set_instance_parent(newButtonInstance, sideBarInstance);
+
 	// save-as button
 	Instance* saveAsButtonInstance = clone_instance(menuButtonInstance);
-	PT_IMAGELABEL* saveAsButton = (PT_IMAGELABEL*)saveAsButtonInstance->subInstance;
+	saveAsButton = (PT_IMAGELABEL*)saveAsButtonInstance->subInstance;
 	saveAsButton->image = PT_IMAGE_from_png("assets\\images\\saveAs.png");
 	saveAsButton->imageScale = .7f;
 	PT_GUI_OBJ* saveAsButtonObj = saveAsButton->guiObj;
@@ -357,17 +420,29 @@ int main(int argc, char** args) {
 	PT_BINDABLE_EVENT_bind(&saveAsButtonObj->e_obj_activated, on_save_as);
 	set_instance_parent(saveAsButtonInstance, sideBarInstance);
 
+	// save button
+	Instance* saveButtonInstance = clone_instance(menuButtonInstance);
+	saveButton = (PT_IMAGELABEL*)saveButtonInstance->subInstance;
+	saveButton->image = PT_IMAGE_from_png("assets\\images\\save.png");
+	saveButton->imageScale = .7f;
+	PT_GUI_OBJ* saveButtonObj = saveButton->guiObj;
+	saveButtonObj->anchorPosition = (vec2f){ 1, 1 };
+	saveButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, 0 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
+	PT_BINDABLE_EVENT_bind(&saveButtonObj->e_obj_activated, on_save);
+	set_instance_parent(saveButtonInstance, sideBarInstance);
+
 	// bottom status bar
 	Instance* statusBarInstance = PT_TEXTLABEL_new();
 	statusBarInstance->name = create_heap_str("status bar");
 	statusBarLabel = (PT_TEXTLABEL*)statusBarInstance->subInstance;
 	statusBarLabel->horizontalAlignment = PT_H_ALIGNMENT_RIGHT;
 	statusBarLabel->verticalAlignment = PT_V_ALIGNMENT_CENTER;
-	statusBarLabel->textColor = PT_COLOR_fromHSV(0, 0, .85f);
+	statusBarLabel->textColor = colorTheme.textColor;
 	statusBarLabel->font = PT_FONT_CONSOLA;
 	statusBarLabel->textSize = 12;
 	statusBarLabel->text = status;
-	statusBarLabel->textTransparency = .1f;
+	statusBarLabel->textTransparency = .3f;
+	statusBarLabel->fringeColor = colorTheme.sidebarColor;
 
 	PT_GUI_OBJ* statusBarObj = statusBarLabel->guiObj;
 	statusBarObj->size = PT_REL_DIM_new(1, 0, 0, STATUS_BAR_HEIGHT);
@@ -392,7 +467,8 @@ int main(int argc, char** args) {
 	// text editor renderframe
 	Instance* renderInstance = PT_RENDERFRAME_new();
 	renderInstance->name = create_heap_str("render frame");
-	PT_RENDERFRAME* renderFrame = (PT_RENDERFRAME*)renderInstance->subInstance;
+	renderFrame = (PT_RENDERFRAME*)renderInstance->subInstance;
+	renderFrame->clearColor = colorTheme.backgroundColor;
 	PT_GUI_OBJ* renderObj = renderFrame->guiObj;
 	renderObj->position = PT_REL_DIM_new(0, 0, 0, 0);
 	renderObj->size = PT_REL_DIM_new(1, 0, 1, 0);
@@ -405,12 +481,13 @@ int main(int argc, char** args) {
 	// text editor line number renderframe 
 	Instance* sideRenderInstance = PT_RENDERFRAME_new();
 	sideRenderInstance->name = create_heap_str("side render frame");
-	PT_RENDERFRAME* sideRenderFrame = (PT_RENDERFRAME*)sideRenderInstance->subInstance;
+	sideRenderFrame = (PT_RENDERFRAME*)sideRenderInstance->subInstance;
+	sideRenderFrame->clearColor = colorTheme.sidebarColor;
 	PT_GUI_OBJ* sideRenderObj = sideRenderFrame->guiObj;
 	sideRenderObj->position = PT_REL_DIM_new(0, 0, 0, 0);
 	sideRenderObj->size = PT_REL_DIM_new(0, 100, 1, 0);
 	sideRenderObj->zIndex = 4;
-	sideRenderObj->backgroundColor = PT_COLOR_fromRGB(0, 0, 255);
+	sideRenderObj->backgroundColor = colorTheme.sidebarColor;
 	sideRenderObj->backgroundTransparency = 1;
 
 	set_instance_parent(sideRenderInstance, backgroundInstance);
@@ -427,6 +504,7 @@ int main(int argc, char** args) {
 			char* filename = *(args + i);
 
 			TEXT_EDITOR* e = TEXT_EDITOR_from_file(backgroundInstance, renderFrame, sideRenderFrame, editorListScrollframe, filename);
+			TEXT_EDITOR_select(e);
 		}
 	}
 	

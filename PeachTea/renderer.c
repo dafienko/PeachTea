@@ -31,7 +31,9 @@ void render(void(*renderCallback)(void)) {
 
 		renderCallback();
 
-		glFinish();
+		HDC hdc = GetDC(PT_GET_MAIN_HWND());
+		SwapBuffers(hdc);
+		ReleaseDC(PT_GET_MAIN_HWND(), hdc);
 	}
 }
 

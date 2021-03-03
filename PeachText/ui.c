@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "PeachTea.h"
+#include "textEditorHandler.h"
 
 PT_SCROLLFRAME* create_editor_scrollframe() {
 	Instance* scrollFrameInstance = PT_SCROLLFRAME_new();
@@ -40,3 +41,94 @@ PT_SCROLLFRAME* create_editor_scrollframe() {
 
 	return scrollframe;
 }
+
+void realize_color_theme(EDITOR_COLOR_THEME theme) {
+	colorTheme = theme;
+
+	PT_EXPANDABLE_ARRAY editors = get_open_editors();
+	// editor list elmeents;
+	for (int i = 0; i < editors.numElements; i++) {
+		TEXT_EDITOR* editor = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+
+
+		PT_GUI_OBJ* main = editor->listElement.main;
+		main->backgroundColor = PT_COLOR_lerp(colorTheme.sidebarColor, colorTheme.borderColor, .14f);
+
+		PT_COLOR fringeColor = PT_TWEEN_PT_COLOR(colorTheme.sidebarColor, colorTheme.backgroundColor, sideFrameTransparency, PT_LINEAR, PT_IN);
+		fringeColor = PT_TWEEN_PT_COLOR(main->backgroundColor, fringeColor, main->backgroundTransparency, PT_LINEAR, PT_IN);
+
+		EDITOR_LIST_ELEMENT listElement = editor->listElement;
+		listElement.header->textColor = colorTheme.textColor;
+		listElement.header->fringeColor = fringeColor;
+
+		listElement.desc->textColor = PT_COLOR_lerp(colorTheme.borderColor, colorTheme.accentColor, .2);
+		listElement.desc->fringeColor = fringeColor;
+
+		PT_EXPANDABLE_ARRAY selectTweens = listElement.selectTweens;
+		PT_EXPANDABLE_ARRAY deselectTweens = listElement.deselectTweens;
+
+		PT_COLOR SELECTED_COLOR = accentColor;
+		PT_COLOR SELECTED_ACTIVE_COLOR = PT_COLOR_lerp(accentColor, colorTheme.borderColor, .3f);
+		PT_COLOR DESELECTED_COLOR = colorTheme.sidebarColor;
+		PT_COLOR DESELECTED_ACTIVE_COLOR = PT_COLOR_lerp(colorTheme.sidebarColor, colorTheme.borderColor, .14f);
+
+		TWEEN_CONFIG selectConfig = { 0 };
+		selectConfig.direction = PT_OUT;
+		selectConfig.type = PT_CUBIC;
+		selectConfig.duration = .15f;
+
+		TWEEN_CONFIG deselectConfig = { 0 };
+		deselectConfig.direction = PT_IN;
+		deselectConfig.type = PT_CUBIC;
+		deselectConfig.duration = .15f;
+
+		// update select tweens
+		PT_TWEEN* tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&selectTweens, 0);
+		PT_TWEEN_destroy(tween);
+		tween = PT_TWEEN_PT_COLOR_new(SELECTED_COLOR, &main->backgroundColor, selectConfig);
+		PT_EXPANDABLE_ARRAY_set(&selectTweens, 0, &tween);
+
+		tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&selectTweens, 1);
+		PT_TWEEN_destroy(tween);
+		tween = PT_TWEEN_PT_COLOR_new(SELECTED_COLOR, &main->activeBackgroundColor, selectConfig);
+		PT_EXPANDABLE_ARRAY_set(&selectTweens, 1, &tween);
+
+
+		// update deselect tweens
+		tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&deselectTweens, 0);
+		PT_TWEEN_destroy(tween);
+		tween = PT_TWEEN_PT_COLOR_new(DESELECTED_ACTIVE_COLOR, &main->backgroundColor, deselectConfig);
+		PT_EXPANDABLE_ARRAY_set(&deselectTweens, 0, &tween);
+
+		tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&deselectTweens, 1);
+		PT_TWEEN_destroy(tween);
+		tween = PT_TWEEN_PT_COLOR_new(DESELECTED_ACTIVE_COLOR, &main->activeBackgroundColor, deselectConfig);
+		PT_EXPANDABLE_ARRAY_set(&deselectTweens, 1, &tween);
+	}
+
+
+	sideBarObj->backgroundColor = colorTheme.sidebarColor;
+
+	sidebarHeader->textColor = colorTheme.textColor;
+
+	statusBarLabel->textColor = colorTheme.textColor;
+	statusBarLabel->fringeColor = colorTheme.sidebarColor;
+	statusBarLabel->guiObj->backgroundColor = colorTheme.sidebarColor;
+
+	menuButton->guiObj->backgroundColor = colorTheme.sidebarColor;
+	saveButton->guiObj->backgroundColor = colorTheme.sidebarColor;
+	saveAsButton->guiObj->backgroundColor = colorTheme.sidebarColor;
+	wordWrapButton->guiObj->backgroundColor = colorTheme.sidebarColor;
+	themeButton->guiObj->backgroundColor = colorTheme.sidebarColor;
+	newFileButton->guiObj->backgroundColor = colorTheme.sidebarColor;
+
+	menuButton->imageTint = colorTheme.borderColor;
+	saveButton->imageTint = colorTheme.borderColor;
+	saveAsButton->imageTint = colorTheme.borderColor;
+	wordWrapButton->imageTint = colorTheme.borderColor;
+	themeButton->imageTint = colorTheme.borderColor;
+	newFileButton->imageTint = colorTheme.borderColor;
+
+	backgroundObj->backgroundColor = colorTheme.backgroundColor;
+}
+

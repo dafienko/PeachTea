@@ -5,11 +5,10 @@ in vec2 posPx;
 
 layout (binding=0) uniform sampler2D tex;
 
-//out float FragColor;
 out vec4 FragColor;
 
 void main() {
-	float tex = texture(tex, pos).r;
+	vec4 tex = texture(tex, pos);
 
-	FragColor = vec4(tex, 0, 0, 1);
+	FragColor = vec4(tex.rgb, 1);
 }

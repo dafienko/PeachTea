@@ -11,6 +11,7 @@ uniform ivec2 clipY;
 
 uniform float transparency;
 uniform vec3 textColor;
+uniform vec3 fringeColor;
 
 out vec2 posPx;
 out vec2 glyphSamplePos;

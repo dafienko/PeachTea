@@ -70,7 +70,7 @@ void PT_RENDERFRAME_render(PT_RENDERFRAME* renderFrame, PT_SCREEN_UI* ui) {
 			if (renderFrame->renderTexture.tex) {
 				PT_FRAMETEXTURE_bind(renderFrame->renderTexture);
 
-				PT_FRAMETEXTURE_clear(renderFrame->renderTexture);
+				PT_FRAMETEXTURE_clear(renderFrame->renderTexture, renderFrame->clearColor);
 
 				glDepthFunc(GL_LESS);
 				glEnable(GL_BLEND);

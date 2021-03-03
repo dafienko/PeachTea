@@ -9,6 +9,7 @@ uniform ivec2 clipY;
 
 uniform float transparency;
 uniform vec3 textColor;
+uniform vec3 fringeColor;
 
 layout (binding=0) uniform sampler2D spritesheet;
 
@@ -30,12 +31,26 @@ void main() {
 		float totalTextGamma = texColor.r + texColor.g + texColor.b;
 		float totalColorGamma = textColor.r + textColor.g + textColor.b;
 		
-		if (totalTextGamma > 0) {
+		if (totalTextGamma > 0	) {
+			/*
 			FragColor = vec4(
 				min(texColor.r, textColor.r),
 				min(texColor.g, textColor.g),
 				min(texColor.b, textColor.b),
 				(1 - transparency) 
+			);
+			
+			FragColor = vec4(
+				textColor.xyz,
+				(1 - transparency) * (totalTextGamma / 3)
+			);
+			*/
+			
+			FragColor = vec4(
+				mix(fringeColor.r, textColor.r, texColor.r),
+				mix(fringeColor.g, textColor.g, texColor.g),
+				mix(fringeColor.b, textColor.b, texColor.b),
+				1 - transparency
 			);
 		} else {
 			FragColor = vec4(0, 0, 0, 0);

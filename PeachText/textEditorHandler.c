@@ -33,7 +33,7 @@ void update_list_element_order() {
 		
 		int y = 2 + i * (LIST_ELEMENT_THICKNESS + 1);
 		listElement.main->position = PT_REL_DIM_new(0, 2, 0, y);
-
+		
 		if (i == editors.numElements - 1) { // on the last element in the list, shrinkwrap the size of the container's canvas
 			bottomY = y + LIST_ELEMENT_THICKNESS;
 			PT_SCROLLFRAME* container = (PT_SCROLLFRAME*)listElement.main->instance->parent->subInstance;
@@ -108,10 +108,10 @@ void list_element_activated(void* args) {
 
 EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRAME* listContainer) {
 	PT_COLOR SELECTED_COLOR = accentColor;
-	PT_COLOR SELECTED_ACTIVE_COLOR = PT_COLOR_lerp(accentColor, PT_COLOR_fromHSV(0, 0, 1), .3f);
+	PT_COLOR SELECTED_ACTIVE_COLOR = PT_COLOR_lerp(accentColor, colorTheme.borderColor, .3f);
 	PT_REL_DIM SELECTED_SIZE = PT_REL_DIM_new(1, -(2 + listContainer->scrollBarThickness * 2), 0, LIST_ELEMENT_THICKNESS);
-	PT_COLOR DESELECTED_COLOR = PT_COLOR_fromHSV(0, 0, 0);
-	PT_COLOR DESELECTED_ACTIVE_COLOR = PT_COLOR_fromHSV(0, 0, .15f);
+	PT_COLOR DESELECTED_COLOR = colorTheme.sidebarColor;
+	PT_COLOR DESELECTED_ACTIVE_COLOR = PT_COLOR_lerp(colorTheme.sidebarColor, colorTheme.borderColor, .14f);
 	PT_REL_DIM DESELECTED_SIZE = PT_REL_DIM_new(1, -(20 + listContainer->scrollBarThickness * 2), 0, LIST_ELEMENT_THICKNESS);
 	PT_REL_DIM HOVER_SIZE = PT_REL_DIM_new(1, -(15 + listContainer->scrollBarThickness * 2), 0, LIST_ELEMENT_THICKNESS);
 
@@ -128,8 +128,11 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	
 	main->borderWidth = 1;
 	main->borderTransparancy = .7f;
-	main->activeBorderColor = PT_COLOR_fromHSV(0, 0, 1);
+	main->activeBorderColor = colorTheme.borderColor;
 	main->activeBorderRange = (vec2f){ 10, 200 };
+
+	PT_COLOR fringeColor = PT_TWEEN_PT_COLOR(colorTheme.sidebarColor, colorTheme.backgroundColor, sideFrameTransparency, PT_LINEAR, PT_IN);
+	fringeColor = PT_TWEEN_PT_COLOR(main->backgroundColor, fringeColor, main->backgroundTransparency, PT_LINEAR, PT_IN);
 
 	PT_TEXTLABEL* header = (PT_TEXTLABEL*)PT_TEXTLABEL_new()->subInstance;
 	header->instance->name = create_heap_str("editor header");
@@ -137,7 +140,8 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	header->font = PT_FONT_ARIAL;
 	header->horizontalAlignment = PT_H_ALIGNMENT_LEFT;
 	header->verticalAlignment = PT_V_ALIGNMENT_CENTER;
-	header->textColor = PT_COLOR_fromHSV(0, 0, 1);
+	header->textColor = colorTheme.borderColor;
+	header->fringeColor = fringeColor;
 
 	PT_GUI_OBJ* headerObj = header->guiObj;
 	headerObj->size = PT_REL_DIM_new(1, -34, .65, 0);
@@ -153,7 +157,8 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	desc->font = PT_FONT_ARIAL_I;
 	desc->horizontalAlignment = PT_H_ALIGNMENT_LEFT;
 	desc->verticalAlignment = PT_V_ALIGNMENT_TOP;
-	desc->textColor = PT_COLOR_fromHSV(0, 0, .7);
+	desc->textColor = PT_COLOR_lerp(colorTheme.borderColor, colorTheme.accentColor, .2);
+	desc->fringeColor = fringeColor;
 
 	PT_GUI_OBJ* descObj = desc->guiObj;
 	descObj->size = PT_REL_DIM_new(1, headerObj->size.xOffset, 1 - headerObj->size.yFactor, 0);
@@ -220,6 +225,7 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	PT_EXPANDABLE_ARRAY_insert(&editors, 0, &editor);
 
 	update_list_element_order();
+	update_rendertree();
 
 	return listElement;
 }
@@ -249,7 +255,10 @@ void TEXT_EDITOR_update_list_element(TEXT_EDITOR* editor) {
 		*(filename + strlen(filename)) = '*';
 	}
 	listElement.header->text = filename;
-	PT_set_window_title("PeachText - %s", filename);
+
+	if (editor == currentTextEditor) {
+		PT_set_window_title("PeachText - %s", filename);
+	}
 
 	// update desc string
 	int truncateLen = 28;
@@ -354,7 +363,7 @@ TEXT_METADATA_FLAG create_text_metadata_flag(float t) {
 
 	TEXT_METADATA_FLAG flag = { 0 };
 	flag.index = 0;
-	flag.color = PT_COLOR_new(1, 1, 1);
+	flag.color = colorTheme.textColor;
 	flag.misc = pTime;
 
 	return flag;
@@ -556,7 +565,7 @@ void move_text_pos_in_view(vec2i textPosition) {
 		if (wrapX) {
 			wrapX -= margin;
 		}
-		int lineThickness = editorLinePadding + editorLinePadding;
+		int lineThickness = editorTextHeight + editorLinePadding;
 		for (int i = 0; i <= textPosition.y; i++) {
 			TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
 
@@ -590,7 +599,7 @@ void move_text_pos_in_view(vec2i textPosition) {
 		if (penY < canvasPos.y) {
 			newCanvasPos.y = penY;
 		}
-		else if (penY + lineThickness > canvasPos.y + canvasSize.y) {
+		else if (penY + lineThickness >= canvasPos.y + canvasSize.y) {
 			newCanvasPos.y = (penY + lineThickness) - canvasSize.y ;
 		}
 
@@ -796,7 +805,7 @@ vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos) {
 		int cx = 0;
 		int cy = 0;
 		int penX = 0;
-		int penY = 0;
+		int penY = editorLinePadding / 2;
 		for (int i = 0; i < currentTextEditor->textLines->numElements; i++) {
 			TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
 			vec2i lineOrigin = (vec2i){ penX, penY};
@@ -953,8 +962,8 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* backgroundInstance, PT_RENDERFRAME* rende
 	editor->sideRenderFrame = sideRenderFrame;
 	editor->scrollFrame = scrollFrame;
 
-	editor->textColor = PT_COLOR_fromHSV(0, 0, .9);
-	editor->editColor = accentColor;
+	editor->textColor = colorTheme.textColor;
+	editor->editColor = colorTheme.editColor;
 	editor->editFadeTime = .8f;
 
 	renderFrame->render = on_render_frame_render;
@@ -1040,7 +1049,7 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME*
 		}
 
 		if (extensionsEqual && namesEqual && pathsEqual) {
-			return NULL;
+			return e;
 		}
 	}
 	
@@ -1112,9 +1121,16 @@ void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
 		int x = min(thisLine.numChars, editor->textCursor.position.x);
 
 		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
+		cursorObj->backgroundColor = colorTheme.cursorColor;
 
 		if (insertMode) {
-			cursorObj->size = PT_REL_DIM_new(0, editorCharWidth, 0, editorTextHeight + editorLinePadding);
+			int charWidth = 2;
+			if (editor->textCursor.position.x < thisLine.numChars) {
+				char c = *(thisLine.str + editor->textCursor.position.x);
+				charWidth = max(charWidth, (editorCharSet->size + c)->x);
+			}
+			
+			cursorObj->size = PT_REL_DIM_new(0, charWidth, 0, editorTextHeight + editorLinePadding);
 		}
 		else {
 			cursorObj->size = PT_REL_DIM_new(0, 2, 0, editorTextHeight + editorLinePadding);

@@ -3,6 +3,7 @@
 #include "textEditorRenderer.h"
 #include "textEditorHandler.h"
 #include "PeachTea.h"
+#include "ui.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -22,6 +23,7 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 
 	textEditor.sideRenderFrame->guiObj->size = PT_REL_DIM_new(0, xMargin - 5, 1, 0);
 
+
 	if (!textEditor.sideRenderFrame->renderTexture.tex) {
 		return; // can't render line numbers if side render frame's texture is null
 	}
@@ -30,13 +32,12 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 
 	// render line # side bar
 	PT_FRAMETEXTURE_bind(textEditor.sideRenderFrame->renderTexture);
-	PT_FRAMETEXTURE_clear(textEditor.sideRenderFrame->renderTexture);
+	PT_FRAMETEXTURE_clear(textEditor.sideRenderFrame->renderTexture, colorTheme.backgroundColor);
 
 	///*
 	glUseProgram(PTS_rect);
-	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), scrollFrame->guiObj->backgroundColor);
-	//uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), PT_COLOR_fromRGB(255, 0, 0));
-	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), 0.4f);
+	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), colorTheme.sidebarColor);
+	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), sideFrameTransparency);
 	uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), frameSize);
 	
 	default_quad_corners();
@@ -52,6 +53,7 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 	glDrawArrays(GL_QUADS, 0, 4);
 	//*/
 
+	glUseProgram(PTS_text);
 	char* lineNumStr = calloc(30, sizeof(char));
 	///*
 	// render line numbers
@@ -64,10 +66,16 @@ void render_line_numbers(TEXT_EDITOR textEditor, vec2i canvasSize, vec2i occlusi
 		// render line number
 		int numDigits = (int)strlen(lineNumStr);
 		int lineNumStrWidth = get_text_rect(editorCharSet, lineNumStr, numDigits, 0).x;
+		PT_COLOR fringeColor = PT_TWEEN_PT_COLOR(colorTheme.sidebarColor, colorTheme.backgroundColor, sideFrameTransparency, PT_LINEAR, PT_IN);
+		uniform_PT_COLOR(
+			glGetUniformLocation(PTS_text, "fringeColor"),
+			fringeColor
+		);
+		
 		render_text(
 			frameSize,
 			editorCharSet,
-			accentColor, //PT_COLOR_fromRGB(43, 145, 175),
+			colorTheme.accentColor, //PT_COLOR_fromRGB(43, 145, 175),
 			0,
 			lineNumStr,
 			numDigits,
@@ -84,8 +92,8 @@ void render_selection_rects(PT_EXPANDABLE_ARRAY* arr, vec2i canvasOffset) {
 	glUseProgram(PTS_rect);
 
 	uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), screenSize);
-	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), accentColor);
-	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .2f);
+	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), colorTheme.accentColor);
+	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .3f);
 
 	default_quad_corners();
 
@@ -159,6 +167,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 	int yPos = editorTextHeight + editorLinePadding / 2;;
 	int maxX = xMargin;
 	int maxY = textEditor.textLines->numElements * (editorLinePadding + editorTextHeight);
+	int cursorPositioned = 0;
 
 	vec2i sStart, sEnd;
 	get_cursor_selection_bounds(textEditor.textCursor, &sStart, &sEnd);
@@ -169,7 +178,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		TEXT_LINE line = *pLine;
 		vec2i rect = get_text_rect(editorCharSet, line.str, line.numChars, relWrapX);
 
-		// render cursor position
+		// render cursor position and highlight selected line
 		TEXT_CURSOR cursor = textEditor.textCursor;
 		if (y == cursor.position.y) {
 			vec2i offset = get_text_offset(editorCharSet, line.str, cursor.position.x, relWrapX);
@@ -178,14 +187,29 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 				0, baselineX + offset.x,
 				0, (yPos - lineThickness) + offset.y * lineThickness + editorLinePadding / 2 - canvasOffset.y
 			);
+			cursorPositioned = 1;
+
+			glUseProgram(PTS_rect);
+			uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), colorTheme.selectedLineColor);
+			glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), 0);
+			uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), screenSize);
+
+			default_quad_corners();
+
+			set_quad_positions(
+				(vec2i) {
+				0, yPos - canvasOffset.y - lineThickness + editorLinePadding / 2
+				},
+				(vec2i) {
+					screenSize.x, (yPos + (rect.y) * lineThickness) - canvasOffset.y + editorLinePadding / 2
+				}
+			);
+			glDrawArrays(GL_QUADS, 0, 4);
 		}
 
 
 		// if this line is even visible
-		if (yPos + (1 + rect.y) * lineThickness > occlusionTopLeftBound.y) {
-			if (yPos > occlusionBottomRightBound.y) { // if the y pos is out of the occlusion bound, stop rendering (it isn't visible)	
-				break;
-			}
+		if (yPos + (1 + rect.y) * lineThickness > occlusionTopLeftBound.y && yPos <= occlusionBottomRightBound.y) {
 
 			lineNumber lnum = { 0 };
 			lnum.l = y;
@@ -267,21 +291,28 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 						PT_EXPANDABLE_ARRAY_remove(lineFlags, i);
 					}
 					else {
-						flag->color = PT_COLOR_lerp(textEditor.editColor, textEditor.textColor, alpha);
+						flag->color = PT_COLOR_lerp(colorTheme.editColor, colorTheme.textColor, alpha);
 					}
 				}
 				else {
-					flag->color = PT_COLOR_lerp(textEditor.editColor, textEditor.textColor, alpha);
+					flag->color = PT_COLOR_lerp(colorTheme.editColor, colorTheme.textColor, alpha);
 				}
 			}
 
 			// render line text
 			if (line.numChars > 0) {
 				///*
+				if (y == cursor.position.y) {
+					uniform_PT_COLOR(glGetUniformLocation(PTS_text, "fringeColor"), colorTheme.selectedLineColor);
+				}
+				else {
+					uniform_PT_COLOR(glGetUniformLocation(PTS_text, "fringeColor"), colorTheme.backgroundColor);
+				}
+
 				render_text(
 					canvasSize,
 					editorCharSet,
-					PT_COLOR_fromHSV(0, 0, .8f),
+					colorTheme.textColor,
 					0,
 					line.str,
 					line.numChars,
@@ -291,6 +322,10 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 				);
 				//*/
 			}
+		}
+
+		if (yPos > occlusionBottomRightBound.y && cursorPositioned) {
+			break;
 		}
 
 		maxX = max(maxX, rect.x);

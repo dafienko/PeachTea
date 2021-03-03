@@ -34,7 +34,8 @@ void main() {
 	if (shouldBeRendered == 1) {
 		vec4 imageColor = texture(tex, pos);
 		vec3 c = mix(imageColor.xyz, imageTint, imageTintAlpha).xyz;
-		
+		//c = vec3(1, 0, 0);
+		 
 		float dist = 0;
 		if (reactive != 0) {
 			dist = length(posPx - mousePos);

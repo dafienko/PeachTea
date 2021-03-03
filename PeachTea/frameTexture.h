@@ -3,6 +3,7 @@
 
 #include "glExtensions.h"
 #include "vectorMath.h"
+#include "Colors.h"
 
 typedef struct {
 	int width, height;
@@ -17,7 +18,7 @@ void PT_FRAMETEXTURE_destroy(PT_FRAMETEXTURE tex);
 
 void PT_FRAMETEXTURE_bind(PT_FRAMETEXTURE tex);
 void PT_FRAMETEXTURE_unbind();
-void PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex);
+void PT_FRAMETEXTURE_clear(PT_FRAMETEXTURE tex, PT_COLOR clearColor);
 
 void PT_FRAMETEXTURE_blur(GLuint src, PT_FRAMETEXTURE dest, vec2f dir, int blurRadius, int textureFlipped);
 void PT_FRAMETEXTURE_copy_to_framebuffer(PT_FRAMETEXTURE frameTexture, GLuint framebuffer);
