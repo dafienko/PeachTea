@@ -354,11 +354,11 @@ void print_rendertree(PT_UI_RENDER_TREE* tree, int tabs) {
 	}
 
 	memcpy(str + strIndex, tree->rootInstance->name, strlen(tree->rootInstance->name));
-	printf("%s\t - %it\n", str, tree->rootInstance->instanceType);
+	printf("%s\t- %i\n", str, get_instance_zindex(tree->rootInstance));
 
 	free(str);
 
-	for (int i = tree->numBranches - 1; i >= 0; i--) {
+	for (int i = 0; i < tree->numBranches; i++) {
 		PT_UI_RENDER_TREE* branch = *(tree->branches + i);
 		print_rendertree(branch, tabs + 1);
 	}
@@ -374,7 +374,10 @@ void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui) {
 	}
 
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
-	//print_rendertree(tree, 0);
+	//*
+	print_rendertree(tree, 0);
+	printf("\n");
+	//*?
 	ui->lastRenderTree = tree;
 }
 
@@ -425,6 +428,7 @@ PT_canvas PT_SCREEN_UI_render(PT_SCREEN_UI* ui) {
 	
 	if (ui->lastRenderTree) {
 		PT_UI_RENDER_TREE* tree = ui->lastRenderTree;
+		ui->lastBlurZindex = -1;
 		tree->lastBlurZIndex = -1;
 
 		PT_UI_RENDER_TREE_render(tree, ui);

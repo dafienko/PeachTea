@@ -229,6 +229,6 @@ void PT_TWEEN_destroy(PT_TWEEN* tween) {
 	PT_TWEEN_stop(tween); // stop the tween in case it's playing
 
 	free(tween->initValue);
-	free(tween->initValue);
+	free(tween->endValue);
 	free(tween);
 }

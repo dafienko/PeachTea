@@ -40,6 +40,7 @@ void onUpdate(float dt) {
 	if (updateRendertree) {
 		PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
 		PT_SCREEN_UI_update_rendertree(ui);
+		updateRendertree = 0;
 	}
 
 	TEXT_EDITOR* textEditor = get_current_text_editor();
