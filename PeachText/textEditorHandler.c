@@ -123,7 +123,7 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	main->reactive = 1;
 	
 	main->backgroundTransparency = .7f;
-	main->activeBackgroundColor = DESELECTED_ACTIVE_COLOR;
+	main->activeBackgroundColor = DESELECTED_COLOR;
 	main->activeBackgroundRange = (vec2f){ 50, 150 };
 	
 	main->borderWidth = 1;

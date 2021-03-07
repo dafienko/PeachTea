@@ -117,11 +117,11 @@ void on_toggle_theme(void* args) {
 
 	if (imageLabel->image.texId == moonImage.texId) {
 		imageLabel->image = sunImage;
-		realize_color_theme(lightTheme);
+		realize_color_theme(*lightTheme);
 	}
 	else {
 		imageLabel->image = moonImage;
-		realize_color_theme(darkTheme);
+		realize_color_theme(*darkTheme);
 	}
 }
 
@@ -227,6 +227,22 @@ void main_on_command(void* arg) {
 	}
 }
 
+void on_close() { 
+
+	// iterate through every text editor. If the file is unsaved, prompt the user to save or discard it
+	PT_EXPANDABLE_ARRAY editors = get_open_editors();
+	for (int i = 0; i < editors.numElements; i++) {
+		TEXT_EDITOR* editor = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+
+		if (!editor->saved) {
+			char* question = calloc(200, sizeof(char));
+			sprintf(question, "")
+			MessageBoxA(NULL, "There")
+		}
+	}
+
+}
+
 
 void update_rendertree() {
 	updateRendertree = 1;
@@ -241,27 +257,29 @@ int main(int argc, char** args) {
 	ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
-	darkTheme = (EDITOR_COLOR_THEME){ 0 };
-	darkTheme.accentColor = accentColor;
-	darkTheme.backgroundColor = PT_COLOR_fromHSV(0, 0, 30.0f / 255.0f);
-	darkTheme.editColor = accentColor;
-	darkTheme.sidebarColor = PT_COLOR_new(0, 0, 0);
-	darkTheme.textColor = PT_COLOR_fromHSV(0, 0, .9);
-	darkTheme.borderColor = PT_COLOR_fromHSV(0, 0, 1);
-	darkTheme.selectedLineColor = PT_COLOR_fromHSV(0, 0, .2f);
-	darkTheme.cursorColor = PT_COLOR_fromHSV(0, 0, 1);
+	darkTheme = calloc(1, sizeof(EDITOR_COLOR_THEME));
+	darkTheme->accentColor = accentColor;
+	darkTheme->backgroundColor = PT_COLOR_fromHSV(0, 0, 30.0f / 255.0f);
+	darkTheme->editColor = accentColor;
+	darkTheme->sidebarColor = PT_COLOR_new(0, 0, 0);
+	darkTheme->textColor = PT_COLOR_fromHSV(0, 0, .9);
+	darkTheme->borderColor = PT_COLOR_fromHSV(0, 0, 1);
+	darkTheme->selectedLineColor = PT_COLOR_fromHSV(0, 0, .2f);
+	darkTheme->cursorColor = PT_COLOR_fromHSV(0, 0, 1);
+	darkTheme->id = 1;
 
-	lightTheme = (EDITOR_COLOR_THEME){ 0 };
-	lightTheme.accentColor = accentColor;
-	lightTheme.backgroundColor = PT_COLOR_fromHSV(0, 0, .95f);
-	lightTheme.editColor = accentColor;
-	lightTheme.sidebarColor = PT_COLOR_fromHSV(0, 0, .8f);
-	lightTheme.textColor = PT_COLOR_fromHSV(0, 0, .04f);
-	lightTheme.borderColor = PT_COLOR_fromHSV(0, 0, 0);
-	lightTheme.selectedLineColor = PT_COLOR_fromHSV(0, 0, .85f);
-	lightTheme.cursorColor = PT_COLOR_fromHSV(0, 0, 0);
+	lightTheme = calloc(1, sizeof(EDITOR_COLOR_THEME));
+	lightTheme->accentColor = accentColor;
+	lightTheme->backgroundColor = PT_COLOR_fromHSV(0, 0, .95f);
+	lightTheme->editColor = accentColor;
+	lightTheme->sidebarColor = PT_COLOR_fromHSV(0, 0, .8f);
+	lightTheme->textColor = PT_COLOR_fromHSV(0, 0, .04f);
+	lightTheme->borderColor = PT_COLOR_fromHSV(0, 0, 0);
+	lightTheme->selectedLineColor = PT_COLOR_fromHSV(0, 0, .85f);
+	lightTheme->cursorColor = PT_COLOR_fromHSV(0, 0, 0);
+	lightTheme->id = 2;
 
-	colorTheme = darkTheme;
+	colorTheme = *darkTheme;
 
 	menuImage = PT_IMAGE_from_png("assets\\images\\menu.png");
 	arrowImage = PT_IMAGE_from_png("assets\\images\\arrow.png");

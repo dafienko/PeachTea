@@ -24,11 +24,12 @@ typedef struct {
 	PT_COLOR borderColor;
 	PT_COLOR selectedLineColor;
 	PT_COLOR cursorColor;
+	int id;
 } EDITOR_COLOR_THEME;
 
 EDITOR_COLOR_THEME colorTheme;
-EDITOR_COLOR_THEME darkTheme;
-EDITOR_COLOR_THEME lightTheme;
+EDITOR_COLOR_THEME* darkTheme;
+EDITOR_COLOR_THEME* lightTheme;
 
 Instance* screenUI;
 

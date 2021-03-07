@@ -14,13 +14,13 @@ PT_SCROLLFRAME* create_editor_scrollframe() {
 	hTrack->backgroundTransparency = vTrack->backgroundTransparency;
 
 	PT_GUI_OBJ* vBar = scrollframe->vscrollBar;
-	vBar->backgroundColor = PT_COLOR_fromHSV(0, 0, .8f);
+	vBar->backgroundColor = colorTheme.borderColor;
 	vBar->backgroundTransparency = 0.15f;
 	vBar->blurred = 1;
 	vBar->blurAlpha = .8f;
 	vBar->blurRadius = 10;
 	vBar->reactive = 1;
-	vBar->activeBackgroundColor = PT_COLOR_new(1, 1, 1);
+	vBar->activeBackgroundColor = colorTheme.textColor;
 	vBar->activeBackgroundRange = (vec2f){ 10, 200 };
 	PT_GUI_OBJ* hBar = scrollframe->hscrollBar;
 	hBar->backgroundColor = vBar->backgroundColor;
@@ -48,11 +48,23 @@ void realize_color_theme(EDITOR_COLOR_THEME theme) {
 	PT_EXPANDABLE_ARRAY editors = get_open_editors();
 	// editor list elmeents;
 	for (int i = 0; i < editors.numElements; i++) {
+		PT_COLOR SELECTED_COLOR = accentColor;
+		PT_COLOR SELECTED_ACTIVE_COLOR = PT_COLOR_lerp(accentColor, colorTheme.borderColor, .3f);
+		PT_COLOR DESELECTED_COLOR = colorTheme.sidebarColor;
+		PT_COLOR DESELECTED_ACTIVE_COLOR = PT_COLOR_lerp(colorTheme.sidebarColor, colorTheme.borderColor, .14f);
+		
 		TEXT_EDITOR* editor = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
 
+		PT_SCROLLFRAME* scrollframe = editor->scrollFrame;
+		PT_GUI_OBJ* vBar = scrollframe->vscrollBar;
+		vBar->backgroundColor = colorTheme.borderColor;
+		vBar->activeBackgroundColor = colorTheme.textColor;
+		PT_GUI_OBJ* hBar = scrollframe->hscrollBar;
+		hBar->backgroundColor = colorTheme.borderColor;
+		hBar->activeBackgroundColor = colorTheme.textColor;
 
 		PT_GUI_OBJ* main = editor->listElement.main;
-		main->backgroundColor = PT_COLOR_lerp(colorTheme.sidebarColor, colorTheme.borderColor, .14f);
+		main->backgroundColor = get_current_text_editor() == editor ? SELECTED_COLOR : DESELECTED_COLOR;
 
 		PT_COLOR fringeColor = PT_TWEEN_PT_COLOR(colorTheme.sidebarColor, colorTheme.backgroundColor, sideFrameTransparency, PT_LINEAR, PT_IN);
 		fringeColor = PT_TWEEN_PT_COLOR(main->backgroundColor, fringeColor, main->backgroundTransparency, PT_LINEAR, PT_IN);
@@ -67,10 +79,6 @@ void realize_color_theme(EDITOR_COLOR_THEME theme) {
 		PT_EXPANDABLE_ARRAY selectTweens = listElement.selectTweens;
 		PT_EXPANDABLE_ARRAY deselectTweens = listElement.deselectTweens;
 
-		PT_COLOR SELECTED_COLOR = accentColor;
-		PT_COLOR SELECTED_ACTIVE_COLOR = PT_COLOR_lerp(accentColor, colorTheme.borderColor, .3f);
-		PT_COLOR DESELECTED_COLOR = colorTheme.sidebarColor;
-		PT_COLOR DESELECTED_ACTIVE_COLOR = PT_COLOR_lerp(colorTheme.sidebarColor, colorTheme.borderColor, .14f);
 
 		TWEEN_CONFIG selectConfig = { 0 };
 		selectConfig.direction = PT_OUT;
@@ -110,6 +118,7 @@ void realize_color_theme(EDITOR_COLOR_THEME theme) {
 	sideBarObj->backgroundColor = colorTheme.sidebarColor;
 
 	sidebarHeader->textColor = colorTheme.textColor;
+	sidebarHeader->fringeColor = colorTheme.sidebarColor;
 
 	statusBarLabel->textColor = colorTheme.textColor;
 	statusBarLabel->fringeColor = colorTheme.sidebarColor;
