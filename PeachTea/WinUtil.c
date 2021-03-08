@@ -50,7 +50,7 @@ void initWinUtil(const HINSTANCE hInstance) {
 	}
 }
 
-HWND createPeachWindow(const HINSTANCE hInstance, vec2i wndSize, const void* wndProc, const WCHAR* wndName) {
+HWND createPeachWindow(const HINSTANCE hInstance, vec2i wndSize, const void* wndProc, const WCHAR* wndName, HICON icon) {
 	if (!winUtilInitialized) {
 		initWinUtil(hInstance);
 	}
@@ -69,6 +69,7 @@ HWND createPeachWindow(const HINSTANCE hInstance, vec2i wndSize, const void* wnd
 		wndClass.lpfnWndProc = wndProc;
 	}
 	wndClass.lpszClassName = wndName;
+	wndClass.hIcon = icon;
 
 	// register 'tailored' wndclass
 	int e = RegisterClass(&wndClass);

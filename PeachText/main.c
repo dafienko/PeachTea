@@ -26,7 +26,7 @@ char* status = NULL;
 
 void onRender() {
 	PT_SCREEN_UI_render(screenUI->subInstance);
-	
+
 	int lineThickness = 29;
 	char_set* cs = get_char_set(PT_FONT_CONSOLA, 24);
 }
@@ -66,8 +66,8 @@ void onUpdate(float dt) {
 	const char* s = "      ";
 	memset(status, 0, 200 * sizeof(char));
 	sprintf(
-		status, 
-		"fps: %i%scpm: %i%sln: %i%scol: %i%s", 
+		status,
+		"fps: %i%scpm: %i%sln: %i%scol: %i%s",
 		fps, s,
 		cpm, s,
 		cursorPosition.y + 1, s,
@@ -145,12 +145,7 @@ void on_scroll(void* args) {
 	}
 }
 
-void on_save_as() {
-	TEXT_EDITOR* editor = get_current_text_editor();
-	if (!editor) {
-		return;
-	}
-
+void save_as(TEXT_EDITOR* editor) {
 	OPENFILENAMEA ofna = { 0 };
 	ofna.lStructSize = sizeof(OPENFILENAMEA);
 	ofna.nMaxFile = 512;
@@ -172,7 +167,7 @@ void on_save_as() {
 		editor->path = path;
 
 		int nameLen = (ofna.nFileExtension - ofna.nFileOffset) - 1; // subtract 1 (exclude the '.')
-		char* filename = calloc(nameLen + 1, sizeof(char)); 
+		char* filename = calloc(nameLen + 1, sizeof(char));
 		if (nameLen > 0) {
 			memcpy(filename, ofna.lpstrFile + ofna.nFileOffset, nameLen * sizeof(char));
 		}
@@ -200,18 +195,31 @@ void on_save_as() {
 	free(ofna.lpstrFile);
 }
 
-void on_save() {
+void on_save_as() {
 	TEXT_EDITOR* editor = get_current_text_editor();
 	if (!editor) {
 		return;
 	}
 
+	save_as(editor);
+}
+
+void save(TEXT_EDITOR* editor) {
 	if (editor->path) {
 		TEXT_EDITOR_save(editor);
 	}
 	else {
 		on_save_as();
 	}
+}
+
+void on_save() {
+	TEXT_EDITOR* editor = get_current_text_editor();
+	if (!editor) {
+		return;
+	}
+
+	save(editor);
 }
 
 void main_on_command(void* arg) {
@@ -227,8 +235,8 @@ void main_on_command(void* arg) {
 	}
 }
 
-void on_close() { 
-
+void on_close() {
+	/*
 	// iterate through every text editor. If the file is unsaved, prompt the user to save or discard it
 	PT_EXPANDABLE_ARRAY editors = get_open_editors();
 	for (int i = 0; i < editors.numElements; i++) {
@@ -236,11 +244,18 @@ void on_close() {
 
 		if (!editor->saved) {
 			char* question = calloc(200, sizeof(char));
-			sprintf(question, "")
-			MessageBoxA(NULL, "There")
+			if (editor->extension) {
+				sprintf(question, "Save changes to %s.%s?", editor->filename, editor->extension);
+			}
+			else {
+				sprintf(question, "Save changes to %s?", editor->filename);
+			}
+			if (MessageBoxA(NULL, question, "Unsaved CHanges", MB_YESNO) == IDYES) {
+				save(editor);
+			}
 		}
 	}
-
+	*/
 }
 
 
@@ -249,7 +264,9 @@ void update_rendertree() {
 }
 
 int main(int argc, char** args) {
-	PT_CREATE_MAIN_WND((vec2i) { 1100, 800 }, "PeachText");
+	HINSTANCE hInstance = GetModuleHandle(NULL);
+	HICON icon = LoadIconA(hInstance, MAKEINTRESOURCE(102));
+	PT_CREATE_MAIN_WND((vec2i) { 1100, 800 }, "PeachText", icon);
 
 	sideFrameTransparency = .3f;
 
@@ -313,12 +330,12 @@ int main(int argc, char** args) {
 	sideBarInstance->name = create_heap_str("sidebar");
 	sideBarObj = (PT_GUI_OBJ*)sideBarInstance->subInstance;
 	sideBarObj->size = PT_REL_DIM_new(0, SIDE_MENU_WIDTH, 1.0f, -STATUS_BAR_HEIGHT);
-	sideBarObj->anchorPosition = (vec2f){1.0f, 0.0f };
+	sideBarObj->anchorPosition = (vec2f){ 1.0f, 0.0f };
 	sideBarObj->position = MENU_CLOSE_POS;
-	
+
 	sideBarObj->blurred = 1;
 	sideBarObj->blurAlpha = 0.6f;
-	sideBarObj->blurRadius = 50;
+	sideBarObj->blurRadius = 40;
 
 	sideBarObj->backgroundColor = colorTheme.sidebarColor;
 
@@ -385,7 +402,7 @@ int main(int argc, char** args) {
 	menuButtonObj->size = PT_REL_DIM_new(0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2, 0, SIDE_BAR_WIDTH - SIDE_BAR_PADDING * 2);
 	menuButtonObj->anchorPosition = (vec2f){ 1, 0 };
 	menuButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 0, SIDE_BAR_PADDING);
-	
+
 	menuButtonObj->backgroundColor = colorTheme.sidebarColor;
 	menuButtonObj->backgroundTransparency = .5f;
 
@@ -405,7 +422,7 @@ int main(int argc, char** args) {
 	themeObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -4 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
 	PT_BINDABLE_EVENT_bind(&themeObj->e_obj_activated, on_toggle_theme);
 	set_instance_parent(themeButtonInstance, sideBarInstance);
-	
+
 	// word-wrap toggle button
 	Instance* wordWrapInstance = clone_instance(menuButtonInstance);
 	wordWrapButton = (PT_IMAGELABEL*)wordWrapInstance->subInstance;
@@ -416,7 +433,7 @@ int main(int argc, char** args) {
 	wordWrapButtonObj->position = PT_REL_DIM_new(1, -SIDE_BAR_PADDING, 1, -3 * ((SIDE_BAR_WIDTH - 2 * SIDE_BAR_PADDING) + SIDE_BAR_PADDING) - SIDE_BAR_PADDING);
 	PT_BINDABLE_EVENT_bind(&wordWrapButtonObj->e_obj_activated, on_toggle_wordWrap);
 	set_instance_parent(wordWrapInstance, sideBarInstance);
-	
+
 	// new file button
 	Instance* newButtonInstance = clone_instance(menuButtonInstance);
 	newFileButton = (PT_IMAGELABEL*)newButtonInstance->subInstance;
@@ -526,7 +543,7 @@ int main(int argc, char** args) {
 			TEXT_EDITOR_select(e);
 		}
 	}
-	
+
 
 	update_rendertree();
 
@@ -539,6 +556,6 @@ int main(int argc, char** args) {
 	editorConfig = get_editor_state_config();
 	save_state_config(editorConfig);
 	free_editor_state_config(&editorConfig);
-	
+
 	free(status);
 }

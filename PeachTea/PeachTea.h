@@ -44,7 +44,7 @@
 
 int PT_RUN(void(*updateCallback)(float), void(*renderCallback)(void));
 
-void PT_CREATE_MAIN_WND(vec2i size, const char* title);
+void PT_CREATE_MAIN_WND(vec2i size, const char* title, HICON icon);
 HWND PT_GET_MAIN_HWND();
 
 void PT_set_window_cursor(int idc);

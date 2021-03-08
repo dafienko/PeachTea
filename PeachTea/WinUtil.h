@@ -17,6 +17,6 @@
 #define GWL_WNDPROC -4
 #endif
 
-HWND createPeachWindow(const HINSTANCE hInstance, vec2i wndSize, const void* wndProc, const WCHAR* wndName);
+HWND createPeachWindow(const HINSTANCE hInstance, vec2i wndSize, const void* wndProc, const WCHAR* wndName,  HICON icon);
 
 #endif

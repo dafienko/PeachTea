@@ -123,13 +123,13 @@ void PT_set_window_title(const char* format, ...) {
 	free(str);
 }
 
-void PT_CREATE_MAIN_WND(vec2i size, const char* title) {	
+void PT_CREATE_MAIN_WND(vec2i size, const char* title, HICON icon) {	
 	update_accent_color();
 
 	int len = strlen(title) + 2;
 	wchar_t* wtitle = calloc(len, sizeof(wchar_t));
 	mbstowcs(wtitle, title, len);
-	hMainWnd = createPeachWindow(NULL, size, (void*)WndProc, wtitle);
+	hMainWnd = createPeachWindow(NULL, size, (void*)WndProc, wtitle, icon);
 	free(wtitle);
 
 	RECT rect = { 0 };
