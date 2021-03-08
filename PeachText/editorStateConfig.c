@@ -149,6 +149,8 @@ void free_editor_state_config(EDITOR_STATE_CONFIG* config) {
 
 void save_state_config(EDITOR_STATE_CONFIG config) {
 	FILE* file = fopen("config", "w");
+	int e = errno;
+
 
 	const int bufferSize = 2000;
 	char* buffer = calloc(bufferSize, sizeof(char));

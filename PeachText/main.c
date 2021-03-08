@@ -236,7 +236,6 @@ void main_on_command(void* arg) {
 }
 
 void on_close() {
-	/*
 	// iterate through every text editor. If the file is unsaved, prompt the user to save or discard it
 	PT_EXPANDABLE_ARRAY editors = get_open_editors();
 	for (int i = 0; i < editors.numElements; i++) {
@@ -250,12 +249,11 @@ void on_close() {
 			else {
 				sprintf(question, "Save changes to %s?", editor->filename);
 			}
-			if (MessageBoxA(NULL, question, "Unsaved CHanges", MB_YESNO) == IDYES) {
+			if (MessageBoxA(NULL, question, "Unsaved Changes", MB_YESNO) == IDYES) {
 				save(editor);
 			}
 		}
 	}
-	*/
 }
 
 
@@ -553,9 +551,12 @@ int main(int argc, char** args) {
 
 	PT_RUN(onUpdate, onRender);
 
+	on_close();
+
 	editorConfig = get_editor_state_config();
 	save_state_config(editorConfig);
 	free_editor_state_config(&editorConfig);
+
 
 	free(status);
 }
