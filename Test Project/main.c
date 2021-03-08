@@ -22,7 +22,7 @@ void onRender() {
 }
 
 int main() {
-	PT_CREATE_MAIN_WND((vec2i) { 600, 600 }, "PeachTea Chess");
+	PT_CREATE_MAIN_WND((vec2i) { 600, 600 }, "PeachTea Chess", NULL);
 
 #ifndef _DEBUG 
 	ShowWindow(GetConsoleWindow(), SW_HIDE);

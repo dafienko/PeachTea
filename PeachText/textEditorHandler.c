@@ -1042,8 +1042,12 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME*
 		}
 
 		int namesEqual = strcmp(e->filename, name) == 0;
-		int pathsEqual = strcmp(e->path, path) == 0;
-	
+		int pathsEqual = 0;
+		
+		if (e->path && path) {
+			pathsEqual = strcmp(e->path, path) == 0;
+		}
+
 		if (namesEqual || pathsEqual) {
 			int x = 0;
 		}

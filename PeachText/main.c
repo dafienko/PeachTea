@@ -242,6 +242,13 @@ void on_close() {
 		TEXT_EDITOR* editor = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
 
 		if (!editor->saved) {
+			if (!editor->path && editor->textLines->numElements == 1) { 
+				TEXT_LINE firstLine = *(TEXT_LINE*) PT_EXPANDABLE_ARRAY_get(editor->textLines, 0);
+				if (firstLine.numChars == 0) {
+					continue; // this is a brand new, empty text document, don't bother saving it
+				}
+			}
+
 			char* question = calloc(200, sizeof(char));
 			if (editor->extension) {
 				sprintf(question, "Save changes to %s.%s?", editor->filename, editor->extension);
