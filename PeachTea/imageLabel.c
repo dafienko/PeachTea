@@ -19,6 +19,8 @@ Instance* PT_IMAGELABEL_new() {
 	imgLabel->instance = instance;
 	instance->subInstance = (void*)imgLabel;
 	instance->instanceType = IT_IMAGELABEL;
+	
+	instance->destroySubInstance = PT_IMAGELABEL_destroy;
 
 	imgLabel->imageScale = 1.0f;
 

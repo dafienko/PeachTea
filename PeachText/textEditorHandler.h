@@ -17,7 +17,8 @@ typedef struct {
 	PT_GUI_OBJ* main;
 	PT_TEXTLABEL* header;
 	PT_TEXTLABEL* desc;
-
+	PT_IMAGELABEL* removeButton;
+	
 	PT_EXPANDABLE_ARRAY selectTweens;
 	PT_EXPANDABLE_ARRAY deselectTweens;
 	PT_EXPANDABLE_ARRAY onhoverTweens;
@@ -44,6 +45,7 @@ typedef struct {
 
 	EDITOR_LIST_ELEMENT listElement;
 	
+	int markedForDeletion;
 	int saved;
 } TEXT_EDITOR;
 
@@ -65,6 +67,7 @@ char get_last_char(TEXT_LINE line);
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* backgroundInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, PT_SCROLLFRAME* listContainer);
 TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, PT_SCROLLFRAME* listContainer, const char* filename);
 void TEXT_EDITOR_save(TEXT_EDITOR* textEditor);
+void TEXT_EDITOR_destroy(TEXT_EDITOR* editor);
 
 void TEXT_EDITOR_update_list_element(TEXT_EDITOR* editor);
 void TEXT_EDITOR_select(TEXT_EDITOR* textEditor);
@@ -75,7 +78,7 @@ PT_EXPANDABLE_ARRAY get_open_editors();
 vec2i TEXT_EDITOR_screenPos_to_cursorPos(vec2i screenPos);
 void move_text_pos_in_view(vec2i textPosition);
 
-void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt);
+void TEXT_EDITORs_update(float dt);
 
 TEXT_EDITOR* get_current_text_editor();
 int* get_charsTyped();
@@ -87,6 +90,8 @@ EDITOR_STATE_CONFIG get_editor_state_config();
 void realize_editor_state_config(Instance* backgroundInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, PT_SCROLLFRAME* listContainer, EDITOR_STATE_CONFIG config);
 EDITOR_STATE_CONFIG load_editor_state_config();
 
+
+void check_unsaved_work(TEXT_EDITOR* editor);
 
 int wrapText;
 int insertMode;

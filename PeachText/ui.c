@@ -65,6 +65,7 @@ void realize_color_theme(EDITOR_COLOR_THEME theme) {
 
 		PT_GUI_OBJ* main = editor->listElement.main;
 		main->backgroundColor = get_current_text_editor() == editor ? SELECTED_COLOR : DESELECTED_COLOR;
+		main->activeBackgroundColor = get_current_text_editor() == editor ? SELECTED_ACTIVE_COLOR : DESELECTED_ACTIVE_COLOR;
 
 		PT_COLOR fringeColor = PT_TWEEN_PT_COLOR(colorTheme.sidebarColor, colorTheme.backgroundColor, sideFrameTransparency, PT_LINEAR, PT_IN);
 		fringeColor = PT_TWEEN_PT_COLOR(main->backgroundColor, fringeColor, main->backgroundTransparency, PT_LINEAR, PT_IN);
@@ -98,14 +99,14 @@ void realize_color_theme(EDITOR_COLOR_THEME theme) {
 
 		tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&selectTweens, 1);
 		PT_TWEEN_destroy(tween);
-		tween = PT_TWEEN_PT_COLOR_new(SELECTED_COLOR, &main->activeBackgroundColor, selectConfig);
+		tween = PT_TWEEN_PT_COLOR_new(SELECTED_ACTIVE_COLOR, &main->activeBackgroundColor, selectConfig);
 		PT_EXPANDABLE_ARRAY_set(&selectTweens, 1, &tween);
 
 
 		// update deselect tweens
 		tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&deselectTweens, 0);
 		PT_TWEEN_destroy(tween);
-		tween = PT_TWEEN_PT_COLOR_new(DESELECTED_ACTIVE_COLOR, &main->backgroundColor, deselectConfig);
+		tween = PT_TWEEN_PT_COLOR_new(DESELECTED_COLOR, &main->backgroundColor, deselectConfig);
 		PT_EXPANDABLE_ARRAY_set(&deselectTweens, 0, &tween);
 
 		tween = *(PT_TWEEN**)PT_EXPANDABLE_ARRAY_get(&deselectTweens, 1);
@@ -140,4 +141,3 @@ void realize_color_theme(EDITOR_COLOR_THEME theme) {
 
 	backgroundObj->backgroundColor = colorTheme.backgroundColor;
 }
-

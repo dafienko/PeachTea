@@ -106,6 +106,20 @@ void list_element_activated(void* args) {
 	}
 }
 
+void on_remove(void* args) {
+	PT_GUI_OBJ* obj = (PT_GUI_OBJ*)args;
+	for (int i = 0; i < editors.numElements; i++) {
+		TEXT_EDITOR* editor = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+		EDITOR_LIST_ELEMENT listElement = editor->listElement;
+
+		if (listElement.removeButton->guiObj == obj) {
+			editor->markedForDeletion = 1;
+
+			return;
+		}
+	}
+}
+
 EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRAME* listContainer) {
 	PT_COLOR SELECTED_COLOR = accentColor;
 	PT_COLOR SELECTED_ACTIVE_COLOR = PT_COLOR_lerp(accentColor, colorTheme.borderColor, .3f);
@@ -131,6 +145,22 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	main->activeBorderColor = colorTheme.borderColor;
 	main->activeBorderRange = (vec2f){ 10, 200 };
 
+	//*
+	PT_IMAGELABEL* removeButton = (PT_IMAGELABEL*)(PT_IMAGELABEL_new()->subInstance);
+	PT_GUI_OBJ* removeButtonObj = removeButton->guiObj;
+	removeButtonObj->size = PT_REL_DIM_new(0, 30, 0, 30);
+	removeButtonObj->anchorPosition = (vec2f){ 0, .5f };
+	removeButtonObj->position = PT_REL_DIM_new(0, 10, .5f, 0);
+	removeButtonObj->backgroundColor = colorTheme.sidebarColor;
+	removeButtonObj->borderWidth = 1;
+	removeButtonObj->borderColor = colorTheme.borderColor;
+
+	PT_BINDABLE_EVENT_bind(&removeButtonObj->e_obj_activated, on_remove);
+
+	set_instance_parent(removeButton->instance, main->instance);
+	listElement.removeButton = removeButton;
+	//*/
+
 	PT_COLOR fringeColor = PT_TWEEN_PT_COLOR(colorTheme.sidebarColor, colorTheme.backgroundColor, sideFrameTransparency, PT_LINEAR, PT_IN);
 	fringeColor = PT_TWEEN_PT_COLOR(main->backgroundColor, fringeColor, main->backgroundTransparency, PT_LINEAR, PT_IN);
 
@@ -144,9 +174,9 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	header->fringeColor = fringeColor;
 
 	PT_GUI_OBJ* headerObj = header->guiObj;
-	headerObj->size = PT_REL_DIM_new(1, -34, .65, 0);
-	headerObj->anchorPosition = (vec2f){ .5f, 0 };
-	headerObj->position = PT_REL_DIM_new(.5f, -5, 0, 0);
+	headerObj->size = PT_REL_DIM_new(1, -45, .65, 0);
+	headerObj->anchorPosition = (vec2f){ 0, 0 };
+	headerObj->position = PT_REL_DIM_new(0, 45, 0, 0);
 	headerObj->backgroundTransparency = 1.0f;
 	headerObj->clipDescendants = 1;
 	headerObj->processEvents = 0;
@@ -161,9 +191,9 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	desc->fringeColor = fringeColor;
 
 	PT_GUI_OBJ* descObj = desc->guiObj;
-	descObj->size = PT_REL_DIM_new(1, headerObj->size.xOffset, 1 - headerObj->size.yFactor, 0);
-	descObj->anchorPosition = (vec2f){ .5f, 0 };
-	descObj->position = PT_REL_DIM_new(.5f, 0, headerObj->size.yFactor, 0);
+	descObj->size = PT_REL_DIM_new(1, -headerObj->size.xOffset, 1 - headerObj->size.yFactor, 0);
+	descObj->anchorPosition = (vec2f){ 0, 0 };
+	descObj->position = PT_REL_DIM_new(0, 50, headerObj->size.yFactor, 0);
 	descObj->backgroundTransparency = 1;
 	descObj->clipDescendants = 1;
 	descObj->processEvents = 0;
@@ -915,6 +945,44 @@ void TEXT_EDITOR_mouse_move() {
 	}
 }
 
+void TEXT_EDITOR_destroy(TEXT_EDITOR* editor) {
+	// retarget currentTextEditor if it's pointing to this editor
+	if (currentTextEditor == editor) {
+		currentTextEditor = NULL;
+	}
+
+	// remove editor from editors list
+	for (int i = 0; i < editors.numElements; i++) {
+		TEXT_EDITOR* e = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+		if (e == editor) {
+			PT_EXPANDABLE_ARRAY_remove(&editors, i);
+			break;
+		}
+	}
+
+	// destroy all editor instances
+	destroy_instance(editor->scrollFrame->instance);
+	destroy_instance(editor->listElement.main->instance);
+
+	// free editor path strings
+	if (editor->path) {
+		free(editor->path);
+	}
+	if (editor->filename) {
+		free(editor->filename);
+	}
+	if (editor->extension) {
+		free(editor->extension);
+	}
+
+	// free editor text
+	for (int i = 0; i < editor->textLines->numElements; i++) {
+		TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(editor->textLines, i);
+		TEXT_LINE_destroy(line);
+	}
+	PT_EXPANDABLE_ARRAY_destroy(editor->textLines);
+}
+
 TEXT_EDITOR* TEXT_EDITOR_new(Instance* backgroundInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, PT_SCROLLFRAME* listContainer) {
 	if (!editors.data) { // init
 		editors = PT_EXPANDABLE_ARRAY_new(5, sizeof(TEXT_EDITOR*));
@@ -981,7 +1049,6 @@ TEXT_EDITOR* TEXT_EDITOR_new(Instance* backgroundInstance, PT_RENDERFRAME* rende
 
 	return editor;
 }
-
 
 TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME* renderFrame, PT_RENDERFRAME* sideRenderFrame, PT_SCROLLFRAME* listContainer, const char* filename) {
 	// convert path to absolute full path and break path into components (parent path, filename, and file extension)
@@ -1103,8 +1170,29 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME*
 	return editor;
 }
 
-void TEXT_EDITOR_update(TEXT_EDITOR* editor, float dt) {
+void TEXT_EDITORs_update(float dt) {
 	float t = PT_TIME_get();
+
+	// destroy all editors marked for deletion
+	int editorsRemoved = 0;
+	for (int i = editors.numElements - 1; i >= 0; i--) {
+		TEXT_EDITOR* e = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
+		if (e->markedForDeletion) {
+			check_unsaved_work(e);
+			TEXT_EDITOR_destroy(e);
+
+			editorsRemoved++;
+		}
+	}
+	if (editorsRemoved) {
+		update_rendertree();
+		update_list_element_order();
+	}
+
+	TEXT_EDITOR* editor = currentTextEditor;
+	if (!editor) {
+		return;
+	}
 
 	if (editorCharSet->textHeight != editorTextHeight) {
 		editorCharSet = get_char_set(PT_FONT_ARIAL, editorTextHeight);

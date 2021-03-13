@@ -127,6 +127,8 @@ Instance* PT_SCROLLFRAME_new() {
 	instance->subInstance = (void*)scrollFrame;
 	instance->instanceType = IT_SCROLLFRAME;
 
+	instance->destroySubInstance = PT_SCROLLFRAME_destroy;
+
 	return instance;
 }
 
@@ -232,6 +234,11 @@ void PT_SCROLLFRAME_render(PT_SCROLLFRAME* scrollFrame, PT_SCREEN_UI* ui) {
 
 void PT_SCROLLFRAME_destroy(void* obj) {
 	PT_SCROLLFRAME* scrollFrame = (PT_SCROLLFRAME*)obj;
+
+	PT_GUI_OBJ_destroy(scrollFrame->hscrollTrack);
+	PT_GUI_OBJ_destroy(scrollFrame->vscrollTrack);
+	PT_GUI_OBJ_destroy(scrollFrame->hscrollBar);
+	PT_GUI_OBJ_destroy(scrollFrame->vscrollBar);
 
 	PT_GUI_OBJ_destroy((void*)scrollFrame->guiObj);
 

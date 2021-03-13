@@ -18,6 +18,8 @@ Instance* PT_RENDERFRAME_new() {
 	instance->subInstance = (void*)renderFrame;
 	instance->instanceType = IT_RENDERFRAME;
 
+	instance->destroySubInstance = PT_RENDERFRAME_destroy;
+
 	return instance;
 }
 

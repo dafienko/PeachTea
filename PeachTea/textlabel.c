@@ -22,6 +22,8 @@ Instance* PT_TEXTLABEL_new() {
 	inst->subInstance = (void*)textlabel;
 	inst->instanceType = IT_TEXTLABEL;
 
+	inst->destroySubInstance = PT_TEXTLABEL_destroy;
+
 	return inst;
 }
 

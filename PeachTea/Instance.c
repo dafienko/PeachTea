@@ -115,11 +115,11 @@ Instance* clone_instance(Instance* source) {
 }
 
 void destroy_instance(Instance* instance) {
-	instance->destroySubInstance(instance->subInstance);
-
 	if (instance->name) {
 		free(instance->name);
 	}
+	
+	instance->destroySubInstance(instance->subInstance);
 
 	free(instance); 
 }

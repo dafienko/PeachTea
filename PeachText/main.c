@@ -37,14 +37,6 @@ int cpm = 0;
 int lastTimeIndex = 0;
 float fpsUpdateInterval = 1.0f;
 void onUpdate(float dt) {
-	if (updateRendertree) {
-		PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
-		PT_SCREEN_UI_update_rendertree(ui);
-		updateRendertree = 0;
-	}
-
-	TEXT_EDITOR* textEditor = get_current_text_editor();
-
 	float time = PT_TIME_get();
 	frames++;
 	int tIndex = time / fpsUpdateInterval;
@@ -59,9 +51,14 @@ void onUpdate(float dt) {
 		lastTimeIndex = tIndex;
 	}
 
-	TEXT_EDITOR_update(textEditor, dt);
 
-	vec2i cursorPosition = textEditor->textCursor.position;
+	TEXT_EDITORs_update(dt);
+
+	TEXT_EDITOR* textEditor = get_current_text_editor();
+	vec2i cursorPosition = { 0 };
+	if (textEditor) {
+		cursorPosition = textEditor->textCursor.position;
+	}
 
 	const char* s = "      ";
 	memset(status, 0, 200 * sizeof(char));
@@ -73,6 +70,12 @@ void onUpdate(float dt) {
 		cursorPosition.y + 1, s,
 		cursorPosition.x + 1, s
 	);
+	
+	if (updateRendertree) {
+		PT_SCREEN_UI* ui = (PT_SCREEN_UI*)screenUI->subInstance;
+		PT_SCREEN_UI_update_rendertree(ui);
+		updateRendertree = 0;
+	}
 }
 
 int menuOpen = 0;
@@ -222,6 +225,28 @@ void on_save() {
 	save(editor);
 }
 
+void check_unsaved_work(TEXT_EDITOR* editor) {
+	if (!editor->saved) {
+		if (!editor->path && editor->textLines->numElements == 1) {
+			TEXT_LINE firstLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(editor->textLines, 0);
+			if (firstLine.numChars == 0) {
+				return; // this is a brand new, empty text document, don't bother saving it
+			}
+		}
+
+		char* question = calloc(200, sizeof(char));
+		if (editor->extension) {
+			sprintf(question, "Save changes to %s.%s?", editor->filename, editor->extension);
+		}
+		else {
+			sprintf(question, "Save changes to %s?", editor->filename);
+		}
+		if (MessageBoxA(NULL, question, "Unsaved Changes", MB_YESNO) == IDYES) {
+			save(editor);
+		}
+	}
+}
+
 void main_on_command(void* arg) {
 	PT_COMMAND command = *(PT_COMMAND*)arg;
 
@@ -241,25 +266,7 @@ void on_close() {
 	for (int i = 0; i < editors.numElements; i++) {
 		TEXT_EDITOR* editor = *(TEXT_EDITOR**)PT_EXPANDABLE_ARRAY_get(&editors, i);
 
-		if (!editor->saved) {
-			if (!editor->path && editor->textLines->numElements == 1) { 
-				TEXT_LINE firstLine = *(TEXT_LINE*) PT_EXPANDABLE_ARRAY_get(editor->textLines, 0);
-				if (firstLine.numChars == 0) {
-					continue; // this is a brand new, empty text document, don't bother saving it
-				}
-			}
-
-			char* question = calloc(200, sizeof(char));
-			if (editor->extension) {
-				sprintf(question, "Save changes to %s.%s?", editor->filename, editor->extension);
-			}
-			else {
-				sprintf(question, "Save changes to %s?", editor->filename);
-			}
-			if (MessageBoxA(NULL, question, "Unsaved Changes", MB_YESNO) == IDYES) {
-				save(editor);
-			}
-		}
+		check_unsaved_work(editor);
 	}
 }
 

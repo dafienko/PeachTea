@@ -47,4 +47,5 @@ PT_IMAGELABEL* themeButton;
 void realize_color_theme(EDITOR_COLOR_THEME theme);
 void init_ui();
 
+
 #endif
