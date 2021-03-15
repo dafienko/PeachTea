@@ -17,6 +17,8 @@ TEXT_EDITOR* currentTextEditor = NULL;
 PT_EXPANDABLE_ARRAY* lines = NULL;
 int keyDownBound = 0;
 
+PT_IMAGE xImage;
+
 int charsTyped = 0;
 
 #define REPLACE_STR(str, replacement) if (str) { free(str); } str = replacement;
@@ -121,6 +123,10 @@ void on_remove(void* args) {
 }
 
 EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRAME* listContainer) {
+	if (xImage.totalImageSize.x == 0) {
+		xImage = PT_IMAGE_from_png("assets\\images\\x.png");
+	}
+	
 	PT_COLOR SELECTED_COLOR = accentColor;
 	PT_COLOR SELECTED_ACTIVE_COLOR = PT_COLOR_lerp(accentColor, colorTheme.borderColor, .3f);
 	PT_REL_DIM SELECTED_SIZE = PT_REL_DIM_new(1, -(2 + listContainer->scrollBarThickness * 2), 0, LIST_ELEMENT_THICKNESS);
@@ -147,13 +153,17 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 
 	//*
 	PT_IMAGELABEL* removeButton = (PT_IMAGELABEL*)(PT_IMAGELABEL_new()->subInstance);
+	removeButton->image = xImage;
+	removeButton->imageTint = PT_COLOR_new(1, 1, 1);
+	removeButton->imageTintAlpha = 1;
 	PT_GUI_OBJ* removeButtonObj = removeButton->guiObj;
-	removeButtonObj->size = PT_REL_DIM_new(0, 30, 0, 30);
+	removeButtonObj->size = PT_REL_DIM_new(0, 23, 0, 23);
 	removeButtonObj->anchorPosition = (vec2f){ 0, .5f };
 	removeButtonObj->position = PT_REL_DIM_new(0, 10, .5f, 0);
 	removeButtonObj->backgroundColor = colorTheme.sidebarColor;
-	removeButtonObj->borderWidth = 1;
+	removeButtonObj->borderWidth = 0;
 	removeButtonObj->borderColor = colorTheme.borderColor;
+	removeButtonObj->backgroundTransparency = 1;
 
 	PT_BINDABLE_EVENT_bind(&removeButtonObj->e_obj_activated, on_remove);
 
