@@ -54,5 +54,7 @@ void PT_BINDABLE_EVENT_unbind(PT_BINDABLE_EVENT* event, PT_CALLBACK_FUNCTION_POI
 }
 
 void PT_BINDABLE_EVENT_destroy(PT_BINDABLE_EVENT* event) {
-	free(event->callbacks);
+	if (event->initialized) {
+		free(event->callbacks);
+	}
 }

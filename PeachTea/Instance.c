@@ -6,69 +6,49 @@
 #include "imageLabel.h"
 #include "textLabel.h"
 #include "ScreenUI.h"
+#include "expandableArray.h"
 
-void set_instance_parent(Instance* i, Instance* newParent) {
-	if (i->parent != NULL) { // remove instance from old parent
-		Instance* oldParent = i->parent;
+void set_instance_parent(Instance* instance, Instance* newParent) {
+	if (instance->parent != NULL) { // remove instance from old parent
+		Instance* oldParent = instance->parent;
 
-		int numChildren = i->parent->numChildren;
-		int currentChildrenArraySize = i->parent->childrenArraySize;
-		numChildren--; // a child is being removed: decrement numChildren
-		i->parent->numChildren = numChildren;
-
-		// replace pointer to this instance with pointer to a valid child in the array
-		for (int k = 0; k < numChildren; k++) {
-			if (i->parent->children + k == i) {
-				*(i->parent->children + k) = *(i->parent->children + numChildren + 1);
-				*(i->parent->children + numChildren + 1) = NULL;
+		for (int i = 0; i < oldParent->children.numElements; i++) {
+			Instance* child = *(Instance**)PT_EXPANDABLE_ARRAY_get(&oldParent->children, i);
+			if (child == instance) {
+				PT_EXPANDABLE_ARRAY_remove(&oldParent->children, i);
 				break;
 			}
-		}
-
-		if (numChildren < currentChildrenArraySize / 2 && numChildren > 2) { // shrink-wrap children pointer size to only the pointers that are required
-			i->parent->children = realloc(i->parent->children, (currentChildrenArraySize / 2) * sizeof(Instance*));
-			i->parent->childrenArraySize = currentChildrenArraySize / 2;
 		}
 
 		PT_BINDABLE_EVENT_fire(&oldParent->childRemoved, oldParent);
 	}
 
-	i->parent = newParent;
+	instance->parent = newParent;
 
 	if (newParent != NULL) { // add instance to new parent children array
-
-		if (newParent->numChildren + 1 > newParent->childrenArraySize) { // expand children array in case the current one isn't big enough
-			newParent->childrenArraySize *= 2;
-			newParent->children = realloc(newParent->children, newParent->childrenArraySize * sizeof(Instance*));
-		}
-
-		*(newParent->children + newParent->numChildren) = i;
-
-		newParent->numChildren++;
+		PT_EXPANDABLE_ARRAY_add(&newParent->children, &instance);
 
 		PT_BINDABLE_EVENT_fire(&newParent->childAdded, newParent);
 	}
 }
 
 void init_instance(Instance* i) {
-	i->children = calloc(2, sizeof(Instance*));
+	i->children = PT_EXPANDABLE_ARRAY_new(1, sizeof(Instance*));
 	i->parent = NULL;
-	i->childrenArraySize = 2;
-	i->numChildren = 0;
 }
 
 Instance* new_instance() {
 	Instance* i = (Instance*)calloc(1, sizeof(Instance));
 	init_instance(i);
 	i->subInstance = NULL;
-	i->name = "";
+	i->name = NULL;
 	
 	return i;
 }
 
 Instance* get_child_from_name(Instance* parent, const char* name) {
-	for (int i = 0; i < parent->numChildren; i++) {
-		Instance* child = *(parent->children + i);
+	for (int i = 0; i < parent->children.numElements; i++) {
+		Instance* child = *(Instance**)PT_EXPANDABLE_ARRAY_get(&parent->children, i);
 		char* childName = child->name;
 
 		if (childName && strcmp(childName, name) == 0) {
@@ -115,24 +95,37 @@ Instance* clone_instance(Instance* source) {
 }
 
 void destroy_instance(Instance* instance) {
+	if (instance->parent) {
+		set_instance_parent(instance, NULL);
+	}
+
+	for (int i = 0; i < instance->children.numElements; i++) {
+		Instance* child = *(Instance**)PT_EXPANDABLE_ARRAY_get(&instance->children, i);
+		destroy_instance(child);
+	}
+	
 	if (instance->name) {
 		free(instance->name);
 	}
 	
 	instance->destroySubInstance(instance->subInstance);
 
+	PT_BINDABLE_EVENT_destroy(&instance->childAdded);
+	PT_BINDABLE_EVENT_destroy(&instance->childRemoved);
+
+
 	free(instance); 
 }
 
 unsigned int get_num_children(Instance* instance) {
-	return instance->numChildren;
+	return instance->children.numElements;
 }
 
 unsigned int get_num_descendants(Instance* instance) {
-	int n = instance->numChildren;
+	int n = get_num_children(instance);
 
-	for (int i = 0; i < instance->numChildren; i++) {
-		Instance* child = *(instance->children + i);
+	for (int i = 0; i < n; i++) {
+		Instance* child = *(Instance**)PT_EXPANDABLE_ARRAY_get(&instance->children, i);
 		n += get_num_descendants(child);
 	}
 
@@ -151,8 +144,8 @@ Instance** get_descendants(Instance* parent, unsigned int* numDescendantsOut) {
 
 	int descCount = 0;
 
-	for (int i = 0; i < parent->numChildren; i++) {
-		Instance* child = *(parent->children + i);
+	for (int i = 0; i < get_num_children(parent); i++) {
+		Instance* child = *(Instance**)PT_EXPANDABLE_ARRAY_get(&parent->children, i);
 
 		*(descendants + descCount) = child;
 		descCount++;

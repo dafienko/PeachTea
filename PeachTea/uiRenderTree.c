@@ -70,7 +70,7 @@ PT_UI_RENDER_TREE* create_render_tree_from_instance(Instance* instance, Z_SORTIN
 			tree->branches = calloc(tree->branchSpace, sizeof(PT_UI_RENDER_TREE*));
 
 			for (int i = 0; i < numChildren; i++) {
-				Instance* child = *(instance->children + i);
+				Instance* child = *(Instance**)PT_EXPANDABLE_ARRAY_get(&instance->children, i);
 
 				if (IS_UI_INSTANCE(child->instanceType)) {
 					*(tree->branches + tree->numBranches) = create_render_tree_from_instance(child, sortingType);

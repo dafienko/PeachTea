@@ -18,7 +18,7 @@ int get_instance_zindex(Instance* instance) {
 
 	switch (instance->instanceType) {
 	case IT_GUI_OBJ:
-		guiObj = instance->subInstance;
+		guiObj = (PT_GUI_OBJ*)instance->subInstance;
 		break;
 	case IT_IMAGELABEL:
 		;
@@ -73,9 +73,9 @@ void compare_instances(void* v1, void* v2) {
 void onDescendantsChanged(void* args) {
 	Instance* instance = (Instance*)args;
 	
-	Instance** children = instance->children;
+	Instance** children = instance->children.data;
 
-	quicksort(children, sizeof(Instance*), instance->numChildren, compare_instances);
+	quicksort(children, sizeof(Instance*), get_num_children(instance), compare_instances);
 }
 
 Instance* PT_GUI_OBJ_new() {
@@ -247,6 +247,14 @@ void PT_GUI_OBJ_render(PT_GUI_OBJ* obj, PT_SCREEN_UI* ui) {
 
 void PT_GUI_OBJ_destroy(void* obj) {
 	PT_GUI_OBJ* guiObj = (PT_GUI_OBJ*)obj; // obj should be a PT_GUI_OBJ
+
+	PT_BINDABLE_EVENT_destroy(&guiObj->e_obj_dragged);
+	PT_BINDABLE_EVENT_destroy(&guiObj->e_obj_mouseEnter);
+	PT_BINDABLE_EVENT_destroy(&guiObj->e_obj_mouseLeave);
+	PT_BINDABLE_EVENT_destroy(&guiObj->e_obj_pressed);
+	PT_BINDABLE_EVENT_destroy(&guiObj->e_obj_released);
+	PT_BINDABLE_EVENT_destroy(&guiObj->e_obj_activated);
+
 	free(guiObj);
 }
 

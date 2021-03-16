@@ -331,8 +331,6 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 	int numLines = 0;
 	format_insert_str(str, len, &strLines, &lengths, &numLines);
 
-	printf("\n%i\n", numLines);
-
 	for (int i = 0; i < numLines; i++) {
 		int l = *(lengths + i);
 		char* line = *(strLines + i);
@@ -374,16 +372,13 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 					memcpy(insertFirstFlag.misc, pFlag->misc, sizeof(float));
 					free(pFlag->misc);
 					pFlag->misc = insertFirstFlag.misc;
-					printf("overwriting firstflag @ 0 %.2f\n", *(float*)insertFirstFlag.misc);
 				}
 				else {
-					printf("inserting beforeflag @ %i %.2f\n", pFlag->index, *(float*)pFlag->misc);
 					TEXT_METADATA_FLAG_insert(&insertLine.flags, *pFlag);
 				}
 			}
 
 			if (insertFlag.index != 0) {
-				printf("inserting insert flag @ %i %.2f\n", insertFlag.index, *(float*)insertFlag.misc);
 				TEXT_METADATA_FLAG_insert(&insertLine.flags, insertFlag);
 			}
 		}
@@ -407,13 +402,11 @@ void insert_str_at_cursor(TEXT_CURSOR* cursor, char* str, int len) {
 					lastFlag.index += justTextLen;
 
 					if (lastFlag.index == 0) {
-						printf("overwriting first flag w/ interrupted flag %.2f\n", *(float*)lastFlag.misc);
 						TEXT_METADATA_FLAG* targetFlag = (TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(&insertLine.flags, 0);
 						free(targetFlag->misc);
 						targetFlag->misc = lastFlag.misc;
 					}
 					else {
-						printf("inserting interrupted flag @ %i %.2f\n", lastFlag.index, *(float*)lastFlag.misc);
 						TEXT_METADATA_FLAG_insert(&insertLine.flags, lastFlag);
 					}
 				}

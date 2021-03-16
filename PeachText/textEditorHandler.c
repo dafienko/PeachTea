@@ -156,14 +156,18 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	removeButton->image = xImage;
 	removeButton->imageTint = PT_COLOR_new(1, 1, 1);
 	removeButton->imageTintAlpha = 1;
+	removeButton->imageScale = .7;
 	PT_GUI_OBJ* removeButtonObj = removeButton->guiObj;
-	removeButtonObj->size = PT_REL_DIM_new(0, 23, 0, 23);
+	removeButtonObj->size = PT_REL_DIM_new(0, 30, 0, 30);
 	removeButtonObj->anchorPosition = (vec2f){ 0, .5f };
-	removeButtonObj->position = PT_REL_DIM_new(0, 10, .5f, 0);
+	removeButtonObj->position = PT_REL_DIM_new(0, 6, .5f, 0);
 	removeButtonObj->backgroundColor = colorTheme.sidebarColor;
 	removeButtonObj->borderWidth = 0;
 	removeButtonObj->borderColor = colorTheme.borderColor;
-	removeButtonObj->backgroundTransparency = 1;
+	removeButtonObj->backgroundTransparency = .7;
+	removeButtonObj->activeBackgroundColor = PT_COLOR_fromHSV(0, 0, 1);
+	removeButtonObj->activeBackgroundRange = (vec2f){ 100, 0 };
+	removeButtonObj->reactive = 1;
 
 	PT_BINDABLE_EVENT_bind(&removeButtonObj->e_obj_activated, on_remove);
 

@@ -338,8 +338,8 @@ void update_instance_size_recur(Instance* instance, PT_canvas parentCanvas) {
 		free(name);
 	}
 
-	for (int i = 0; i < instance->numChildren; i++) {
-		Instance* child = *(instance->children + i);
+	for (int i = 0; i < get_num_children(instance); i++) {
+		Instance* child = *(Instance**)PT_EXPANDABLE_ARRAY_get(&instance->children, i);
 		update_instance_size_recur(child, childCanvas);
 	}
 }
@@ -353,7 +353,9 @@ void print_rendertree(PT_UI_RENDER_TREE* tree, int tabs) {
 		strIndex++;
 	}
 
-	memcpy(str + strIndex, tree->rootInstance->name, strlen(tree->rootInstance->name));
+	if (tree->rootInstance->name) {
+		memcpy(str + strIndex, tree->rootInstance->name, strlen(tree->rootInstance->name));
+	}
 	printf("%s\t- %i\n", str, get_instance_zindex(tree->rootInstance));
 
 	free(str);
@@ -375,7 +377,7 @@ void PT_SCREEN_UI_update_rendertree(PT_SCREEN_UI* ui) {
 
 	PT_UI_RENDER_TREE* tree = PT_UI_RENDER_TREE_generate(ui);
 	//*
-	print_rendertree(tree, 0);
+	//print_rendertree(tree, 0);
 	printf("\n");
 	//*?
 	ui->lastRenderTree = tree;

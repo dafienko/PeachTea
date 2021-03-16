@@ -2,6 +2,7 @@
 #define PT_INSTANCE_H
 
 #include "BindableEvent.h"
+#include "expandableArray.h"
 
 typedef enum {
 	IT_UNDEF,
@@ -24,10 +25,8 @@ typedef struct Instance {
 
 	char* name;
 	
-	struct Instance** children;
+	PT_EXPANDABLE_ARRAY children;
 	struct Instance* parent;
-	int numChildren;
-	int childrenArraySize;
 
 	PT_BINDABLE_EVENT childAdded;
 	PT_BINDABLE_EVENT childRemoved;
