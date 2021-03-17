@@ -38,7 +38,7 @@ void update_list_element_order() {
 		
 		if (i == editors.numElements - 1) { // on the last element in the list, shrinkwrap the size of the container's canvas
 			bottomY = y + LIST_ELEMENT_THICKNESS;
-			PT_SCROLLFRAME* container = (PT_SCROLLFRAME*)listElement.main->instance->parent->subInstance;
+			PT_SCROLLFRAME* container = (PT_SCROLLFRAME*)(listElement.main->instance->parent->subInstance);
 			container->canvasSize = PT_REL_DIM_new(0, 0, 0, bottomY);
 		}
 	}
@@ -137,7 +137,7 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 
 	EDITOR_LIST_ELEMENT listElement = { 0 };
 
-	PT_GUI_OBJ* main = (PT_GUI_OBJ*)PT_GUI_OBJ_new()->subInstance;
+	PT_GUI_OBJ* main = (PT_GUI_OBJ*)(PT_GUI_OBJ_new()->subInstance);
 	main->instance->name = create_heap_str("editor list element");
 	main->size = SELECTED_SIZE;
 	main->reactive = 1;
@@ -154,7 +154,7 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	//*
 	PT_IMAGELABEL* removeButton = (PT_IMAGELABEL*)(PT_IMAGELABEL_new()->subInstance);
 	removeButton->image = xImage;
-	removeButton->imageTint = PT_COLOR_new(1, 1, 1);
+	removeButton->imageTint = colorTheme.borderColor;
 	removeButton->imageTintAlpha = 1;
 	removeButton->imageScale = .7;
 	PT_GUI_OBJ* removeButtonObj = removeButton->guiObj;
@@ -327,9 +327,6 @@ void TEXT_EDITOR_select(TEXT_EDITOR* textEditor) {
 		}
 
 		currentTextEditor->scrollFrame->visible = 0;
-	
-		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)currentTextEditor->textCursor.cursorFrame->subInstance;
-		cursorObj->visible = 0;
 	}
 
 	if (textEditor) { 
@@ -339,9 +336,6 @@ void TEXT_EDITOR_select(TEXT_EDITOR* textEditor) {
 		}
 
 		textEditor->scrollFrame->visible = 1;
-
-		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textEditor->textCursor.cursorFrame->subInstance;
-		cursorObj->visible = 1;
 	}
 
 	currentTextEditor = textEditor;
@@ -808,7 +802,7 @@ void on_sys_key_down(void* args) {
 
 void on_render_frame_render(PT_RENDERFRAME* renderFrame) {
 	if (currentTextEditor && currentTextEditor->renderFrame == renderFrame) {
-		render_text_editor(*currentTextEditor);
+		render_text_editor(currentTextEditor);
 	}
 }
 
@@ -1226,8 +1220,7 @@ void TEXT_EDITORs_update(float dt) {
 		TEXT_LINE thisLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(editor->textLines, y);
 		int x = min(thisLine.numChars, editor->textCursor.position.x);
 
-		PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)textCursor->cursorFrame->subInstance;
-		cursorObj->backgroundColor = colorTheme.cursorColor;
+		textCursor->color = colorTheme.cursorColor;
 
 		if (insertMode) {
 			int charWidth = 2;
@@ -1235,19 +1228,6 @@ void TEXT_EDITORs_update(float dt) {
 				char c = *(thisLine.str + editor->textCursor.position.x);
 				charWidth = max(charWidth, (editorCharSet->size + c)->x);
 			}
-			
-			cursorObj->size = PT_REL_DIM_new(0, charWidth, 0, editorTextHeight + editorLinePadding);
-		}
-		else {
-			cursorObj->size = PT_REL_DIM_new(0, 2, 0, editorTextHeight + editorLinePadding);
-		}
-
-		float lastTypedTime = textCursor->lastTypedTime;
-		int flashIndex = floorf((t - lastTypedTime) / textCursor->flashInterval);
-		if (flashIndex != textCursor->lastFlashIndex) {
-			textCursor->lastFlashIndex = flashIndex;
-
-			cursorObj->visible = flashIndex % 2 == 0;
 		}
 	}
 }

@@ -7,8 +7,11 @@
 
 typedef struct {
 	vec2i position, selectTo;
+	vec2i lastMidPos; 
+	PT_COLOR color;
 	PT_EXPANDABLE_ARRAY* textArray;
-	Instance* cursorFrame;
+	int thickness;
+	//Instance* cursorFrame;
 
 	int insert;
 	float lastTypedTime;

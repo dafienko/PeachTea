@@ -3,20 +3,22 @@
 #include <stdio.h>
 
 TEXT_CURSOR TEXT_CURSOR_new(TEXT_EDITOR* editor) {
-	Instance* cursorFrame = PT_GUI_OBJ_new();
-	cursorFrame->name = create_heap_str("cursor");
-	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
-	cursorObj->size = PT_REL_DIM_new(0, 2, 0, editorTextHeight + editorLinePadding);
-	cursorObj->zIndex = 3;
-	cursorObj->backgroundColor = PT_COLOR_fromHSV(0, 0, .9f);
+	//Instance* cursorFrame = PT_GUI_OBJ_new();
+	//cursorFrame->name = create_heap_str("cursor");
+	//PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
+	//cursorObj->size = PT_REL_DIM_new(0, 2, 0, editorTextHeight + editorLinePadding);
+	//cursorObj->zIndex = 3;
+	//cursorObj->backgroundColor = PT_COLOR_fromHSV(0, 0, .9f);
 
-	set_instance_parent(cursorFrame, editor->scrollFrame->instance->parent);
+	//set_instance_parent(cursorFrame, editor->scrollFrame->instance->parent);
 
 	TEXT_CURSOR cursor = { 0 };
 	cursor.position = (vec2i){ 0, 0 };
 	cursor.textArray = editor->textLines;
-	cursor.cursorFrame = cursorFrame;
 	cursor.flashInterval = .5f;
+	cursor.color = PT_COLOR_fromHSV(0, 0, 1);
+	cursor.thickness = 2;
+	//cursor.cursorFrame = cursorFrame;
 
 	return cursor;
 }
@@ -563,9 +565,10 @@ void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
 	
 	vec3i newPosData = calculate_text_position(cursor->textArray, cursor->position, dir, cursor->targetX);
 
-	PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursor->cursorFrame->subInstance;
-	PT_canvas cursorCanvas = cursorObj->lastCanvas;
-	vec2i midPos = (vec2i){ (cursorCanvas.left + cursorCanvas.right) / 2, (cursorCanvas.top + cursorCanvas.bottom) / 2 };
+	//PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursor->cursorFrame->subInstance;
+	//PT_canvas cursorCanvas = cursorObj->lastCanvas;
+	//vec2i midPos = (vec2i){ (cursorCanvas.left + cursorCanvas.right) / 2, (cursorCanvas.top + cursorCanvas.bottom) / 2 };
+	vec2i midPos = cursor->lastMidPos;
 
 	vec2i newPos = (vec2i){ newPosData.x, newPosData.y };
 	TEXT_EDITOR* currentTextEditor = get_current_text_editor();

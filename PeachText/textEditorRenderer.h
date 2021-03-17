@@ -4,6 +4,6 @@
 #include "PeachTea.h"
 #include "textEditorHandler.h"
 
-void render_text_editor(TEXT_EDITOR textEditor);
+void render_text_editor(TEXT_EDITOR* textEditor);
 
 #endif

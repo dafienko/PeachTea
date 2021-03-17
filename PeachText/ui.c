@@ -77,6 +77,9 @@ void realize_color_theme(EDITOR_COLOR_THEME theme) {
 		listElement.desc->textColor = PT_COLOR_lerp(colorTheme.borderColor, colorTheme.accentColor, .2);
 		listElement.desc->fringeColor = fringeColor;
 
+		listElement.removeButton->imageTint = colorTheme.borderColor;
+		listElement.removeButton->guiObj->backgroundColor = colorTheme.sidebarColor;
+
 		PT_EXPANDABLE_ARRAY selectTweens = listElement.selectTweens;
 		PT_EXPANDABLE_ARRAY deselectTweens = listElement.deselectTweens;
 

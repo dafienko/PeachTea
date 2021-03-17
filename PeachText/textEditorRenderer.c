@@ -93,7 +93,7 @@ void render_selection_rects(PT_EXPANDABLE_ARRAY* arr, vec2i canvasOffset) {
 
 	uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), screenSize);
 	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), colorTheme.accentColor);
-	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .3f);
+	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .4f);
 
 	default_quad_corners();
 
@@ -125,16 +125,16 @@ void add_quad_to_arr(PT_EXPANDABLE_ARRAY* arr, vec2i topLeft, vec2i bottomRight)
 	PT_EXPANDABLE_ARRAY_add(arr, (void*)&bottomRight); 
 }
 
-void render_text_editor(TEXT_EDITOR textEditor) {
+void render_text_editor(TEXT_EDITOR* textEditor) {
 	float time = PT_TIME_get();
 
-	PT_SCROLLFRAME* scrollFrame = textEditor.scrollFrame;
+	PT_SCROLLFRAME* scrollFrame = textEditor->scrollFrame;
 	vec2i canvasOffset = scrollFrame->canvasPosition;
 	PT_canvas scrollCanvas = scrollFrame->guiObj->lastCanvas;
 	vec2i scrollFrameSize = canvas_size(scrollCanvas);
 	vec2i scrollCanvasSize = calculate_screen_dimension(scrollFrame->canvasSize, scrollFrameSize);
 
-	PT_RENDERFRAME* renderFrame = textEditor.renderFrame;
+	PT_RENDERFRAME* renderFrame = textEditor->renderFrame;
 	PT_canvas canvas = renderFrame->guiObj->lastCanvas;
 
 	vec2i canvasSize = canvas_size(canvas);
@@ -148,7 +148,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 		scrollFrame->canvasPosition.y + screenSize.y
 	};
 
-	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(&textEditor);
+	int xMargin = scrollCanvas.left + TEXT_EDITOR_get_margin(textEditor);
 	int lineThickness = editorTextHeight + editorLinePadding;
 
 	int baselineX = xMargin - canvasOffset.x;
@@ -159,43 +159,45 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 	PT_EXPANDABLE_ARRAY lineNumbers = PT_EXPANDABLE_ARRAY_new(1, sizeof(lineNumber));
 
-	int wrapX = TEXT_EDITOR_get_wrapX(&textEditor);
+	int wrapX = TEXT_EDITOR_get_wrapX(textEditor);
 	int relWrapX = 0;
 	if (wrapX) {
 		relWrapX = wrapX - baselineX;
 	}
 	int yPos = editorTextHeight + editorLinePadding / 2;;
 	int maxX = xMargin;
-	int maxY = textEditor.textLines->numElements * (editorLinePadding + editorTextHeight);
+	int maxY = textEditor->textLines->numElements * (editorLinePadding + editorTextHeight);
 	int cursorPositioned = 0;
 
 	vec2i sStart, sEnd;
-	get_cursor_selection_bounds(textEditor.textCursor, &sStart, &sEnd);
+	get_cursor_selection_bounds(textEditor->textCursor, &sStart, &sEnd);
 	PT_EXPANDABLE_ARRAY selectionRects = PT_EXPANDABLE_ARRAY_new(50, sizeof(vec2i));
 
-	for (int y = 0; y < textEditor.textLines->numElements; y++) {
-		TEXT_LINE* pLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor.textLines, y);
+	for (int y = 0; y < textEditor->textLines->numElements; y++) {
+		TEXT_LINE* pLine = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textEditor->textLines, y);
 		TEXT_LINE line = *pLine;
 		vec2i rect = get_text_rect(editorCharSet, line.str, line.numChars, relWrapX);
 
 		// render cursor position and highlight selected line
-		TEXT_CURSOR cursor = textEditor.textCursor;
+		TEXT_CURSOR cursor = textEditor->textCursor;
 		if (y == cursor.position.y) {
 			vec2i offset = get_text_offset(editorCharSet, line.str, cursor.position.x, relWrapX);
-			PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursor.cursorFrame->subInstance;
-			cursorObj->position = PT_REL_DIM_new(
-				0, baselineX + offset.x,
-				0, (yPos - lineThickness) + offset.y * lineThickness + editorLinePadding / 2 - canvasOffset.y
-			);
+			vec2i cursorPos = (vec2i){
+				baselineX + offset.x,
+				(yPos - lineThickness) + offset.y * lineThickness + editorLinePadding / 2 - canvasOffset.y
+			};
+			vec2i cursorSize = (vec2i){ cursor.thickness, lineThickness };
+			textEditor->textCursor.lastMidPos = vector_add_2i(cursorPos, vector_div_2i(cursorSize, 2));
 			cursorPositioned = 1;
 
 			glUseProgram(PTS_rect);
-			uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), colorTheme.selectedLineColor);
-			glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), 0);
 			uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), screenSize);
+			glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), 0);
 
 			default_quad_corners();
+			uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), colorTheme.selectedLineColor);
 
+			// render selected line background highlight
 			set_quad_positions(
 				(vec2i) {
 				0, yPos - canvasOffset.y - lineThickness + editorLinePadding / 2
@@ -205,6 +207,15 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 				}
 			);
 			glDrawArrays(GL_QUADS, 0, 4);
+
+			// render cursor
+			float timeSinceEdit = time - cursor.lastTypedTime;
+			float flashR = fmod(timeSinceEdit, cursor.flashInterval * 2);
+			if (flashR < cursor.flashInterval) {
+				uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), colorTheme.cursorColor);
+				set_quad_positions(cursorPos, vector_add_2i(cursorPos, cursorSize));
+				glDrawArrays(GL_QUADS, 0, 4);
+			}
 		}
 
 
@@ -278,12 +289,12 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 			for (int i = lineFlags->numElements - 1; i >= 0; i--) {
 				TEXT_METADATA_FLAG* flag = PT_EXPANDABLE_ARRAY_get(lineFlags, i);
 				float timeDiff = time - *(float*)flag->misc;
-				float alpha = min(1.0f, timeDiff / textEditor.editFadeTime);
+				float alpha = min(1.0f, timeDiff / textEditor->editFadeTime);
 
 				if (i > 0) {
 					TEXT_METADATA_FLAG* nextFlag = PT_EXPANDABLE_ARRAY_get(lineFlags, i - 1);
 					float nextTimeDiff = time - *(float*)nextFlag->misc;
-					float nextAlpha = min(1.0f, nextTimeDiff / textEditor.editFadeTime);
+					float nextAlpha = min(1.0f, nextTimeDiff / textEditor->editFadeTime);
 
 
 					if (nextAlpha == alpha) { // if the flag at i-1 is the same color as this flag, then destroy it (it's redundant)
@@ -336,7 +347,7 @@ void render_text_editor(TEXT_EDITOR textEditor) {
 
 	render_selection_rects(&selectionRects, canvasOffset);
 
-	render_line_numbers(textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, &lineNumbers);
+	render_line_numbers(*textEditor, canvasSize, occlusionTopLeftBound, occlusionBottomRightBound, &lineNumbers);
 
 	PT_EXPANDABLE_ARRAY_destroy(&selectionRects);
 	PT_EXPANDABLE_ARRAY_destroy(&lineNumbers);
