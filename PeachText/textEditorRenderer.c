@@ -93,7 +93,7 @@ void render_selection_rects(PT_EXPANDABLE_ARRAY* arr, vec2i canvasOffset) {
 
 	uniform_vec2i(glGetUniformLocation(PTS_rect, "screenSize"), screenSize);
 	uniform_PT_COLOR(glGetUniformLocation(PTS_rect, "color"), colorTheme.accentColor);
-	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .4f);
+	glUniform1f(glGetUniformLocation(PTS_rect, "transparency"), .45);
 
 	default_quad_corners();
 

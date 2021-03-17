@@ -149,7 +149,7 @@ EDITOR_LIST_ELEMENT create_editor_list_element(TEXT_EDITOR* editor, PT_SCROLLFRA
 	main->borderWidth = 1;
 	main->borderTransparancy = .7f;
 	main->activeBorderColor = colorTheme.borderColor;
-	main->activeBorderRange = (vec2f){ 10, 200 };
+	main->activeBorderRange = (vec2f){ 10, 90 };
 
 	//*
 	PT_IMAGELABEL* removeButton = (PT_IMAGELABEL*)(PT_IMAGELABEL_new()->subInstance);
@@ -635,7 +635,7 @@ void move_text_pos_in_view(vec2i textPosition) {
 		}
 
 		if (penY < canvasPos.y) {
-			newCanvasPos.y = penY;
+			newCanvasPos.y = penY - editorLinePadding / 2;
 		}
 		else if (penY + lineThickness >= canvasPos.y + canvasSize.y) {
 			newCanvasPos.y = (penY + lineThickness) - canvasSize.y ;

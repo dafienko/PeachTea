@@ -3,22 +3,12 @@
 #include <stdio.h>
 
 TEXT_CURSOR TEXT_CURSOR_new(TEXT_EDITOR* editor) {
-	//Instance* cursorFrame = PT_GUI_OBJ_new();
-	//cursorFrame->name = create_heap_str("cursor");
-	//PT_GUI_OBJ* cursorObj = (PT_GUI_OBJ*)cursorFrame->subInstance;
-	//cursorObj->size = PT_REL_DIM_new(0, 2, 0, editorTextHeight + editorLinePadding);
-	//cursorObj->zIndex = 3;
-	//cursorObj->backgroundColor = PT_COLOR_fromHSV(0, 0, .9f);
-
-	//set_instance_parent(cursorFrame, editor->scrollFrame->instance->parent);
-
 	TEXT_CURSOR cursor = { 0 };
 	cursor.position = (vec2i){ 0, 0 };
 	cursor.textArray = editor->textLines;
 	cursor.flashInterval = .5f;
 	cursor.color = PT_COLOR_fromHSV(0, 0, 1);
 	cursor.thickness = 2;
-	//cursor.cursorFrame = cursorFrame;
 
 	return cursor;
 }
@@ -550,6 +540,36 @@ vec3i calculate_text_position(PT_EXPANDABLE_ARRAY* textArray, vec2i pos, vec2i d
 	return newPos;
 }
 
+int drag_selection_range(PT_EXPANDABLE_ARRAY* textLines, vec2i lineRange, int dir) {
+	if (lineRange.x + dir < 0 || lineRange.y + dir >= textLines->numElements) { 
+		return 0; // don't drag out of range
+	}
+
+	int numLines = lineRange.y - lineRange.x + 1;
+	TEXT_LINE replacedLine;
+	int replacedIndex;
+	TEXT_LINE* movedLines = calloc(numLines, sizeof(TEXT_LINE));
+	char* pStart = textLines->data + lineRange.x * sizeof(TEXT_LINE);
+	memcpy(movedLines, pStart, numLines * sizeof(TEXT_LINE));
+	
+	if (dir > 0) { // dragging down
+		replacedIndex = lineRange.x;
+		replacedLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textLines, lineRange.y + 1);
+
+	}
+	else { // dragging up
+		replacedIndex = lineRange.y;
+		replacedLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(textLines, lineRange.x - 1);
+	}
+
+	// drag the lines
+	memcpy(pStart + dir * sizeof(TEXT_LINE), movedLines, numLines * sizeof(TEXT_LINE));
+
+	// replace the duplicate line with the overwritten line
+	PT_EXPANDABLE_ARRAY_set(textLines, replacedIndex, &replacedLine);
+	return dir;
+}
+
 /*
 u/d/l/r -> move cursor position; bring cursor selection position to cursor position
 
@@ -591,10 +611,20 @@ void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
 	// there is at least one line clone and at least alt or shift is being held down
 	if (abs(cursor->cloneLineOffset) > 0 && (altDown || shiftDown)) {
 		int dy = newPos.y - cursor->position.y;
-		cursor->cloneLineOffset -= dy;
+		cursor->position.y -= dy;
+		cursor->selectTo = cursor->position;
 	}
 	else if (altDown && !shiftDown) { // drag selection with cursor
-
+		int dragDir = -dir.y;
+		if (dragDir != 0) {
+			vec2i selectionRange = (vec2i){
+				min(cursor->position.y, cursor->selectTo.y),
+				max(cursor->position.y, cursor->selectTo.y)
+			};
+			int dy = drag_selection_range(cursor->textArray, selectionRange, dragDir);
+			newPos = (vec2i){ cursor->position.x, cursor->position.y + dy };
+			cursor->selectTo.y += dy;
+		}
 	}
 	else if (!(shiftDown || altDown)) {
 		cursor->selectTo = newPos;
