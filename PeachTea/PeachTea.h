@@ -64,6 +64,8 @@ typedef enum {
 	PT_ZOOM_OUT, // ctrl scroll down
 	PT_SAVE, // ctrl s
 	PT_SAVE_AS, // ctrl shift s
+	PT_UNDO, // ctrl z
+	PT_REDO, // ctrl y
 } PT_COMMAND;
 
 PT_BINDABLE_EVENT eOnCommand;

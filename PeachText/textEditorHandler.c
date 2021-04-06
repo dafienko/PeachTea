@@ -5,6 +5,7 @@
 #include "textCursor.h"
 #include "textEditorRenderer.h"
 #include "ui.h"
+#include "actionHistory.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,6 +27,9 @@ int charsTyped = 0;
 #define IS_LOWER_CHAR(c) c >= 97 && c <= 122
 #define IS_ALPHA_CHAR(c) IS_UPPER_CHAR(c) || IS_LOWER_CHAR(c);
 #define IS_NUMBER_CHAR(c) c >= 48 && c <= 57
+
+void on_undo();
+void on_redo();
 
 void update_list_element_order() {
 	int bottomY = 0;
@@ -504,7 +508,7 @@ void untab_selection() {
 		TEXT_LINE* line = (TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(currentTextEditor->textLines, i);
 
 		if (*line->str == '\t') {
-			remove_str_at_cursor(&cursor, (vec2i){ 0, i }, (vec2i){ 1, i });
+			TEXT_EDITOR_remove_str(currentTextEditor, (vec2i){ 0, i }, (vec2i){ 1, i });
 		}
 	}
 }
@@ -533,11 +537,11 @@ void on_char_typed(void* args) {
 				vec2i start = (vec2i){ startData.x, startData.y };
 
 				if (!vector_equal_2i(end, start)) { // if there is actually something to be deleted
-					remove_str_at_cursor(cursor, start, end);
+					TEXT_EDITOR_remove_str(currentTextEditor, start, end);
 				}
 			}
 			else {
-				delete_cursor_selection(cursor);
+				TEXT_EDITOR_delete_selection(currentTextEditor);
 			}
 		}
 		else if (c < 127) {
@@ -550,7 +554,6 @@ void on_char_typed(void* args) {
 				}
 			}
 			else {
-				
 				charsTyped++;
 				vec2i p = (vec2i){ cursor->position.x, y };
 
@@ -568,11 +571,11 @@ void on_char_typed(void* args) {
 					nextCharIndex = min(nextCharIndex, lineLen);
 
 					if (nextCharIndex > p.x) {
-						remove_str_at_cursor(cursor, p, (vec2i) { nextCharIndex, p.y });
+						TEXT_EDITOR_remove_str(currentTextEditor, p, (vec2i) { nextCharIndex, p.y });
 					}
 				}
 
-				insert_str_at_cursor(cursor, &c, 1);
+				TEXT_EDITOR_insert_str(currentTextEditor, &c, 1);
 				
 			}
 		}
@@ -665,11 +668,11 @@ void on_key_down(void* args) {
 			vec2i nextPos = (vec2i){ nextPosData.x, nextPosData.y };
 
 			if (!vector_equal_2i(cursor->position, nextPos)) {
-				remove_str_at_cursor(cursor, cursor->position, nextPos);
+				TEXT_EDITOR_remove_str(currentTextEditor, cursor->position, nextPos);
 			}
 		}
 		else {
-			delete_cursor_selection(cursor);
+			TEXT_EDITOR_delete_selection(currentTextEditor);
 		}
 
 		currentTextEditor->saved = 0;
@@ -728,29 +731,31 @@ void on_command(void* args) {
 
 				vec2i start, end;
 				get_cursor_selection_bounds(*cursor, &start, &end);
-				remove_str_at_cursor(cursor, start, end);
+				TEXT_EDITOR_remove_str(currentTextEditor, start, end);
 
 				editsMade = 1;
 			}
 			break;
 		case PT_PASTE:
-			delete_cursor_selection(cursor);
+			if (currentTextEditor) {
+				TEXT_EDITOR_delete_selection(currentTextEditor);
+				
+				if (OpenClipboard(PT_GET_MAIN_HWND()))
+				{
+					HANDLE hClipboardData = GetClipboardData(CF_TEXT);
 
-			if (OpenClipboard(PT_GET_MAIN_HWND()))
-			{
-				HANDLE hClipboardData = GetClipboardData(CF_TEXT);
+					if (hClipboardData) {
+						char* pchData = (char*)GlobalLock(hClipboardData);
+						int clipboardLen = strlen(pchData);
 
-				if (hClipboardData) {
-					char* pchData = (char*)GlobalLock(hClipboardData);
-					int clipboardLen = strlen(pchData);
+						TEXT_EDITOR_insert_str(currentTextEditor, pchData, clipboardLen);
+						editsMade = 1;
 
-					insert_str_at_cursor(cursor, pchData, clipboardLen);
-					editsMade = 1;
+						GlobalUnlock(hClipboardData);
+					}
 
-					GlobalUnlock(hClipboardData);
+					CloseClipboard();
 				}
-
-				CloseClipboard();
 			}
 			break;
 		case PT_SELECTALL:
@@ -776,6 +781,12 @@ void on_command(void* args) {
 
 			textHeight = max(4, textHeight);
 			editorTextHeight = textHeight;
+			break;
+		case PT_UNDO:
+			on_undo();
+			break;
+		case PT_REDO:
+			on_redo();
 			break;
 		}
 	}
@@ -1155,7 +1166,8 @@ TEXT_EDITOR* TEXT_EDITOR_from_file(Instance* backgroundInstance, PT_RENDERFRAME*
 	do {
 		charsRead = fread(buffer, sizeof(char), bufferSize, file);
 		if (charsRead > 0) {
-			insert_str_at_cursor(cursor, buffer, charsRead);
+
+			TEXT_EDITOR_insert_str(editor, buffer, charsRead);
 		}
 	} while (charsRead == bufferSize);
 	free(buffer);
@@ -1230,4 +1242,82 @@ void TEXT_EDITORs_update(float dt) {
 			}
 		}
 	}
+}
+
+void TEXT_EDITOR_insert_str(TEXT_EDITOR* editor, char* str, int len) {
+	TEXT_CURSOR* cursor = &editor->textCursor;
+	vec2i start = cursor->position;
+	vec2i endPos = insert_str_in_text_array(cursor->textArray, start, str, len);
+	cursor->position = endPos;
+	cursor->selectTo = cursor->position;
+	update_targetX(cursor);
+	move_text_pos_in_view(cursor->position);
+
+	ACTION_RANGE range = {
+		start, endPos
+	};
+	TEXT_ACTION* textAction = TEXT_ACTION_new(str, len, 1, TA_INSERT, editor->lastAction, &editor->actionIndex);
+	textAction->textLines = editor->textLines;
+	PT_EXPANDABLE_ARRAY_add(&textAction->ranges, &range);
+	TEXT_ACTION_append(&editor->firstAction, &editor->lastAction, textAction, &editor->actionIndex);
+}
+
+void TEXT_EDITOR_remove_str(TEXT_EDITOR* editor, vec2i start, vec2i end) {	TEXT_CURSOR* cursor = &editor->textCursor;
+	cursor->lastTypedTime = PT_TIME_get();
+	
+	ACTION_RANGE range = {
+		start, end
+	};
+	char* removedStr = NULL;
+	int removedLen = 0;
+	get_text_in_range(editor->textLines, start, end, &removedStr, &removedLen);
+
+	remove_str_from_text_array(editor->textLines, start, end);
+
+	TEXT_ACTION* textAction = TEXT_ACTION_new(removedStr, removedLen, 1, TA_DELETE, editor->lastAction, &editor->actionIndex);
+	textAction->textLines = editor->textLines;
+	PT_EXPANDABLE_ARRAY_add(&textAction->ranges, &range);
+	TEXT_ACTION_append(&editor->firstAction, &editor->lastAction, textAction, &editor->actionIndex);
+
+	// move cursor to start of deletion range
+	cursor->position = start;
+	cursor->selectTo = start;
+	update_targetX(cursor);
+	move_text_pos_in_view(cursor->position);
+}
+
+void TEXT_EDITOR_delete_selection(TEXT_EDITOR* editor) {
+	TEXT_CURSOR* cursor = &editor->textCursor;
+	if (!vector_equal_2i(cursor->selectTo, cursor->position)) { // if there is actually something selected...
+		vec2i start, end;
+		get_cursor_selection_bounds(*cursor, &start, &end);
+		
+		TEXT_EDITOR_remove_str(editor, start, end);
+	}
+}
+
+void on_undo() {
+	if (!currentTextEditor) {
+		return;
+	}
+
+	TEXT_ACTION* lastAction = currentTextEditor->lastAction;
+	int currentActionId = currentTextEditor->actionIndex;
+
+	// move down the action chain until we hit null or the current action index
+	while (lastAction != NULL && lastAction->actionId > currentActionId - 1) {
+		lastAction = lastAction->lastAction;
+	}
+
+	if (lastAction) {
+		vec2i newCursorPos = TEXT_ACTION_undo(lastAction);
+		TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
+		cursor->position = newCursorPos;
+		cursor->selectTo = newCursorPos;
+		currentTextEditor->actionIndex--;
+	}
+}
+
+void on_redo() {
+
 }

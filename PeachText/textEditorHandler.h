@@ -24,6 +24,26 @@ typedef struct {
 	PT_EXPANDABLE_ARRAY onhoverTweens;
 } EDITOR_LIST_ELEMENT;
 
+typedef enum {
+	TA_INSERT,
+	TA_DELETE
+} TEXT_ACTION_TYPE;
+
+typedef struct {
+	TEXT_ACTION_TYPE type;
+	PT_EXPANDABLE_ARRAY ranges;
+
+	char* data;
+	int dataLen;
+	
+	int actionId; 
+	struct TEXT_ACTION* nextAction;
+	struct TEXT_ACTION* lastAction;
+
+	PT_EXPANDABLE_ARRAY* textLines;
+} TEXT_ACTION;
+
+
 typedef struct {
 	PT_COLOR textColor;
 	PT_COLOR editColor;
@@ -32,6 +52,10 @@ typedef struct {
 	PT_SCROLLFRAME* scrollFrame;
 	PT_RENDERFRAME* renderFrame;
 	PT_RENDERFRAME* sideRenderFrame;
+
+	TEXT_ACTION* firstAction;
+	TEXT_ACTION* lastAction;
+	int actionIndex;
 
 	PT_COLOR insertionColor;
 	float insertionFadeTime;
@@ -56,6 +80,7 @@ typedef struct {
 	char** openFiles;
 	int numOpenFiles;
 } EDITOR_STATE_CONFIG;
+
 
 TEXT_METADATA_FLAG create_text_metadata_flag(float t);
 
@@ -98,5 +123,9 @@ int insertMode;
 
 int editorTextHeight, editorCharWidth, editorLinePadding;
 char_set* editorCharSet;
+
+void TEXT_EDITOR_insert_str(TEXT_EDITOR* editor, char* str, int len);
+void TEXT_EDITOR_remove_str(TEXT_EDITOR* editor, vec2i start, vec2i end);
+void TEXT_EDITOR_delete_selection(TEXT_EDITOR* editor);
 
 #endif

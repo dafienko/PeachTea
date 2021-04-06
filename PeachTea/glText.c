@@ -47,6 +47,10 @@ void initFT() {
 void TEXT_METADATA_FLAG_insert(PT_EXPANDABLE_ARRAY* flags, TEXT_METADATA_FLAG flag) {
 	int insertIndex = 0;
 	int flagStrIndex = flag.index;
+	if (flag.index < 0) {
+		fatal_error(L"Tried to insert a flag at a negative location (%i)", flagStrIndex);
+	}
+
 	for (int i = 0; i < flags->numElements; i++) {
 		TEXT_METADATA_FLAG thisFlag = *(TEXT_METADATA_FLAG*)PT_EXPANDABLE_ARRAY_get(flags, i);
 		int thisIndex = thisFlag.index;

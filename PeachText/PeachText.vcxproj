@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<ItemGroup>
-		<ResourceCompile Include="icon.rc">
-		</ResourceCompile>
-	</ItemGroup>
-   <ItemGroup Label="ProjectConfigurations">
+  <ItemGroup>
+    <ResourceCompile Include="icon.rc">
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -157,6 +157,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="actionHistory.c" />
     <ClCompile Include="editorStateConfig.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="textCursor.c" />
@@ -165,6 +166,7 @@
     <ClCompile Include="ui.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="actionHistory.h" />
     <ClInclude Include="textCursor.h" />
     <ClInclude Include="textEditorHandler.h" />
     <ClInclude Include="textEditorRenderer.h" />

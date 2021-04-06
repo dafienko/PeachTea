@@ -188,6 +188,11 @@ void render_text_editor(TEXT_EDITOR* textEditor) {
 			};
 			vec2i cursorSize = (vec2i){ cursor.thickness, lineThickness };
 			textEditor->textCursor.lastMidPos = vector_add_2i(cursorPos, vector_div_2i(cursorSize, 2));
+			if (insertMode) {
+				TEXT_LINE currentLine = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor.textArray, cursor.position.y);
+				char c = *(currentLine.str + cursor.position.x);
+				cursorSize.x = (editorCharSet->size + c)->x;
+			}
 			cursorPositioned = 1;
 
 			glUseProgram(PTS_rect);

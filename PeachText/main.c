@@ -60,7 +60,7 @@ void onUpdate(float dt) {
 		cursorPosition = textEditor->textCursor.position;
 	}
 
-	const char* s = "      ";
+	const char* s = "\t\t";
 	memset(status, 0, 200 * sizeof(char));
 	sprintf(
 		status,

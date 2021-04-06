@@ -255,6 +255,13 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				break;
 			case 'S':
 				command = is_key_down(VK_LSHIFT) ? PT_SAVE_AS : PT_SAVE;
+				break;
+			case 'Z':
+				command = PT_UNDO;
+				break;
+			case 'Y':
+				command = PT_REDO;
+				break;
 			}
 
 			if (command >= 0) {
@@ -295,6 +302,8 @@ int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
 
 	lastTime = PT_TIME_get();
 
+	float lastRenderTime = 0;
+	const float TARGET_FRAMERATE = 60;
 	while (1) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&msg);
@@ -306,12 +315,18 @@ int mainProgramLoop(void(*updateCallback)(float), void(*renderCB)(void)) {
 			}
 		}
 
-		float dt = PT_UPDATE(); 
-		if (updateCallback) {
-			updateCallback(dt);
-		}
 
-		render(renderCallback); 
+		float t = PT_TIME_get();
+		float timeSinceRender = t - lastRenderTime;
+		if (timeSinceRender > 1 / TARGET_FRAMERATE) {
+			float dt = PT_UPDATE(); 
+			if (updateCallback) {
+				updateCallback(dt);
+			}
+			
+			lastRenderTime = t;
+			render(renderCallback);
+		}
 	}
 
 
