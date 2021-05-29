@@ -575,10 +575,13 @@ void move_cursor(TEXT_CURSOR* cursor, vec2i dir, int shiftDown, int altDown) {
 
 	if (dir.x != 0) {
 		int margin = currentTextEditor->scrollFrame->guiObj->lastCanvas.left + TEXT_EDITOR_get_margin(currentTextEditor);
-		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor) - margin;
+		int wrapX = TEXT_EDITOR_get_wrapX(currentTextEditor);
+		if (wrapX) {
+			wrapX -= margin;
+		}
 		TEXT_LINE line = *(TEXT_LINE*)PT_EXPANDABLE_ARRAY_get(cursor->textArray, newPos.y);
 		vec2i offset = get_text_offset(editorCharSet, line.str, newPos.x, wrapX);
-		cursor->targetX = offset.x + margin;
+		cursor->targetX = offset.x  + margin;
 	}
 
 	// there is at least one line clone and at least alt or shift is being held down

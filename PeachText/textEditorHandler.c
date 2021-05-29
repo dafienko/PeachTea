@@ -1319,5 +1319,24 @@ void on_undo() {
 }
 
 void on_redo() {
+	if (!currentTextEditor) {
+		return;
+	}
 
+	TEXT_ACTION* lastUndoneAction = currentTextEditor->lastAction;
+	int currentActionId = currentTextEditor->actionIndex;
+
+	// move down the action chain until we hit null or the current action index
+	while (lastUndoneAction != NULL && lastUndoneAction->actionId > currentActionId) {
+		lastUndoneAction = lastUndoneAction->lastAction;
+	}
+
+
+	if (lastUndoneAction && currentActionId <= lastUndoneAction->actionId) {
+		vec2i newCursorPos = TEXT_ACTION_do(lastUndoneAction);
+		TEXT_CURSOR* cursor = &currentTextEditor->textCursor;
+		cursor->position = newCursorPos;
+		cursor->selectTo = newCursorPos;
+		currentTextEditor->actionIndex++;
+	}
 }
